@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Frontend output
+dist/
+
+# Backend output
+backend/.gradle/
+backend/build/
+.gradle/
+build/
+out/
+
+# Local environment
+.env
+.env.*
+!.env.example
+PLAN.md
+plan/
+
+# Logs
+*.log
+npm-debug.log*
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+backend/.gradle/
+backend/build/

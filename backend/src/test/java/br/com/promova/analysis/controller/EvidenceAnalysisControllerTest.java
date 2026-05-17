@@ -13,10 +13,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import br.com.promova.analysis.engine.MockAnalysisEngine;
 import br.com.promova.analysis.service.EvidenceAnalysisService;
-import br.com.promova.framework.MockFrameworkProvider;
+import br.com.promova.framework.JsonFrameworkProvider;
 
 @WebMvcTest(EvidenceAnalysisController.class)
-@Import({EvidenceAnalysisService.class, MockAnalysisEngine.class, MockFrameworkProvider.class})
+@Import({EvidenceAnalysisService.class, MockAnalysisEngine.class, JsonFrameworkProvider.class})
 class EvidenceAnalysisControllerTest {
   @Autowired private MockMvc mockMvc;
 

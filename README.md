@@ -23,6 +23,7 @@ O output gerado do frontend fica em `dist/` e não deve ser versionado.
 - Java 21
 - Node.js 20+
 - Opcional: `GITHUB_TOKEN` para repositórios privados ou limites maiores na API do GitHub
+- Opcional: `OPENROUTER_API_KEY` para habilitar análise real com LLM via OpenRouter
 
 ## Como Rodar Localmente
 
@@ -40,6 +41,68 @@ npm run dev
 ```
 
 O frontend inicia em `http://localhost:4173`, a menos que a porta já esteja em uso. Nesse caso, o servidor local tenta as próximas portas automaticamente.
+
+## Habilitar Análise com IA
+
+Por padrão, o backend usa o motor mock para permitir desenvolvimento local e CI sem depender de chave externa.
+
+Para usar análise real via OpenRouter:
+
+```powershell
+cd backend
+$env:PROMOVA_ANALYSIS_ENGINE="openrouter"
+$env:OPENROUTER_API_KEY="sua-chave"
+.\gradlew.bat bootRun
+```
+
+O modelo padrão é:
+
+```text
+meta-llama/llama-3.3-70b-instruct:free
+```
+
+Você pode trocar o modelo com:
+
+```powershell
+$env:OPENROUTER_MODEL="qwen/qwen3-next-80b-a3b-instruct:free"
+```
+
+## Editar o Career Framework
+
+O framework atual fica em:
+
+[backend/src/main/resources/career-framework.json](</C:/Users/João/Documents/Projects/FIAP/Startup/backend/src/main/resources/career-framework.json>)
+
+Hoje ele contém:
+
+```json
+{
+  "levels": {
+    "L3": {
+      "title": "Software Engineer I",
+      "description": "Software Engineer I",
+      "criteria": {
+        "Writing code": "With guidance and support from more senior engineers...",
+        "Testing": "Understands the basics about the test pyramid."
+      }
+    },
+    "L4": {
+      "title": "Software Engineer II",
+      "description": "Software Engineer II",
+      "criteria": {
+        "Writing code": "Consistently writes code that is easily testable...",
+        "Testing": "Understands all levels of testing in the testing pyramid."
+      }
+    }
+  }
+}
+```
+
+Para usar outro arquivo sem alterar o repo:
+
+```powershell
+$env:PROMOVA_FRAMEWORK_PATH="file:C:/caminho/para/career-framework.json"
+```
 
 ## Validações
 
@@ -77,4 +140,4 @@ GET /api/github/repos/{owner}/{repo}/pulls/search?q=author:usuario
 
 ## Observações
 
-O motor de análise e o provider do career framework ainda são implementações mockadas de propósito. Eles estão isolados atrás de interfaces para que uma análise real com IA possa substituir essa camada sem alterar os contratos dos controllers.
+O motor de análise está isolado atrás da interface `AnalysisEngine`. O mock segue disponível para desenvolvimento local, enquanto o provider `openrouter` usa um LLM real com prompt de sistema orientado pelo career framework enviado pelo backend.

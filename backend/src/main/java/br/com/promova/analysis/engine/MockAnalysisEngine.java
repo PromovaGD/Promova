@@ -6,9 +6,11 @@ import br.com.promova.framework.CareerFramework;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 @Component
+@ConditionalOnProperty(name = "promova.analysis.engine", havingValue = "mock", matchIfMissing = true)
 public class MockAnalysisEngine implements AnalysisEngine {
   private static final List<String> IMPACT_KEYWORDS =
       List.of("refactor", "improve", "increase", "optimize");

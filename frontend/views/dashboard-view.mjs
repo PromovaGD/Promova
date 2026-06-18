@@ -2,34 +2,83 @@ import { sourceCard } from "../components/cards.mjs";
 import { appPage, pageHero } from "../components/layout.mjs";
 import { githubImportPanel } from "../features/github-import/github-import-panel.mjs";
 import { escapeHtml } from "../utils/html.mjs";
-import { LEVELS, badgeClass, formatTimestamp } from "../utils/format.mjs";
+import { LEVELS, badgeClass, confidenceLabel, formatTimestamp, sourceBadgeClass } from "../utils/format.mjs";
 
 export function dashboardPage(state) {
-  return appPage(`
-    ${pageHero(
-      "Painel da sessão",
-      "Evidências capturadas",
-      "Acompanhe sinais detectados automaticamente nas ferramentas conectadas e abra novas evidências conforme elas chegam.",
-    )}
+  return appPage(
+    dashboardContent(state, {
+      title: "Suas evidências",
+      subtitle: "Painel de análises",
+      copy: "Acompanhe sinais detectados nas ferramentas conectadas, filtre por período e abra a análise completa de cada evidência.",
+    }) + githubImportPanel(state.githubImport),
+    { user: state.user, mode: "app" },
+  );
+}
+
+export function dashboardContent(state, hero) {
+  return `
+    ${pageHero(hero.subtitle, hero.title, hero.copy)}
+    ${state.viewingAsAdmin && state.viewedEmployee ? adminContextBanner(state.viewedEmployee) : ""}
+    ${dashboardFilters(state)}
     ${liveDashboardPreview(state)}
-    ${githubImportPanel(state.githubImport)}
-  `);
+  `;
+}
+
+function adminContextBanner(employee) {
+  return `
+    <div class="admin-context-banner">
+      <strong>Visualizando:</strong> ${escapeHtml(employee.name)} · ${escapeHtml(employee.email)}
+    </div>
+  `;
+}
+
+function dashboardFilters(state) {
+  const filterScope = state.viewingAsAdmin ? "admin" : "user";
+  const filters = filterScope === "admin" ? state.adminFilters || {} : state.dashboardFilters || {};
+
+  return `
+    <div class="dashboard-toolbar">
+      <div class="dashboard-filters">
+        <label class="field compact">
+          <span>De</span>
+          <input type="date" data-filter-scope="${filterScope}" data-filter-field="dateFrom" value="${escapeHtml(filters.dateFrom || "")}" />
+        </label>
+        <label class="field compact">
+          <span>Até</span>
+          <input type="date" data-filter-scope="${filterScope}" data-filter-field="dateTo" value="${escapeHtml(filters.dateTo || "")}" />
+        </label>
+        <button class="button secondary" type="button" data-action="apply-filters" data-filter-scope="${filterScope}">Filtrar</button>
+        <button class="button ghost" type="button" data-action="clear-filters" data-filter-scope="${filterScope}">Limpar filtros</button>
+      </div>
+      ${
+        state.viewingAsAdmin
+          ? ""
+          : `
+      <div class="dashboard-toolbar-actions">
+        <button class="button ghost danger-text" type="button" data-action="clear-analyses" data-filter-scope="${filterScope}">Limpar histórico</button>
+      </div>`
+      }
+    </div>
+  `;
 }
 
 function liveDashboardPreview(state) {
+  const filters = state.viewingAsAdmin ? state.adminFilters || {} : state.dashboardFilters || {};
+  const evidences = filterEvidencesLocally(state.evidences, filters);
   const counts = LEVELS.reduce((accumulator, level) => {
-    accumulator[level] = state.evidences.filter((item) => item.impactLevel === level).length;
+    accumulator[level] = evidences.filter((item) => item.impactLevel === level).length;
     return accumulator;
   }, {});
-  const latest = state.evidences[0];
+  const latest = evidences[0];
+  const sources = [...new Set(evidences.map((item) => item.source))];
 
   return `
     <div class="dashboard-shell live-dashboard">
       <div class="dashboard-metrics">
         <div class="metric-card blue">
-          <span class="metric-label">Evidências salvas</span>
-          <strong class="metric-value">${state.evidences.length}</strong>
-          <span class="metric-sub">Nesta sessão</span>
+          <span class="metric-label">Evidências</span>
+          <strong class="metric-value">${evidences.length}</strong>
+          <span class="metric-sub">${state.viewingAsAdmin ? "Do funcionário" : "Salvas na conta"}</span>
         </div>
         <div class="metric-card green">
           <span class="metric-label">Última classificação</span>
@@ -37,14 +86,39 @@ function liveDashboardPreview(state) {
           <span class="metric-sub">${latest ? escapeHtml(formatTimestamp(latest.createdAt)) : "Nenhuma ainda"}</span>
         </div>
         <div class="metric-card purple">
-          <span class="metric-label">Níveis L4+</span>
-          <strong class="metric-value">${counts.L4 + counts.L5}</strong>
-          <span class="metric-sub">Impacto mais forte</span>
+          <span class="metric-label">Ferramentas</span>
+          <strong class="metric-value">${sources.length}</strong>
+          <span class="metric-sub">${sources.length ? escapeHtml(sources.join(", ")) : "Sem fontes"}</span>
         </div>
       </div>
-      ${state.evidences.length ? evidenceFeed(state.evidences) : pendingEvidence(state)}
+      ${evidences.length ? evidenceFeed(evidences) : pendingEvidence(state)}
     </div>
   `;
+}
+
+function filterEvidencesLocally(evidences, filters = {}) {
+  if (!filters?.dateFrom && !filters?.dateTo) {
+    return evidences;
+  }
+
+  return evidences.filter((item) => {
+    const createdAt = new Date(item.createdAt).getTime();
+    if (filters.dateFrom) {
+      const from = new Date(`${filters.dateFrom}T00:00:00`).getTime();
+      if (createdAt < from) {
+        return false;
+      }
+    }
+
+    if (filters.dateTo) {
+      const to = new Date(`${filters.dateTo}T23:59:59.999`).getTime();
+      if (createdAt > to) {
+        return false;
+      }
+    }
+
+    return true;
+  });
 }
 
 function evidenceFeed(evidences) {
@@ -53,14 +127,27 @@ function evidenceFeed(evidences) {
       ${evidences
         .map(
           (item) => `
-            <article class="feed-item">
+            <button class="feed-item feed-item-button" type="button" data-action="open-evidence-detail" data-evidence-id="${escapeHtml(item.id)}">
               <span class="${badgeClass(item.impactLevel)}">${escapeHtml(item.impactLevel)}</span>
-              <div>
+              <div class="feed-copy">
+                <div class="feed-meta-row">
+                  <span class="source-badge ${sourceBadgeClass(item.source)}">${escapeHtml(item.source)}</span>
+                  <span class="confidence-pill">${escapeHtml(confidenceLabel(item.confidence))}</span>
+                </div>
                 <strong class="feed-title">${escapeHtml(item.evidence)}</strong>
-                <p class="feed-sub">Atual: ${escapeHtml(item.currentLevel)} · Alvo: ${escapeHtml(item.targetLevel)}</p>
+                <p class="feed-sub">${escapeHtml(item.sourceMeta)}</p>
+                <p class="feed-detail">Atual: ${escapeHtml(item.currentLevel)} · Alvo: ${escapeHtml(item.targetLevel)} · ${escapeHtml(truncate(item.justification, 120))}</p>
+                ${
+                  item.competencies?.length
+                    ? `<div class="feed-tags">${item.competencies
+                        .slice(0, 3)
+                        .map((tag) => `<span class="tag-mini">${escapeHtml(tag)}</span>`)
+                        .join("")}</div>`
+                    : ""
+                }
               </div>
               <span class="feed-time">${escapeHtml(formatTimestamp(item.createdAt))}</span>
-            </article>
+            </button>
           `,
         )
         .join("")}
@@ -69,6 +156,10 @@ function evidenceFeed(evidences) {
 }
 
 function pendingEvidence(state) {
+  if (state.viewingAsAdmin) {
+    return emptyPanel("Este funcionário ainda não possui evidências no período selecionado.");
+  }
+
   if (state.pendingStatus === "loading") {
     return emptyPanel("Buscando a próxima evidência capturada...");
   }
@@ -99,4 +190,12 @@ function emptyPanel(message, actionLabel, action) {
       ${action ? `<button class="button primary" type="button" data-action="${action}">${escapeHtml(actionLabel)}</button>` : ""}
     </div>
   `;
+}
+
+function truncate(value, maxLength) {
+  if (!value || value.length <= maxLength) {
+    return value || "";
+  }
+
+  return `${value.slice(0, maxLength).trim()}...`;
 }

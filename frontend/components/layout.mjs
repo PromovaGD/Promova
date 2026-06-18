@@ -1,6 +1,7 @@
 import { escapeHtml } from "../utils/html.mjs";
+import { roleLabel } from "../utils/format.mjs";
 
-export function siteHeader(mode) {
+export function siteHeader(mode, user = null) {
   const landingLinks = [
     ["#product", "Produto"],
     ["#how-it-works", "Como funciona"],
@@ -9,8 +10,16 @@ export function siteHeader(mode) {
   const appLinks = [
     { label: "Início", action: "back-home" },
     { label: "Painel", action: "open-dashboard" },
-    { label: "Novidades", action: "open-form" },
   ];
+
+  if (user?.role === "ADMIN") {
+    appLinks.push({ label: "Admin", action: "open-admin" });
+  }
+
+  if (mode !== "landing" && user) {
+    appLinks.push({ label: "Nova evidência", action: "open-form" });
+  }
+
   const nav =
     mode === "landing"
       ? landingLinks
@@ -22,8 +31,9 @@ export function siteHeader(mode) {
               `<button class="nav-link button-reset" type="button" data-action="${action}">${escapeHtml(label)}</button>`,
           )
           .join("");
-  const ctaAction = mode === "landing" ? "open-dashboard" : "open-form";
-  const ctaLabel = mode === "landing" ? "Começar agora" : "Ver nova evidência";
+
+  const ctaAction = mode === "landing" ? "open-auth" : user ? "open-form" : "open-auth";
+  const ctaLabel = mode === "landing" ? "Começar agora" : user ? "Ver nova evidência" : "Entrar";
 
   return `
     <header class="site-header">
@@ -35,8 +45,30 @@ export function siteHeader(mode) {
         </span>
       </a>
       <nav class="site-nav" aria-label="Principal">${nav}</nav>
-      <button class="button primary button-cta" type="button" data-action="${ctaAction}">${escapeHtml(ctaLabel)}</button>
+      <div class="header-actions">
+        ${user ? userBadge(user) : ""}
+        <button class="button primary button-cta" type="button" data-action="${ctaAction}">${escapeHtml(ctaLabel)}</button>
+        ${user ? `<button class="button ghost button-logout" type="button" data-action="logout">Sair</button>` : ""}
+      </div>
     </header>
+  `;
+}
+
+function userBadge(user) {
+  const initials = user.name
+    .split(" ")
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() || "")
+    .join("");
+
+  return `
+    <div class="user-badge" aria-label="Usuário autenticado">
+      <span class="user-badge-avatar">${escapeHtml(initials)}</span>
+      <span class="user-badge-copy">
+        <strong>${escapeHtml(user.name)}</strong>
+        <span>${escapeHtml(roleLabel(user.role))}</span>
+      </span>
+    </div>
   `;
 }
 
@@ -62,12 +94,15 @@ export function footerLinks() {
   `;
 }
 
-export function appPage(content) {
+export function appPage(content, options = {}) {
+  const mode = options.mode || "app";
+  const user = options.user || null;
+
   return `
     <div class="site-page">
       <section class="surface-light section">
         <div class="container">
-          ${siteHeader("app")}
+          ${siteHeader(mode, user)}
           ${content}
         </div>
       </section>

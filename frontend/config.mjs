@@ -6,4 +6,6 @@ export const API_BASE_URL =
 export const SESSION_KEYS = {
   cursor: "promova.next-evidence-cursor",
   evidences: "promova.session-evidences",
+  authToken: "promova.auth-token",
+  authUser: "promova.auth-user",
 };

@@ -65,7 +65,7 @@ export function landingPage() {
               <h1>Promova sua carreira com evidências</h1>
               <p>Registre suas evidências, acompanhe seu impacto e simplifique conversas de carreira com uma experiência clara e direta.</p>
               <div class="hero-actions">
-                <button class="button primary" type="button" data-action="open-dashboard">Começar agora</button>
+                <button class="button primary" type="button" data-action="open-auth">Começar agora</button>
                 <a class="button secondary" href="#how-it-works">Ver como funciona</a>
               </div>
             </div>
@@ -137,7 +137,7 @@ export function landingPage() {
         <div class="container cta-inner">
           <h2>Comece a usar o Promova hoje</h2>
           <p>Transforme seu processo de carreira em algo justo, transparente e baseado em dados.</p>
-          <button class="button primary" type="button" data-action="open-dashboard">Começar agora grátis</button>
+          <button class="button primary" type="button" data-action="open-auth">Começar agora grátis</button>
         </div>
       </section>
 

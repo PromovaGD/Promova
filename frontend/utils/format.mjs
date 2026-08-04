@@ -36,3 +36,35 @@ export function badgeClass(level) {
 
   return "badge neutral";
 }
+
+export function sourceBadgeClass(source) {
+  const normalized = String(source || "").toLowerCase();
+
+  if (normalized.includes("github")) {
+    return "github";
+  }
+
+  if (normalized.includes("jira")) {
+    return "jira";
+  }
+
+  if (normalized.includes("slack")) {
+    return "slack";
+  }
+
+  return "neutral";
+}
+
+export function confidenceLabel(confidence) {
+  const labels = {
+    high: "Alta confiança",
+    medium: "Confiança média",
+    low: "Baixa confiança",
+  };
+
+  return labels[confidence] || "Confiança média";
+}
+
+export function roleLabel(role) {
+  return role === "ADMIN" ? "Administrador" : "Funcionário";
+}

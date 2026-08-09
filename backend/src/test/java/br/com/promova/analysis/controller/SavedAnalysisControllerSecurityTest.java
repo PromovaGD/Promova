@@ -3,6 +3,7 @@ package br.com.promova.analysis.controller;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import br.com.promova.analysis.service.SavedAnalysisService;
@@ -49,5 +50,23 @@ class SavedAnalysisControllerSecurityTest {
         .andExpect(status().isOk());
 
     verify(savedAnalysisService).listForUser(employee, null, null);
+  }
+
+  @Test
+  void doesNotExposeClientAuthoredAnalysisPersistence() throws Exception {
+    User employee = new User("Employee", "employee@example.com", "hash", UserRole.EMPLOYEE);
+    when(authTokenResolver.resolve("Bearer employee-token")).thenReturn("employee-token");
+    when(authService.requireUser("employee-token")).thenReturn(employee);
+
+    mockMvc
+        .perform(
+            post("/analyses")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer employee-token")
+                .contentType("application/json")
+                .content(
+                    """
+                    {"impactLevel":"L99","confidence":"high","userId":999}
+                    """))
+        .andExpect(status().isMethodNotAllowed());
   }
 }

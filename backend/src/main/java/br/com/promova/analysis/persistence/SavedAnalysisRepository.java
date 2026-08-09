@@ -3,6 +3,7 @@ package br.com.promova.analysis.persistence;
 import br.com.promova.user.User;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -10,6 +11,15 @@ import org.springframework.data.repository.query.Param;
 
 public interface SavedAnalysisRepository extends JpaRepository<SavedAnalysis, Long> {
   List<SavedAnalysis> findByUserOrderByCreatedAtDesc(User user);
+
+  @Query(
+      """
+      SELECT a FROM SavedAnalysis a
+      WHERE a.evidenceEntity.id = :evidenceId
+        AND a.user.id = :userId
+      """)
+  Optional<SavedAnalysis> findByEvidenceIdAndUserId(
+      @Param("evidenceId") Long evidenceId, @Param("userId") Long userId);
 
   @Query(
       """

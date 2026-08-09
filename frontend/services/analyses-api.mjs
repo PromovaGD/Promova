@@ -1,4 +1,4 @@
-import { fetchEmployeeAnalyses, fetchUserAnalyses, saveUserAnalysis } from "./auth-api.mjs";
+import { fetchEmployeeAnalyses, fetchUserAnalyses } from "./auth-api.mjs";
 
 export async function loadAnalysesForCurrentUser(filters = {}) {
   const items = await fetchUserAnalyses(buildDateParams(filters));
@@ -8,24 +8,6 @@ export async function loadAnalysesForCurrentUser(filters = {}) {
 export async function loadAnalysesForEmployee(userId, filters = {}) {
   const items = await fetchEmployeeAnalyses(userId, buildDateParams(filters));
   return items.map(normalizeSavedAnalysis);
-}
-
-export async function persistAnalysis(analysis) {
-  await saveUserAnalysis({
-    externalId: analysis.id,
-    source: analysis.source,
-    sourceMeta: analysis.sourceMeta,
-    evidence: analysis.evidence,
-    currentLevel: analysis.currentLevel,
-    targetLevel: analysis.targetLevel,
-    impactLevel: analysis.impactLevel,
-    confidence: analysis.confidence,
-    justification: analysis.justification,
-    readiness: analysis.readiness,
-    createdAt: analysis.createdAt,
-    competencies: analysis.competencies,
-    suggestions: analysis.suggestions,
-  });
 }
 
 function normalizeSavedAnalysis(item) {

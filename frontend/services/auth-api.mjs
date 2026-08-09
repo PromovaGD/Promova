@@ -39,10 +39,6 @@ export async function fetchUserAnalyses(params) {
   return apiGet("/analyses", params, { auth: true });
 }
 
-export async function saveUserAnalysis(analysis) {
-  return apiPost("/analyses", analysis, { auth: true });
-}
-
 export async function clearUserAnalyses(params) {
   return apiDelete("/analyses", params, { auth: true });
 }

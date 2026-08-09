@@ -1,32 +1,29 @@
-import { createId, readinessFor } from "../utils/format.mjs";
 import { apiPost } from "./http.mjs";
 
-export async function analyzeCapturedEvidence(capturedEvidence) {
-  const apiResponse = await apiPost("/analyze", {
-    evidence: capturedEvidence.evidence,
-    currentLevel: capturedEvidence.currentLevel,
-    targetLevel: capturedEvidence.targetLevel,
-  });
+export async function analyzeCapturedEvidence(evidenceId) {
+  const apiResponse = await apiPost(
+    `/evidences/${encodeURIComponent(evidenceId)}/analysis`,
+    undefined,
+    { auth: true },
+  );
 
-  return normalizeAnalysisResponse(apiResponse, capturedEvidence);
+  return normalizeAnalysisResponse(apiResponse);
 }
 
-function normalizeAnalysisResponse(apiResponse, capturedEvidence) {
-  const impactLevel = apiResponse.estimatedLevel || capturedEvidence.currentLevel;
-
+function normalizeAnalysisResponse(apiResponse) {
   return {
-    id: createId(),
-    source: capturedEvidence.source,
-    sourceMeta: capturedEvidence.sourceMeta,
-    impactLevel,
-    confidence: apiResponse.confidence || "medium",
-    justification: apiResponse.reasoning || "Análise concluída pelo backend.",
+    id: apiResponse.id,
+    source: apiResponse.source,
+    sourceMeta: apiResponse.sourceMeta,
+    impactLevel: apiResponse.impactLevel,
+    confidence: apiResponse.confidence,
+    justification: apiResponse.justification,
     competencies: Array.isArray(apiResponse.competencies) ? apiResponse.competencies : [],
     suggestions: Array.isArray(apiResponse.suggestions) ? apiResponse.suggestions : [],
-    readiness: readinessFor(impactLevel, capturedEvidence.targetLevel),
-    currentLevel: capturedEvidence.currentLevel,
-    targetLevel: capturedEvidence.targetLevel,
-    evidence: capturedEvidence.evidence,
-    createdAt: new Date().toISOString(),
+    readiness: apiResponse.readiness,
+    currentLevel: apiResponse.currentLevel,
+    targetLevel: apiResponse.targetLevel,
+    evidence: apiResponse.evidence,
+    createdAt: apiResponse.createdAt,
   };
 }

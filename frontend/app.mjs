@@ -8,7 +8,7 @@ import {
   setGithubImportResults,
   updateGithubImportField,
 } from "./features/github-import/github-import-model.mjs";
-import { loadAnalysesForCurrentUser, loadAnalysesForEmployee, persistAnalysis } from "./services/analyses-api.mjs";
+import { loadAnalysesForCurrentUser, loadAnalysesForEmployee } from "./services/analyses-api.mjs";
 import { analyzeCapturedEvidence } from "./services/analysis-api.mjs";
 import {
   fetchCurrentUser,
@@ -572,17 +572,13 @@ async function openCapturedEvidence() {
       throw new Error("Seu perfil de carreira não está disponível.");
     }
 
-    const analyzedEvidence = await analyzeCapturedEvidence({
-      ...state.pendingEvidence,
-      currentLevel: profile.currentLevel,
-      targetLevel: profile.targetLevel,
-    });
-    await persistAnalysis(analyzedEvidence);
+    const analyzedEvidence = await analyzeCapturedEvidence(state.pendingEvidence.id);
     state.pendingEvidence = null;
     state.pendingStatus = "idle";
     state.result = analyzedEvidence;
     state.view = "result";
     await refreshUserAnalyses();
+    await refreshPendingEvidences();
   } catch (error) {
     if (error.isUnauthorized || error.status === 401) {
       return;

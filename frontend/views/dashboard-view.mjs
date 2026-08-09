@@ -1,4 +1,3 @@
-import { sourceCard } from "../components/cards.mjs";
 import { appPage, pageHero } from "../components/layout.mjs";
 import { githubImportPanel } from "../features/github-import/github-import-panel.mjs";
 import { escapeHtml } from "../utils/html.mjs";
@@ -9,7 +8,7 @@ export function dashboardPage(state) {
     dashboardContent(state, {
       title: "Suas evidências",
       subtitle: "Painel de análises",
-      copy: "Acompanhe sinais detectados nas ferramentas conectadas, filtre por período e abra a análise completa de cada evidência.",
+      copy: "Acompanhe sua caixa de entrada de evidências pendentes e o histórico de análises da sua conta.",
     }) + githubImportPanel(state.githubImport),
     { user: state.user, mode: "app" },
   );
@@ -27,7 +26,7 @@ export function dashboardContent(state, hero) {
 function adminContextBanner(employee) {
   return `
     <div class="admin-context-banner">
-      <strong>Visualizando:</strong> ${escapeHtml(employee.name)} · ${escapeHtml(employee.email)}
+      <strong>Visualizando:</strong> ${escapeHtml(employee.name)} &middot; ${escapeHtml(employee.email)}
     </div>
   `;
 }
@@ -44,7 +43,7 @@ function dashboardFilters(state) {
           <input type="date" data-filter-scope="${filterScope}" data-filter-field="dateFrom" value="${escapeHtml(filters.dateFrom || "")}" />
         </label>
         <label class="field compact">
-          <span>Até</span>
+          <span>At&eacute;</span>
           <input type="date" data-filter-scope="${filterScope}" data-filter-field="dateTo" value="${escapeHtml(filters.dateTo || "")}" />
         </label>
         <button class="button secondary" type="button" data-action="apply-filters" data-filter-scope="${filterScope}">Filtrar</button>
@@ -55,7 +54,7 @@ function dashboardFilters(state) {
           ? ""
           : `
       <div class="dashboard-toolbar-actions">
-        <button class="button ghost danger-text" type="button" data-action="clear-analyses" data-filter-scope="${filterScope}">Limpar histórico</button>
+        <button class="button ghost danger-text" type="button" data-action="clear-analyses" data-filter-scope="${filterScope}">Limpar hist&oacute;rico</button>
       </div>`
       }
     </div>
@@ -76,13 +75,13 @@ function liveDashboardPreview(state) {
     <div class="dashboard-shell live-dashboard">
       <div class="dashboard-metrics">
         <div class="metric-card blue">
-          <span class="metric-label">Evidências</span>
+          <span class="metric-label">Evid&ecirc;ncias</span>
           <strong class="metric-value">${evidences.length}</strong>
-          <span class="metric-sub">${state.viewingAsAdmin ? "Do funcionário" : "Salvas na conta"}</span>
+          <span class="metric-sub">${state.viewingAsAdmin ? "Do funcion&aacute;rio" : "Salvas na conta"}</span>
         </div>
         <div class="metric-card green">
-          <span class="metric-label">Última classificação</span>
-          <strong class="metric-value">${latest ? escapeHtml(latest.impactLevel) : "—"}</strong>
+          <span class="metric-label">&Uacute;ltima classifica&ccedil;&atilde;o</span>
+          <strong class="metric-value">${latest ? escapeHtml(latest.impactLevel) : "&mdash;"}</strong>
           <span class="metric-sub">${latest ? escapeHtml(formatTimestamp(latest.createdAt)) : "Nenhuma ainda"}</span>
         </div>
         <div class="metric-card purple">
@@ -91,6 +90,7 @@ function liveDashboardPreview(state) {
           <span class="metric-sub">${sources.length ? escapeHtml(sources.join(", ")) : "Sem fontes"}</span>
         </div>
       </div>
+      ${pendingInbox(state)}
       ${evidences.length ? evidenceFeed(evidences) : pendingEvidence(state)}
     </div>
   `;
@@ -136,7 +136,7 @@ function evidenceFeed(evidences) {
                 </div>
                 <strong class="feed-title">${escapeHtml(item.evidence)}</strong>
                 <p class="feed-sub">${escapeHtml(item.sourceMeta)}</p>
-                <p class="feed-detail">Atual: ${escapeHtml(item.currentLevel)} · Alvo: ${escapeHtml(item.targetLevel)} · ${escapeHtml(truncate(item.justification, 120))}</p>
+                <p class="feed-detail">Atual: ${escapeHtml(item.currentLevel)} &middot; Alvo: ${escapeHtml(item.targetLevel)} &middot; ${escapeHtml(truncate(item.justification, 120))}</p>
                 ${
                   item.competencies?.length
                     ? `<div class="feed-tags">${item.competencies
@@ -155,39 +155,64 @@ function evidenceFeed(evidences) {
   `;
 }
 
-function pendingEvidence(state) {
-  if (state.viewingAsAdmin) {
-    return emptyPanel("Este funcionário ainda não possui evidências no período selecionado.");
-  }
-
-  if (state.pendingStatus === "loading") {
-    return emptyPanel("Buscando a próxima evidência capturada...");
-  }
-
-  if (state.pendingStatus === "error") {
-    return emptyPanel("Não foi possível buscar a próxima evidência no backend.", "Tentar novamente", "reload-pending");
-  }
-
-  if (!state.pendingEvidence) {
-    return emptyPanel("Nenhuma evidência nova disponível agora.", "Atualizar", "reload-pending");
+function pendingInbox(state) {
+  if (state.viewingAsAdmin || !state.pendingEvidences?.length) {
+    return "";
   }
 
   return `
-    <div class="empty-state dashboard-empty">
-      <div class="new-evidence-alert">
-        ${sourceCard(state.pendingEvidence, "Pronta para ver")}
-        <p>${escapeHtml(state.pendingEvidence.evidence)}</p>
-        <button class="button primary" type="button" data-action="open-form">Ver evidência</button>
+    <section class="dashboard-feed evidence-inbox">
+      <div class="section-heading">
+        <h2 class="section-title">Caixa de entrada</h2>
+        <p class="section-lead">Evid&ecirc;ncias persistidas que aguardam sua revis&atilde;o.</p>
       </div>
-    </div>
+      ${state.pendingEvidences.map(pendingInboxItem).join("")}
+    </section>
   `;
+}
+
+function pendingInboxItem(item) {
+  return `
+    <article class="feed-item pending-feed-item">
+      <span class="badge info">Pendente</span>
+      <div class="feed-copy">
+        <div class="feed-meta-row">
+          <span class="source-badge ${sourceBadgeClass(item.source)}">${escapeHtml(item.source)}</span>
+          <span class="confidence-pill">Aguardando an&aacute;lise</span>
+        </div>
+        <strong class="feed-title">${escapeHtml(item.sourceMeta)}</strong>
+        <p class="feed-sub">${escapeHtml(item.evidence)}</p>
+        <p class="feed-detail">Capturada em ${escapeHtml(formatTimestamp(item.capturedAt))}</p>
+      </div>
+      <div class="feed-actions">
+        <button class="button primary compact" type="button" data-action="open-pending-evidence" data-evidence-id="${escapeHtml(item.id)}">Revisar</button>
+        <button class="button ghost compact" type="button" data-action="dismiss-evidence" data-evidence-id="${escapeHtml(item.id)}">Dispensar</button>
+      </div>
+    </article>
+  `;
+}
+
+function pendingEvidence(state) {
+  if (state.viewingAsAdmin) {
+    return emptyPanel("Este funcion&aacute;rio ainda n&atilde;o possui evid&ecirc;ncias no per&iacute;odo selecionado.");
+  }
+
+  if (state.pendingStatus === "loading") {
+    return emptyPanel("Buscando evid&ecirc;ncias pendentes...");
+  }
+
+  if (state.pendingStatus === "error") {
+    return emptyPanel("N&atilde;o foi poss&iacute;vel buscar as evid&ecirc;ncias pendentes no backend.", "Tentar novamente", "reload-pending");
+  }
+
+  return emptyPanel("Nenhuma an&aacute;lise salva no per&iacute;odo selecionado.", "Atualizar", "reload-pending");
 }
 
 function emptyPanel(message, actionLabel, action) {
   return `
     <div class="empty-state dashboard-empty">
-      <p>${escapeHtml(message)}</p>
-      ${action ? `<button class="button primary" type="button" data-action="${action}">${escapeHtml(actionLabel)}</button>` : ""}
+      <p>${message}</p>
+      ${action ? `<button class="button primary" type="button" data-action="${action}">${actionLabel}</button>` : ""}
     </div>
   `;
 }

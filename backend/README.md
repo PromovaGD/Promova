@@ -19,15 +19,39 @@ cd backend
 O endpoint fica disponivel em:
 
 ```text
-GET  http://localhost:8080/evidences/next?cursor=0
+GET  http://localhost:8080/evidences?status=PENDING
+GET  http://localhost:8080/evidences/{evidenceId}
 GET  http://localhost:8080/evidences/github/pull-request?repo=owner/repo&pullNumber=123
 GET  http://localhost:8080/api/github/repos/{owner}/{repo}/pulls?state=all
 GET  http://localhost:8080/api/github/repos/{owner}/{repo}/pulls/{number}
 GET  http://localhost:8080/api/github/repos/{owner}/{repo}/pulls/search?q=author:usuario
-POST http://localhost:8080/analyze
+GET  http://localhost:8080/api/github/settings
+PUT  http://localhost:8080/api/github/settings
+POST http://localhost:8080/api/github/settings/test
+POST http://localhost:8080/api/github/sync
+POST http://localhost:8080/evidences/{evidenceId}/analysis
 ```
 
 Para repositorios privados ou limites maiores de rate limit, defina `GITHUB_TOKEN` antes de iniciar o backend. A URL base da API tambem pode ser alterada via `github.api.base-url` em `application.properties`.
+
+`/api/github/settings` recebe `{"repoSlug":"owner/repo","authorLogin":"login"}` e persiste
+uma configuracao por usuario. `POST /api/github/settings/test` verifica o repositorio salvo e
+`POST /api/github/sync` pagina pull requests fechados, importa apenas PRs merged do login
+configurado dentro do lookback, e retorna `discovered`, `created`, `existing`, `failed`,
+`lastSyncAt` e `lastSyncOutcome`. A Evidence usa a chave unica por usuario, fonte e externalId,
+portanto uma repeticao informa os itens como existentes sem criar linhas duplicadas.
+
+O acesso ao GitHub e exclusivamente pelo `GITHUB_TOKEN` do servidor. Repositorios privados
+exigem que o token da empresa tenha acesso; isso nao e uma autorizacao GitHub por usuario, nao
+usa OAuth e nenhum token pessoal e armazenado.
+
+Configuracao opcional do sync:
+
+```properties
+github.sync.lookback-days=${GITHUB_SYNC_LOOKBACK_DAYS:90}
+github.sync.page-size=${GITHUB_SYNC_PAGE_SIZE:50}
+github.sync.max-pages=${GITHUB_SYNC_MAX_PAGES:10}
+```
 
 ## Analise com IA via OpenRouter
 
@@ -57,13 +81,15 @@ Para trocar o modelo:
 $env:OPENROUTER_MODEL="qwen/qwen3-next-80b-a3b-instruct:free"
 ```
 
-Depois envie uma evidencia para `/analyze`:
+Solicite a analise pelo endpoint autenticado, sem corpo de requisicao. O servidor carrega a
+Evidence PENDING pertencente ao usuario autenticado, o perfil e o career framework, executa o
+engine e persiste o resultado. A evidencia, os niveis e a classificacao nao sao enviados pelo
+navegador:
 
 ```powershell
 Invoke-RestMethod -Method Post `
-  -Uri http://localhost:8080/analyze `
-  -ContentType "application/json" `
-  -Body '{"evidence":"Refactored the checkout service and improved latency by 30% while adding dashboards and alerts","currentLevel":"L3","targetLevel":"L4"}'
+  -Uri http://localhost:8080/evidences/{evidenceId}/analysis `
+  -Headers @{ Authorization = "Bearer <session-token>" }
 ```
 
 Configuracoes relevantes:
@@ -130,9 +156,8 @@ Exemplo:
 
 ```powershell
 Invoke-RestMethod -Method Post `
-  -Uri http://localhost:8080/analyze `
-  -ContentType "application/json" `
-  -Body '{"evidence":"Refactored payment module and increased test coverage","currentLevel":"L3","targetLevel":"L4"}'
+  -Uri http://localhost:8080/evidences/{evidenceId}/analysis `
+  -Headers @{ Authorization = "Bearer <session-token>" }
 ```
 
 ## Fluxo interno

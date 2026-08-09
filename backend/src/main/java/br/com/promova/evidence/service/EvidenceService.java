@@ -61,6 +61,21 @@ public class EvidenceService {
       String sourceMeta,
       String evidence,
       String sourceUrl) {
+    return captureResult(user, source, externalId, sourceMeta, evidence, sourceUrl).evidence();
+  }
+
+  /**
+   * Captures through the same owner/source/external-id uniqueness boundary while also telling
+   * integrations whether the row was newly created or already present.
+   */
+  @Transactional
+  public EvidenceCaptureResult captureResult(
+      User user,
+      String source,
+      String externalId,
+      String sourceMeta,
+      String evidence,
+      String sourceUrl) {
     String normalizedSource = normalizeRequired(source, "source");
     String normalizedExternalId = normalizeRequired(externalId, "externalId");
 
@@ -68,7 +83,7 @@ public class EvidenceService {
         evidenceRepository.findByUserIdAndSourceAndExternalId(
             user.getId(), normalizedSource, normalizedExternalId);
     if (existing.isPresent()) {
-      return EvidenceResponse.from(existing.get());
+      return new EvidenceCaptureResult(EvidenceResponse.from(existing.get()), false);
     }
 
     Evidence created =
@@ -81,7 +96,7 @@ public class EvidenceService {
                 evidence,
                 sourceUrl,
                 Instant.now()));
-    return EvidenceResponse.from(created);
+    return new EvidenceCaptureResult(EvidenceResponse.from(created), true);
   }
 
   @Transactional

@@ -18,7 +18,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Component
 public class GithubApiClient {
-  private static final String BASE_URL = "https://api.github.com";
   private static final String API_VERSION = "2022-11-28";
   private static final String USER_AGENT = "promova-github-extract/1";
 
@@ -32,8 +31,8 @@ public class GithubApiClient {
       @Value("${github.api.base-url:https://api.github.com}") String baseUrl,
       @Value("${github.api.token:}") String token) {
     this.objectMapper = objectMapper;
-    this.baseUrl = baseUrl;
-    this.token = token;
+    this.baseUrl = trimTrailingSlashes(baseUrl);
+    this.token = token == null ? "" : token.trim();
     this.httpClient =
         HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
@@ -42,16 +41,17 @@ public class GithubApiClient {
   }
 
   public JsonNode get(String pathAndQuery) {
+    String safePath = safePath(pathAndQuery);
     HttpRequest.Builder requestBuilder =
-        HttpRequest.newBuilder(URI.create(baseUrl + pathAndQuery))
+        HttpRequest.newBuilder(URI.create(baseUrl + safePath))
             .timeout(Duration.ofSeconds(20))
             .header(HttpHeaders.ACCEPT, "application/vnd.github+json")
             .header("X-GitHub-Api-Version", API_VERSION)
             .header(HttpHeaders.USER_AGENT, USER_AGENT)
             .GET();
 
-    if (token != null && !token.isBlank()) {
-      requestBuilder.header(HttpHeaders.AUTHORIZATION, "Bearer " + token.trim());
+    if (!token.isBlank()) {
+      requestBuilder.header(HttpHeaders.AUTHORIZATION, "Bearer " + token);
     }
 
     try {
@@ -87,5 +87,23 @@ public class GithubApiClient {
     } catch (IOException exception) {
       return NullNode.getInstance();
     }
+  }
+
+  private String safePath(String pathAndQuery) {
+    if (pathAndQuery == null
+        || pathAndQuery.isBlank()
+        || !pathAndQuery.startsWith("/")
+        || pathAndQuery.contains("://")) {
+      throw new IllegalArgumentException("GitHub API path must be relative to the configured base URL");
+    }
+    return pathAndQuery;
+  }
+
+  private String trimTrailingSlashes(String value) {
+    String normalized = value == null || value.isBlank() ? "https://api.github.com" : value.trim();
+    while (normalized.endsWith("/") && normalized.length() > "https://".length()) {
+      normalized = normalized.substring(0, normalized.length() - 1);
+    }
+    return normalized;
   }
 }

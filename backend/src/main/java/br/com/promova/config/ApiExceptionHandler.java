@@ -1,5 +1,7 @@
 package br.com.promova.config;
 
+import br.com.promova.github.support.GithubApiException;
+import br.com.promova.github.support.GithubPayloadException;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,5 +15,24 @@ public class ApiExceptionHandler {
   public ResponseEntity<Map<String, String>> handleResponseStatus(ResponseStatusException exception) {
     String message = exception.getReason() == null ? "Erro na requisição." : exception.getReason();
     return ResponseEntity.status(exception.getStatusCode()).body(Map.of("message", message));
+  }
+
+  @ExceptionHandler(GithubApiException.class)
+  public ResponseEntity<Map<String, String>> handleGithubApi(GithubApiException exception) {
+    String message =
+        switch (exception.statusCode()) {
+          case 401 -> "GitHub rejected the configured server token.";
+          case 403 -> "GitHub denied access or the server token is rate-limited.";
+          case 404 -> "GitHub repository was not found or is not accessible.";
+          case 429 -> "GitHub API rate limit exceeded. Try again later.";
+          default -> "GitHub API request failed. Try again later.";
+        };
+    return ResponseEntity.status(exception.statusCode()).body(Map.of("message", message));
+  }
+
+  @ExceptionHandler(GithubPayloadException.class)
+  public ResponseEntity<Map<String, String>> handleGithubPayload(GithubPayloadException exception) {
+    return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+        .body(Map.of("message", "GitHub returned an invalid response."));
   }
 }

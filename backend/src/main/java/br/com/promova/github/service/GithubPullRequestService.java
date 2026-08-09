@@ -2,15 +2,20 @@ package br.com.promova.github.service;
 
 import br.com.promova.github.client.GithubApiClient;
 import br.com.promova.github.dto.GithubFilePatch;
+import br.com.promova.github.dto.GithubPullRequestPage;
 import br.com.promova.github.dto.GithubPullRequestBundle;
 import br.com.promova.github.dto.GithubPullRequestSearchResponse;
 import br.com.promova.github.dto.GithubPullSummary;
+import br.com.promova.github.support.GithubPayloadException;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.regex.Pattern;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -90,6 +95,51 @@ public class GithubPullRequestService {
         items);
   }
 
+  /**
+   * Fetches one bounded page for the repeatable sync flow. The sync path is intentionally separate
+   * from the legacy browser listing so it can reject malformed successful payloads and prove page
+   * boundaries without accepting a URL from the browser.
+   */
+  public GithubPullRequestPage listClosedPullRequestsForSync(
+      String owner, String repo, int perPage, int page) {
+    validateRepository(owner, repo);
+    int normalizedPerPage = normalizePerPage(perPage);
+    int normalizedPage = Math.max(page, 1);
+
+    JsonNode response =
+        githubApiClient.get(
+            "/repos/%s/%s/pulls?state=closed&sort=updated&direction=desc&per_page=%d&page=%d"
+                .formatted(path(owner), path(repo), normalizedPerPage, normalizedPage));
+    if (!response.isArray()) {
+      throw new GithubPayloadException("GitHub returned an invalid pull request list");
+    }
+
+    List<GithubPullSummary> pullRequests = new ArrayList<>();
+    int malformedItems = 0;
+    for (JsonNode item : response) {
+      Optional<GithubPullSummary> pullRequest = strictPullSummary(item);
+      if (pullRequest.isPresent()) {
+        pullRequests.add(pullRequest.get());
+      } else {
+        malformedItems++;
+      }
+    }
+
+    return new GithubPullRequestPage(
+        List.copyOf(pullRequests), malformedItems, response.size() >= normalizedPerPage);
+  }
+
+  public void verifyRepositoryAccess(String owner, String repo) {
+    validateRepository(owner, repo);
+    JsonNode response = githubApiClient.get("/repos/%s/%s".formatted(path(owner), path(repo)));
+    if (response == null
+        || !response.isObject()
+        || !response.path("full_name").isTextual()
+        || response.path("full_name").asText().isBlank()) {
+      throw new GithubPayloadException("GitHub returned an invalid repository payload");
+    }
+  }
+
   public void validateRepository(String owner, String repo) {
     if (!isSafeRepositoryPart(owner) || !isSafeRepositoryPart(repo)) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Repository must be in owner/repo format");
@@ -113,6 +163,40 @@ public class GithubPullRequestService {
         textOrNull(node.path("updated_at")),
         labels(node.path("labels")),
         preview(node.path("body").asText(""), BODY_PREVIEW_LIMIT));
+  }
+
+  private Optional<GithubPullSummary> strictPullSummary(JsonNode node) {
+    if (node == null
+        || !node.isObject()
+        || !node.path("number").isIntegralNumber()
+        || node.path("number").asInt(0) < 1
+        || !node.path("title").isTextual()
+        || node.path("title").asText().isBlank()
+        || !node.path("state").isTextual()
+        || !"closed".equalsIgnoreCase(node.path("state").asText())
+        || !node.path("user").path("login").isTextual()
+        || node.path("user").path("login").asText().isBlank()
+        || !node.path("html_url").isTextual()
+        || node.path("html_url").asText().isBlank()
+        || parseInstant(node.path("updated_at")).isEmpty()
+        || parseInstant(node.path("closed_at")).isEmpty()
+        || (!node.path("merged_at").isNull() && parseInstant(node.path("merged_at")).isEmpty())) {
+      return Optional.empty();
+    }
+
+    return Optional.of(toPullSummary(node));
+  }
+
+  private Optional<Instant> parseInstant(JsonNode node) {
+    if (node == null || !node.isTextual() || node.asText().isBlank()) {
+      return Optional.empty();
+    }
+
+    try {
+      return Optional.of(Instant.parse(node.asText()));
+    } catch (DateTimeParseException exception) {
+      return Optional.empty();
+    }
   }
 
   private GithubFilePatch toFilePatch(JsonNode node) {

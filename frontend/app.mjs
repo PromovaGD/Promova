@@ -19,13 +19,15 @@ import {
   clearUserAnalyses,
 } from "./services/auth-api.mjs";
 import { clearAuthSession, loadAuthToken, loadAuthUser, saveAuthSession } from "./services/auth-store.mjs";
-import { captureEvidenceFromGithubPullRequest, fetchNextCapturedEvidence } from "./services/evidence-api.mjs";
+import {
+  captureEvidenceFromGithubPullRequest,
+  dismissEvidence,
+  fetchEvidence,
+  fetchEvidences,
+} from "./services/evidence-api.mjs";
 import { findGithubPullRequests } from "./services/github-api.mjs";
 import { fetchProfile, updateProfile } from "./services/profile-api.mjs";
-import {
-  loadEvidenceCursor,
-  saveEvidenceCursor,
-} from "./services/session-store.mjs";
+import { clearLegacyEvidenceStorage } from "./services/session-store.mjs";
 import { adminPage } from "./views/admin-view.mjs";
 import { authPage } from "./views/auth-view.mjs";
 import { dashboardPage } from "./views/dashboard-view.mjs";
@@ -40,8 +42,8 @@ import { profilePage } from "./views/profile-view.mjs";
 
 const state = {
   view: "home",
-  cursor: loadEvidenceCursor(),
   pendingEvidence: null,
+  pendingEvidences: [],
   pendingStatus: "idle",
   githubImport: createGithubImportState(),
   result: null,
@@ -90,6 +92,7 @@ async function bootstrapSession() {
     saveAuthSession(token, state.user);
     await refreshProfile();
     await refreshUserAnalyses();
+    await refreshPendingEvidences();
   } catch (error) {
     if (error.status === 401 || error.isUnauthorized) {
       expireSession();
@@ -119,6 +122,7 @@ function expireSession() {
   state.selectedEmployeeId = null;
   state.selectedEvidenceId = null;
   state.pendingEvidence = null;
+  state.pendingEvidences = [];
   state.pendingStatus = "idle";
   state.result = null;
   state.viewingAsAdmin = false;
@@ -189,6 +193,7 @@ async function handleSubmit(event) {
     state.authError = null;
     await refreshProfile();
     await refreshUserAnalyses();
+    await refreshPendingEvidences();
     state.view = state.user.role === "ADMIN" ? "admin" : "dashboard";
     if (state.view === "admin") {
       await openAdmin();
@@ -233,6 +238,8 @@ async function handleClick(event) {
     state.profileSaving = false;
     state.profileError = null;
     state.evidences = [];
+    state.pendingEvidence = null;
+    state.pendingEvidences = [];
     state.employees = [];
     state.adminEvidences = [];
     state.authError = null;
@@ -277,6 +284,16 @@ async function handleClick(event) {
     state.viewingAsAdmin = state.view === "admin";
     state.view = "evidence-detail";
     render();
+    return;
+  }
+
+  if (action === "open-pending-evidence") {
+    await openPendingEvidence(trigger.dataset.evidenceId);
+    return;
+  }
+
+  if (action === "dismiss-evidence") {
+    await dismissPendingEvidence(trigger.dataset.evidenceId);
     return;
   }
 
@@ -434,11 +451,8 @@ async function openDashboard() {
   state.viewingAsAdmin = false;
   render();
   await refreshUserAnalyses();
-
-  if (!state.pendingEvidence) {
-    await loadPendingEvidence();
-    render();
-  }
+  await refreshPendingEvidences();
+  render();
 }
 
 async function openAdmin() {
@@ -466,6 +480,25 @@ async function refreshUserAnalyses() {
   state.evidences = await loadAnalysesForCurrentUser(state.dashboardFilters);
 }
 
+async function refreshPendingEvidences() {
+  if (!state.user) {
+    state.pendingEvidences = [];
+    state.pendingEvidence = null;
+    return;
+  }
+
+  state.pendingEvidences = await fetchEvidences({
+    status: "PENDING",
+    ...buildClearParams(state.dashboardFilters),
+  });
+  clearLegacyEvidenceStorage();
+
+  if (state.pendingEvidence) {
+    state.pendingEvidence =
+      state.pendingEvidences.find((item) => String(item.id) === String(state.pendingEvidence.id)) || null;
+  }
+}
+
 async function refreshEmployeeAnalyses() {
   if (!state.selectedEmployeeId) {
     state.adminEvidences = [];
@@ -483,6 +516,7 @@ async function applyFilters(scope) {
   }
 
   await refreshUserAnalyses();
+  await refreshPendingEvidences();
   render();
 }
 
@@ -544,8 +578,6 @@ async function openCapturedEvidence() {
       targetLevel: profile.targetLevel,
     });
     await persistAnalysis(analyzedEvidence);
-    state.cursor = state.pendingEvidence.nextCursor;
-    saveEvidenceCursor(state.cursor);
     state.pendingEvidence = null;
     state.pendingStatus = "idle";
     state.result = analyzedEvidence;
@@ -574,12 +606,56 @@ async function loadPendingEvidence({ force = false } = {}) {
   render();
 
   try {
-    state.pendingEvidence = await fetchNextCapturedEvidence(state.cursor);
+    await refreshPendingEvidences();
+    state.pendingEvidence = state.pendingEvidences[0] || null;
     state.pendingStatus = "ready";
   } catch (error) {
     state.error = error;
     state.pendingEvidence = null;
     state.pendingStatus = "error";
+  }
+}
+
+async function openPendingEvidence(evidenceId) {
+  state.pendingStatus = "loading";
+  state.error = null;
+  render();
+
+  try {
+    state.pendingEvidence = await fetchEvidence(evidenceId);
+    if (state.pendingEvidence.status !== "PENDING") {
+      throw new Error("Esta evidÃªncia nÃ£o estÃ¡ mais pendente.");
+    }
+    state.pendingStatus = "ready";
+    await openCapturedEvidence();
+  } catch (error) {
+    if (error.isUnauthorized || error.status === 401) {
+      return;
+    }
+    state.error = error;
+    state.pendingEvidence = null;
+    state.pendingStatus = "error";
+    render();
+  }
+}
+
+async function dismissPendingEvidence(evidenceId) {
+  try {
+    await dismissEvidence(evidenceId);
+    state.pendingEvidences = state.pendingEvidences.filter(
+      (item) => String(item.id) !== String(evidenceId),
+    );
+    if (state.pendingEvidence && String(state.pendingEvidence.id) === String(evidenceId)) {
+      state.pendingEvidence = null;
+    }
+    state.pendingStatus = "ready";
+    render();
+  } catch (error) {
+    if (error.isUnauthorized || error.status === 401) {
+      return;
+    }
+    state.error = error;
+    render();
   }
 }
 
@@ -602,10 +678,18 @@ async function importGithubPullRequest() {
   render();
 
   try {
-    state.pendingEvidence = await captureEvidenceFromGithubPullRequest(githubImportRequest(state.githubImport));
+    const capturedEvidence = await captureEvidenceFromGithubPullRequest(
+      githubImportRequest(state.githubImport),
+    );
+    state.pendingEvidence = capturedEvidence.status === "PENDING" ? capturedEvidence : null;
     state.pendingStatus = "ready";
     setGithubImportIdle(state.githubImport);
-    await openCapturedEvidence();
+    await refreshPendingEvidences();
+    if (state.pendingEvidence) {
+      await openCapturedEvidence();
+    } else {
+      state.view = "dashboard";
+    }
   } catch (error) {
     setGithubImportError(state.githubImport, error, "Não foi possível importar o PR como evidência.");
     state.view = "dashboard";

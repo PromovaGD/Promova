@@ -825,6 +825,14 @@ a {
   margin-top: 24px;
 }
 
+.github-token-note {
+  margin-bottom: 20px;
+  padding: 14px 16px;
+  border: 1px solid rgba(37, 99, 235, 0.14);
+  border-radius: 14px;
+  background: #f8fbff;
+}
+
 .panel-heading {
   display: flex;
   align-items: center;
@@ -842,6 +850,73 @@ a {
   display: grid;
   grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) 140px;
   gap: 14px;
+}
+
+.github-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.github-sync-summary {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+  padding: 16px;
+  border: 1px solid rgba(21, 128, 61, 0.16);
+  border-radius: 16px;
+  background: #f3fff7;
+}
+
+.github-sync-outcome {
+  color: #166534;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.github-sync-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+.github-sync-counts strong {
+  color: var(--text);
+}
+
+.success-text {
+  color: #166534;
+  font-weight: 700;
+}
+
+.github-pending-panel,
+.github-manual-import {
+  margin-top: 24px;
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+
+.compact-heading {
+  margin-bottom: 10px;
+}
+
+.compact-heading h3 {
+  margin: 8px 0 0;
+  font-size: 1.12rem;
+}
+
+.github-pending-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.github-manual-grid {
+  grid-template-columns: minmax(0, 240px);
 }
 
 .error-text {
@@ -1489,6 +1564,7 @@ a {
 
   .dashboard-metrics,
   .integration-grid,
+  .github-settings-grid,
   .github-import-grid,
   .card-grid.four,
   .card-grid.five {
@@ -1547,6 +1623,10 @@ a {
   }
 
   .github-import-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .github-settings-grid {
     grid-template-columns: 1fr;
   }
 

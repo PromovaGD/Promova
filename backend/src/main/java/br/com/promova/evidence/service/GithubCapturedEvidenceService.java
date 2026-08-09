@@ -68,6 +68,45 @@ public class GithubCapturedEvidenceService {
         pullRequest.htmlUrl());
   }
 
+  /** Captures a server-fetched summary through the same Evidence persistence/deduplication path. */
+  public EvidenceCaptureResult fromPullSummary(
+      User user, String repoSlug, GithubPullSummary pullRequest) {
+    RepositorySlug repositorySlug = parseRepositorySlug(repoSlug);
+    if (pullRequest == null || pullRequest.number() < 1) {
+      throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "GitHub returned an invalid pull request");
+    }
+
+    String externalId = externalId(repositorySlug, pullRequest.number());
+    String htmlUrl = trimTo(pullRequest.htmlUrl(), 2048);
+    String bodyPreview =
+        pullRequest.bodyPreview() == null || pullRequest.bodyPreview().isBlank()
+            ? "Sem descricao no PR."
+            : pullRequest.bodyPreview();
+    String evidence =
+        String.join(
+            "\n\n",
+            "GitHub - repositorio %s - PR #%d".formatted(repoSlug, pullRequest.number()),
+            "Autor GitHub: " + trimTo(pullRequest.authorLogin(), 100),
+            "Titulo: " + trimTo(pullRequest.title(), 1_000),
+            "Estado: "
+                + trimTo(pullRequest.state(), 30)
+                + "\nMerge: "
+                + trimTo(pullRequest.mergedAt(), 80)
+                + "\nFechamento: "
+                + trimTo(pullRequest.closedAt(), 80),
+            "Descricao/resumo:\n" + trimTo(bodyPreview, 1_200),
+            "Link do PR: " + htmlUrl,
+            "Leitura preparada automaticamente para revisao no Promova.");
+
+    return evidenceService.captureResult(
+        user,
+        "GitHub",
+        externalId,
+        trimTo("PR #%d - %s - %s".formatted(pullRequest.number(), repoSlug, pullRequest.title()), 1_000),
+        trimTo(evidence, 9_900),
+        htmlUrl);
+  }
+
   private RepositorySlug parseRepositorySlug(String repoSlug) {
     if (repoSlug == null || repoSlug.isBlank()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Repository must be in owner/repo format");
@@ -87,6 +126,14 @@ public class GithubCapturedEvidenceService {
             repositorySlug.owner().toLowerCase(Locale.ROOT),
             repositorySlug.repo().toLowerCase(Locale.ROOT),
             pullNumber);
+  }
+
+  private String trimTo(String value, int limit) {
+    if (value == null || value.isBlank()) {
+      return "";
+    }
+    String normalized = value.trim();
+    return normalized.length() <= limit ? normalized : normalized.substring(0, limit - 3) + "...";
   }
 
   private record RepositorySlug(String owner, String repo) {}

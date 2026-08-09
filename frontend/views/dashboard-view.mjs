@@ -9,7 +9,7 @@ export function dashboardPage(state) {
       title: "Suas evidências",
       subtitle: "Painel de análises",
       copy: "Acompanhe sua caixa de entrada de evidências pendentes e o histórico de análises da sua conta.",
-    }) + githubImportPanel(state.githubImport),
+    }) + githubImportPanel(state.githubImport, state.pendingEvidences),
     { user: state.user, mode: "app" },
   );
 }

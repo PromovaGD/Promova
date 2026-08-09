@@ -3,11 +3,11 @@ import { loadAuthToken } from "./auth-store.mjs";
 import { apiDelete, apiGet, apiPost } from "./http.mjs";
 
 export async function registerUser(payload) {
-  return apiPost("/auth/register", payload);
+  return apiPost("/auth/register", payload, { auth: false });
 }
 
 export async function loginUser(payload) {
-  return apiPost("/auth/login", payload);
+  return apiPost("/auth/login", payload, { auth: false });
 }
 
 export async function logoutUser() {

@@ -7,11 +7,16 @@ import org.springframework.util.StringUtils;
 @Component
 public class AuthTokenResolver {
   public String resolve(String authorizationHeader) {
-    if (!StringUtils.hasText(authorizationHeader) || !authorizationHeader.startsWith("Bearer ")) {
+    if (!StringUtils.hasText(authorizationHeader)) {
       return null;
     }
 
-    return authorizationHeader.substring("Bearer ".length()).trim();
+    String[] parts = authorizationHeader.trim().split("\\s+");
+    if (parts.length != 2 || !"Bearer".equalsIgnoreCase(parts[0]) || !StringUtils.hasText(parts[1])) {
+      return null;
+    }
+
+    return parts[1].trim();
   }
 
   public String resolve(HttpHeaders headers) {

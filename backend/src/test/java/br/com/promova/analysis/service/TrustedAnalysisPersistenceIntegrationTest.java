@@ -30,14 +30,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.web.server.ResponseStatusException;
 
-@SpringBootTest(
-    properties = {
-      "spring.datasource.url=jdbc:h2:mem:trusted-analysis;DB_CLOSE_DELAY=-1",
-      "spring.jpa.hibernate.ddl-auto=create-drop"
-    })
+@SpringBootTest
+@ActiveProfiles("test")
 class TrustedAnalysisPersistenceIntegrationTest {
   private static final AtomicInteger USERS = new AtomicInteger();
 

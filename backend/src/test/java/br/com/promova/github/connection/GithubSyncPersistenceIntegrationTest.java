@@ -20,18 +20,18 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
 @SpringBootTest(
     properties = {
-      "spring.datasource.url=jdbc:h2:mem:github-sync-persistence;DB_CLOSE_DELAY=-1",
-      "spring.jpa.hibernate.ddl-auto=create-drop",
       "github.api.token=server-secret",
       "github.sync.lookback-days=30",
       "github.sync.page-size=2",
       "github.sync.max-pages=10"
     })
+@ActiveProfiles("test")
 class GithubSyncPersistenceIntegrationTest {
   private static final HttpServer SERVER = createServer();
   private static final List<Integer> REQUESTED_PAGES = new ArrayList<>();

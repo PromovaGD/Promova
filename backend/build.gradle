@@ -21,9 +21,12 @@ dependencies {
   implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
   implementation 'org.springframework.boot:spring-boot-starter-validation'
   implementation 'org.springframework.boot:spring-boot-starter-web'
+  implementation 'org.flywaydb:flyway-core'
   implementation 'org.springframework.security:spring-security-crypto'
 
   runtimeOnly 'com.h2database:h2'
+  runtimeOnly 'org.flywaydb:flyway-database-postgresql'
+  runtimeOnly 'org.postgresql:postgresql'
 
   testImplementation 'org.springframework.boot:spring-boot-starter-test'
   testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
@@ -31,4 +34,21 @@ dependencies {
 
 tasks.named('test') {
   useJUnitPlatform()
+}
+
+tasks.withType(Test).configureEach {
+  systemProperty 'spring.profiles.active', System.getProperty('spring.profiles.active', 'test')
+}
+
+tasks.register('migrationStartupSmoke', Test) {
+  description = 'Starts the application against the test profile and verifies Flyway migrations.'
+  group = 'verification'
+  testClassesDirs = sourceSets.test.output.classesDirs
+  classpath = sourceSets.test.runtimeClasspath
+  useJUnitPlatform()
+  filter {
+    includeTestsMatching 'br.com.promova.config.MigrationStartupSmokeTest'
+  }
+  systemProperty 'spring.profiles.active', 'test'
+  outputs.upToDateWhen { false }
 }

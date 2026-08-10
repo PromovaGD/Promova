@@ -12,13 +12,13 @@ import java.time.Instant;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.test.context.ActiveProfiles;
 
-@DataJpaTest(
-    properties = {
-      "spring.datasource.url=jdbc:h2:mem:analysis-review-ordering;DB_CLOSE_DELAY=-1",
-      "spring.jpa.hibernate.ddl-auto=create-drop"
-    })
+@DataJpaTest(properties = "spring.jpa.hibernate.ddl-auto=validate")
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@ActiveProfiles("test")
 class SavedAnalysisReviewRepositoryTest {
   private static final Instant SAME_INSTANT = Instant.parse("2026-08-09T12:00:00Z");
 

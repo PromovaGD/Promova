@@ -19,6 +19,7 @@ import {
   updateGithubImportField,
 } from "./features/github-import/github-import-model.mjs";
 import { loadAnalysesForCurrentUser, loadAnalysesForEmployee } from "./services/analyses-api.mjs";
+import { loadInsightsForCurrentUser } from "./services/insights-api.mjs";
 import { analyzeCapturedEvidence } from "./services/analysis-api.mjs";
 import {
   fetchCurrentUser,
@@ -65,6 +66,9 @@ const state = {
   result: null,
   error: null,
   evidences: [],
+  insights: null,
+  insightsStatus: "idle",
+  insightsError: null,
   user: loadAuthUser(),
   profile: null,
   profileDraft: null,
@@ -108,6 +112,7 @@ async function bootstrapSession() {
     saveAuthSession(token, state.user);
     await refreshProfile();
     await refreshUserAnalyses();
+    await refreshInsights();
     await refreshPendingEvidences();
     await refreshGithubSettings();
   } catch (error) {
@@ -134,6 +139,9 @@ function expireSession() {
   state.profileSaving = false;
   state.profileError = null;
   state.evidences = [];
+  state.insights = null;
+  state.insightsStatus = "idle";
+  state.insightsError = null;
   state.adminEvidences = [];
   state.employees = [];
   state.selectedEmployeeId = null;
@@ -211,6 +219,7 @@ async function handleSubmit(event) {
     state.authError = null;
     await refreshProfile();
     await refreshUserAnalyses();
+    await refreshInsights();
     await refreshPendingEvidences();
     await refreshGithubSettings();
     state.view = state.user.role === "ADMIN" ? "admin" : "dashboard";
@@ -257,6 +266,9 @@ async function handleClick(event) {
     state.profileSaving = false;
     state.profileError = null;
     state.evidences = [];
+    state.insights = null;
+    state.insightsStatus = "idle";
+    state.insightsError = null;
     state.pendingEvidence = null;
     state.pendingEvidences = [];
     state.employees = [];
@@ -300,7 +312,7 @@ async function handleClick(event) {
   }
 
   if (action === "open-evidence-detail") {
-    state.selectedEvidenceId = trigger.dataset.evidenceId;
+    state.selectedEvidenceId = trigger.dataset.analysisId || trigger.dataset.evidenceId;
     state.viewingAsAdmin = state.view === "admin";
     state.view = "evidence-detail";
     render();
@@ -366,6 +378,13 @@ async function handleClick(event) {
 
   if (action === "reload-pending") {
     await loadPendingEvidence({ force: true });
+    state.view = "dashboard";
+    render();
+    return;
+  }
+
+  if (action === "reload-insights") {
+    await refreshInsights();
     state.view = "dashboard";
     render();
     return;
@@ -484,8 +503,11 @@ async function submitProfile(form) {
 async function openDashboard() {
   state.view = "dashboard";
   state.viewingAsAdmin = false;
+  state.insightsStatus = "loading";
+  state.insightsError = null;
   render();
   await refreshUserAnalyses();
+  await refreshInsights();
   await refreshPendingEvidences();
   render();
 }
@@ -513,6 +535,30 @@ async function refreshUserAnalyses() {
   }
 
   state.evidences = await loadAnalysesForCurrentUser(state.dashboardFilters);
+}
+
+async function refreshInsights() {
+  if (!state.user) {
+    state.insights = null;
+    state.insightsStatus = "idle";
+    state.insightsError = null;
+    return;
+  }
+
+  state.insightsStatus = "loading";
+  state.insightsError = null;
+
+  try {
+    state.insights = await loadInsightsForCurrentUser(state.dashboardFilters);
+    state.insightsStatus = "ready";
+  } catch (error) {
+    if (error.isUnauthorized || error.status === 401) {
+      return;
+    }
+    state.insights = null;
+    state.insightsStatus = "error";
+    state.insightsError = error.message || "Erro inesperado.";
+  }
 }
 
 async function refreshPendingEvidences() {
@@ -572,6 +618,7 @@ async function applyFilters(scope) {
   }
 
   await refreshUserAnalyses();
+  await refreshInsights();
   await refreshPendingEvidences();
   render();
 }
@@ -594,6 +641,7 @@ async function clearAnalyses(scope) {
 
   await clearUserAnalyses(buildClearParams(filters));
   await refreshUserAnalyses();
+  await refreshInsights();
   render();
 }
 
@@ -634,6 +682,7 @@ async function openCapturedEvidence() {
     state.result = analyzedEvidence;
     state.view = "result";
     await refreshUserAnalyses();
+    await refreshInsights();
     await refreshPendingEvidences();
   } catch (error) {
     if (error.isUnauthorized || error.status === 401) {

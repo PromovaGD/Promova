@@ -33,6 +33,7 @@ import org.springframework.test.context.DynamicPropertySource;
     })
 @ActiveProfiles("test")
 class GithubSyncPersistenceIntegrationTest {
+  private static final String SERVER_SECRET = "server-secret";
   private static final HttpServer SERVER = createServer();
   private static final List<Integer> REQUESTED_PAGES = new ArrayList<>();
   private static final AtomicInteger USERS = new AtomicInteger();
@@ -80,11 +81,24 @@ class GithubSyncPersistenceIntegrationTest {
     assertThat(second.created()).isZero();
     assertThat(second.existing()).isEqualTo(3);
     assertThat(second.failed()).isZero();
-    assertThat(evidenceRepository.findForUser(user.getId(), null, null, null)).hasSize(3);
-    assertThat(evidenceRepository.findForUser(user.getId(), null, null, null))
+    var persisted = evidenceRepository.findForUser(user.getId(), null, null, null);
+    assertThat(persisted).hasSize(3);
+    assertThat(persisted)
         .extracting(evidence -> evidence.getExternalId())
         .containsExactlyInAnyOrder(
             "github:acme/project#100", "github:acme/project#101", "github:acme/project#102");
+    assertThat(persisted)
+        .allSatisfy(
+            evidence -> {
+              assertThat(evidence.getSource()).isEqualTo("GitHub");
+              assertThat(evidence.getSourceMeta()).contains("acme/project");
+              assertThat(evidence.getEvidence()).contains("PR #");
+              assertThat(evidence.getSourceUrl()).startsWith("https://github.com/");
+              assertThat(evidence.getSourceMeta()).doesNotContain(SERVER_SECRET);
+              assertThat(evidence.getEvidence()).doesNotContain(SERVER_SECRET);
+              assertThat(evidence.getSourceUrl()).doesNotContain(SERVER_SECRET);
+            });
+    assertThat(first.toString()).doesNotContain(SERVER_SECRET);
     assertThat(REQUESTED_PAGES).containsExactly(1, 2, 1, 2);
 
     var savedSettings = settingsService.getForUser(user);
@@ -128,7 +142,9 @@ class GithubSyncPersistenceIntegrationTest {
             + "\"closed_at\":\"2026-08-08T10:00:00Z\",\"html_url\":\"https://github.com/acme/project/pull/"
             + number
             + "\",\"user\":{\"login\":\"octocat\"},\"updated_at\":\"2026-08-08T10:00:00Z\","
-            + "\"created_at\":\"2026-08-07T10:00:00Z\",\"body\":\"Added tests\""
+            + "\"created_at\":\"2026-08-07T10:00:00Z\",\"body\":\"Added tests "
+            + SERVER_SECRET
+            + "\""
             + "}";
   }
 

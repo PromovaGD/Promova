@@ -1,7 +1,7 @@
 import { sourceCard } from "../components/cards.mjs";
 import { appPage, pageHero } from "../components/layout.mjs";
 import { escapeHtml } from "../utils/html.mjs";
-import { confidenceLabel } from "../utils/format.mjs";
+import { confidenceLabel, formatTimestamp } from "../utils/format.mjs";
 
 export function evidenceLoadingPage(state) {
   const evidence = state.pendingEvidence;
@@ -123,6 +123,8 @@ function renderAnalysisDetail(result, state, options = {}) {
         <div class="evidence-preview">${escapeHtml(result.evidence)}</div>
       </div>
 
+      ${reviewPanel(state, options)}
+
       <div class="analysis-side">
         <div class="info-card soft-panel">
           <h3>Próximas ações</h3>
@@ -145,6 +147,93 @@ function renderAnalysisDetail(result, state, options = {}) {
   `;
 }
 
+function reviewPanel(state, options) {
+  const review = state.review || { currentStatus: "UNREVIEWED", history: [] };
+  const status = review.currentStatus || "UNREVIEWED";
+  const history = Array.isArray(review.history) ? review.history : [];
+  const canReview =
+    options.fromDashboard && state.viewingAsAdmin && state.user?.role === "ADMIN";
+  const saving = state.reviewSaving;
+
+  return `
+    <section class="analysis-card review-card" aria-labelledby="review-title">
+      <div class="review-heading">
+        <div>
+          <span class="score-label">Revis&atilde;o administrativa</span>
+          <h3 id="review-title">Status atual</h3>
+        </div>
+        <span class="review-status ${reviewStatusClass(status)}">${escapeHtml(reviewStatusLabel(status))}</span>
+      </div>
+      ${
+        state.reviewStatus === "loading"
+          ? `<div class="loading-strip"><span class="loading-dot"></span><span>Carregando hist&oacute;rico de revis&atilde;o...</span></div>`
+          : ""
+      }
+      ${state.reviewError ? `<p class="review-error">${escapeHtml(state.reviewError)}</p>` : ""}
+      ${
+        history.length
+          ? `<ol class="review-history">${history.map(reviewHistoryItem).join("")}</ol>`
+          : `<p class="review-empty">Nenhum evento registrado. Esta an&aacute;lise est&aacute; <strong>n&atilde;o revisada</strong>.</p>`
+      }
+      ${
+        canReview
+          ? `
+            <form class="review-form" data-review-form>
+              <label class="field">
+                <span>Coment&aacute;rio opcional</span>
+                <textarea name="comment" maxlength="2000" rows="4" placeholder="Registre o contexto que deve acompanhar esta decis&atilde;o."></textarea>
+              </label>
+              <p class="review-help">At&eacute; 2.000 caracteres. Cada a&ccedil;&atilde;o cria um novo evento no hist&oacute;rico.</p>
+              <div class="form-actions">
+                <button class="button primary" type="submit" data-review-status="ACCEPTED" ${saving ? "disabled" : ""}>Aceitar an&aacute;lise</button>
+                <button class="button secondary" type="submit" data-review-status="NEEDS_CONTEXT" ${saving ? "disabled" : ""}>Pedir mais contexto</button>
+              </div>
+            </form>
+          `
+          : `<p class="review-readonly">O hist&oacute;rico &eacute; imut&aacute;vel. Apenas administradores podem registrar uma nova revis&atilde;o.</p>`
+      }
+    </section>
+  `;
+}
+
+function reviewHistoryItem(item) {
+  const reviewer = item.reviewerName || item.reviewerEmail || "Administrador";
+  const timestamp = item.createdAt ? formatTimestamp(item.createdAt) : "Data indispon&iacute;vel";
+  return `
+    <li class="review-history-item">
+      <div class="review-history-meta">
+        <span class="review-status ${reviewStatusClass(item.status)}">${escapeHtml(reviewStatusLabel(item.status))}</span>
+        <span>${escapeHtml(reviewer)} &middot; ${escapeHtml(timestamp)}</span>
+      </div>
+      ${item.comment ? `<p>${escapeHtml(item.comment)}</p>` : `<p class="subtle">Sem coment&aacute;rio.</p>`}
+    </li>
+  `;
+}
+
+function reviewStatusLabel(status) {
+  if (status === "ACCEPTED") {
+    return "Aceita";
+  }
+
+  if (status === "NEEDS_CONTEXT") {
+    return "Precisa de contexto";
+  }
+
+  return "Nao revisada";
+}
+
+function reviewStatusClass(status) {
+  if (status === "ACCEPTED") {
+    return "accepted";
+  }
+
+  if (status === "NEEDS_CONTEXT") {
+    return "needs-context";
+  }
+
+  return "unreviewed";
+}
+
 export function evidenceErrorPage(state, errorMessage) {
   return appPage(
     `
@@ -165,5 +254,5 @@ export function evidenceErrorPage(state, errorMessage) {
 
 function findEvidence(state) {
   const pool = state.viewingAsAdmin ? state.adminEvidences : state.evidences;
-  return pool.find((item) => item.id === state.selectedEvidenceId);
+  return pool.find((item) => String(item.id) === String(state.selectedEvidenceId));
 }

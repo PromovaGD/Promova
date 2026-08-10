@@ -5,6 +5,7 @@ import br.com.promova.analysis.dto.SavedAnalysisRequest;
 import br.com.promova.analysis.dto.SavedAnalysisResponse;
 import br.com.promova.analysis.persistence.SavedAnalysis;
 import br.com.promova.analysis.persistence.SavedAnalysisRepository;
+import br.com.promova.analysis.review.persistence.SavedAnalysisReviewRepository;
 import br.com.promova.evidence.Evidence;
 import br.com.promova.framework.CareerFramework;
 import br.com.promova.user.User;
@@ -22,11 +23,15 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class SavedAnalysisService {
   private final SavedAnalysisRepository savedAnalysisRepository;
+  private final SavedAnalysisReviewRepository savedAnalysisReviewRepository;
   private final ObjectMapper objectMapper;
 
   public SavedAnalysisService(
-      SavedAnalysisRepository savedAnalysisRepository, ObjectMapper objectMapper) {
+      SavedAnalysisRepository savedAnalysisRepository,
+      SavedAnalysisReviewRepository savedAnalysisReviewRepository,
+      ObjectMapper objectMapper) {
     this.savedAnalysisRepository = savedAnalysisRepository;
+    this.savedAnalysisReviewRepository = savedAnalysisReviewRepository;
     this.objectMapper = objectMapper;
   }
 
@@ -92,6 +97,7 @@ public class SavedAnalysisService {
 
   @Transactional
   public void clearForUser(User user, Instant from, Instant to) {
+    savedAnalysisReviewRepository.deleteForAnalysisOwnerAndDateRange(user, from, to);
     if (from == null && to == null) {
       savedAnalysisRepository.deleteAllByUser(user);
       return;
@@ -115,7 +121,8 @@ public class SavedAnalysisService {
         readList(saved.getCompetenciesJson()),
         readList(saved.getSuggestionsJson()),
         saved.getReadiness(),
-        saved.getCreatedAt());
+        saved.getCreatedAt(),
+        saved.getId());
   }
 
   private List<String> safeList(List<String> values) {

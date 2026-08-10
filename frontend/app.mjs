@@ -18,7 +18,13 @@ import {
   setGithubSyncResult,
   updateGithubImportField,
 } from "./features/github-import/github-import-model.mjs";
-import { loadAnalysesForCurrentUser, loadAnalysesForEmployee } from "./services/analyses-api.mjs";
+import {
+  loadAnalysesForCurrentUser,
+  loadAnalysesForEmployee,
+  loadReviewsForCurrentUser,
+  loadReviewsForEmployee,
+  submitReviewForEmployee,
+} from "./services/analyses-api.mjs";
 import { loadInsightsForCurrentUser } from "./services/insights-api.mjs";
 import { analyzeCapturedEvidence } from "./services/analysis-api.mjs";
 import {
@@ -84,6 +90,11 @@ const state = {
   selectedEmployeeId: null,
   adminEvidences: [],
   selectedEvidenceId: null,
+  selectedAnalysisId: null,
+  review: null,
+  reviewStatus: "idle",
+  reviewSaving: false,
+  reviewError: null,
   viewingAsAdmin: false,
 };
 
@@ -146,6 +157,11 @@ function expireSession() {
   state.employees = [];
   state.selectedEmployeeId = null;
   state.selectedEvidenceId = null;
+  state.selectedAnalysisId = null;
+  state.review = null;
+  state.reviewStatus = "idle";
+  state.reviewSaving = false;
+  state.reviewError = null;
   state.pendingEvidence = null;
   state.pendingEvidences = [];
   state.pendingStatus = "idle";
@@ -183,12 +199,17 @@ function handleInput(event) {
 }
 
 async function handleSubmit(event) {
-  const form = event.target.closest("[data-auth-form], [data-profile-form]");
+  const form = event.target.closest("[data-auth-form], [data-profile-form], [data-review-form]");
   if (!form) {
     return;
   }
 
   event.preventDefault();
+
+  if (form.matches("[data-review-form]")) {
+    await submitAnalysisReview(form, event.submitter);
+    return;
+  }
 
   if (form.matches("[data-profile-form]")) {
     await submitProfile(form);
@@ -273,6 +294,13 @@ async function handleClick(event) {
     state.pendingEvidences = [];
     state.employees = [];
     state.adminEvidences = [];
+    state.selectedEmployeeId = null;
+    state.selectedEvidenceId = null;
+    state.selectedAnalysisId = null;
+    state.review = null;
+    state.reviewStatus = "idle";
+    state.reviewSaving = false;
+    state.reviewError = null;
     state.githubImport = createGithubImportState();
     state.authError = null;
     state.view = "home";
@@ -313,9 +341,20 @@ async function handleClick(event) {
 
   if (action === "open-evidence-detail") {
     state.selectedEvidenceId = trigger.dataset.analysisId || trigger.dataset.evidenceId;
+    const pool = state.view === "admin" ? state.adminEvidences : state.evidences;
+    const selected = pool.find((item) => String(item.id) === String(state.selectedEvidenceId));
+    state.selectedAnalysisId =
+      trigger.dataset.savedAnalysisId || selected?.analysisId || null;
+    state.review = null;
+    state.reviewStatus = "loading";
+    state.reviewError = null;
     state.viewingAsAdmin = state.view === "admin";
     state.view = "evidence-detail";
     render();
+    await refreshSelectedAnalysisReview();
+    if (state.user && state.view === "evidence-detail") {
+      render();
+    }
     return;
   }
 
@@ -367,6 +406,11 @@ async function handleClick(event) {
   if (action === "back-dashboard") {
     const returnToAdmin = state.viewingAsAdmin;
     state.viewingAsAdmin = false;
+    state.selectedEvidenceId = null;
+    state.selectedAnalysisId = null;
+    state.review = null;
+    state.reviewStatus = "idle";
+    state.reviewError = null;
     if (returnToAdmin) {
       await openAdmin();
       return;
@@ -610,6 +654,61 @@ async function refreshEmployeeAnalyses() {
   state.adminEvidences = await loadAnalysesForEmployee(state.selectedEmployeeId, state.adminFilters);
 }
 
+async function refreshSelectedAnalysisReview() {
+  if (!state.selectedAnalysisId) {
+    state.review = { currentStatus: "UNREVIEWED", history: [] };
+    state.reviewStatus = "ready";
+    return;
+  }
+
+  try {
+    state.review = state.viewingAsAdmin
+      ? await loadReviewsForEmployee(state.selectedEmployeeId, state.selectedAnalysisId)
+      : await loadReviewsForCurrentUser(state.selectedAnalysisId);
+    state.reviewStatus = "ready";
+    state.reviewError = null;
+  } catch (error) {
+    if (error.isUnauthorized || error.status === 401) {
+      return;
+    }
+    state.reviewStatus = "error";
+    state.reviewError = error.message || "NÃ£o foi possÃ­vel carregar a revisÃ£o.";
+  }
+}
+
+async function submitAnalysisReview(form, submitter) {
+  if (!state.selectedEmployeeId || !state.selectedAnalysisId) {
+    return;
+  }
+
+  const formData = new FormData(form);
+  const status = submitter?.dataset.reviewStatus || String(formData.get("status") || "");
+  const comment = String(formData.get("comment") || "");
+  state.reviewSaving = true;
+  state.reviewError = null;
+  render();
+
+  try {
+    state.review = await submitReviewForEmployee(
+      state.selectedEmployeeId,
+      state.selectedAnalysisId,
+      { status, comment },
+    );
+    state.reviewStatus = "ready";
+  } catch (error) {
+    if (error.isUnauthorized || error.status === 401) {
+      return;
+    }
+    state.reviewStatus = "error";
+    state.reviewError = error.message || "NÃ£o foi possÃ­vel salvar a revisÃ£o.";
+  } finally {
+    state.reviewSaving = false;
+    if (state.user) {
+      render();
+    }
+  }
+}
+
 async function applyFilters(scope) {
   if (scope === "admin") {
     await refreshEmployeeAnalyses();
@@ -680,6 +779,10 @@ async function openCapturedEvidence() {
     state.pendingEvidence = null;
     state.pendingStatus = "idle";
     state.result = analyzedEvidence;
+    state.selectedAnalysisId = analyzedEvidence.analysisId || null;
+    state.review = { currentStatus: "UNREVIEWED", history: [] };
+    state.reviewStatus = "ready";
+    state.reviewError = null;
     state.view = "result";
     await refreshUserAnalyses();
     await refreshInsights();

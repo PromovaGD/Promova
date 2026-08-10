@@ -361,7 +361,7 @@ function evidenceFeed(evidences) {
       ${evidences
         .map(
           (item) => `
-            <button class="feed-item feed-item-button" type="button" data-action="open-evidence-detail" data-evidence-id="${escapeHtml(item.id)}">
+            <button class="feed-item feed-item-button" type="button" data-action="open-evidence-detail" data-analysis-id="${escapeHtml(item.id)}" data-saved-analysis-id="${escapeHtml(item.analysisId ?? "")}">
               <span class="${badgeClass(item.impactLevel)}">${escapeHtml(item.impactLevel)}</span>
               <div class="feed-copy">
                 <div class="feed-meta-row">

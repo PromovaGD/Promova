@@ -4,20 +4,13 @@ import br.com.promova.github.dto.GithubPullRequestBundle;
 import br.com.promova.github.dto.GithubPullRequestSearchResponse;
 import br.com.promova.github.dto.GithubPullSummary;
 import br.com.promova.github.service.GithubPullRequestService;
-import br.com.promova.github.support.GithubApiException;
-import com.fasterxml.jackson.databind.JsonNode;
 import java.util.List;
-import java.util.Map;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@CrossOrigin(originPatterns = {"http://localhost:*", "http://127.0.0.1:*"})
 public class GithubIntegrationController {
   private final GithubPullRequestService githubPullRequestService;
 
@@ -51,10 +44,4 @@ public class GithubIntegrationController {
     return githubPullRequestService.searchPullRequests(owner, repo, q, perPage, page);
   }
 
-  @ExceptionHandler(GithubApiException.class)
-  ResponseEntity<Map<String, Object>> handleGithubError(GithubApiException exception) {
-    JsonNode body = exception.responseBody();
-    return ResponseEntity.status(exception.statusCode())
-        .body(Map.of("error", exception.getMessage(), "github_response", body));
-  }
 }

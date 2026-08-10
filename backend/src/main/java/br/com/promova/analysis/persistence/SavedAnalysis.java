@@ -1,5 +1,6 @@
 package br.com.promova.analysis.persistence;
 
+import br.com.promova.evidence.Evidence;
 import br.com.promova.user.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -9,30 +10,43 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.Instant;
 
 @Entity
-@Table(name = "saved_analyses")
+@Table(
+    name = "saved_analyses",
+    uniqueConstraints =
+        @UniqueConstraint(name = "uk_saved_analyses_evidence", columnNames = "evidence_id"))
 public class SavedAnalysis {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  @Column(nullable = false)
+  @Column(nullable = false, length = 500)
   private String externalId;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "user_id", nullable = false)
   private User user;
 
-  @Column(nullable = false)
+  /**
+   * The source evidence for analyses created by the trusted workflow. This is nullable only for
+   * legacy/demo rows created before evidence inbox persistence existed.
+   */
+  @OneToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "evidence_id", unique = true)
+  private Evidence evidenceEntity;
+
+  @Column(nullable = false, length = 100)
   private String source;
 
-  @Column(nullable = false)
+  @Column(nullable = false, length = 1000)
   private String sourceMeta;
 
-  @Column(nullable = false, length = 4000)
+  @Column(nullable = false, length = 10000)
   private String evidence;
 
   @Column(nullable = false)
@@ -95,6 +109,35 @@ public class SavedAnalysis {
     this.createdAt = createdAt;
   }
 
+  public SavedAnalysis(
+      Evidence evidence,
+      String currentLevel,
+      String targetLevel,
+      String impactLevel,
+      String confidence,
+      String justification,
+      String competenciesJson,
+      String suggestionsJson,
+      String readiness,
+      Instant createdAt) {
+    this(
+        evidence.getExternalId(),
+        evidence.getUser(),
+        evidence.getSource(),
+        evidence.getSourceMeta(),
+        evidence.getEvidence(),
+        currentLevel,
+        targetLevel,
+        impactLevel,
+        confidence,
+        justification,
+        competenciesJson,
+        suggestionsJson,
+        readiness,
+        createdAt);
+    this.evidenceEntity = evidence;
+  }
+
   public Long getId() {
     return id;
   }
@@ -105,6 +148,10 @@ public class SavedAnalysis {
 
   public User getUser() {
     return user;
+  }
+
+  public Evidence getEvidenceEntity() {
+    return evidenceEntity;
   }
 
   public String getSource() {

@@ -1,69 +1,73 @@
 package br.com.promova.evidence.service;
 
-import br.com.promova.evidence.dto.CapturedEvidenceResponse;
-import br.com.promova.github.dto.GithubPullRequestBundle;
-import br.com.promova.github.dto.GithubPullSummary;
-import br.com.promova.github.service.GithubPullRequestService;
-import org.springframework.http.HttpStatus;
+import br.com.promova.evidence.dto.EvidenceResponse;
+import br.com.promova.github.adapter.GithubSourceAdapter;
+import br.com.promova.source.NormalizedEvidence;
+import br.com.promova.source.SourceEvidenceCaptureService;
+import br.com.promova.user.User;
+import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
+/**
+ * Compatibility facade for the existing single-GitHub-PR capture routes.
+ *
+ * <p>GitHub DTOs stay inside {@link GithubSourceAdapter}; this evidence-facing service accepts
+ * only primitives or the provider-neutral normalized model and delegates persistence to the
+ * existing EvidenceService boundary.
+ */
 @Service
 public class GithubCapturedEvidenceService {
-  private final GithubPullRequestService githubPullRequestService;
+  private final GithubSourceAdapter githubSourceAdapter;
+  private final EvidenceService evidenceService;
+  private final SourceEvidenceCaptureService sourceEvidenceCaptureService;
 
-  public GithubCapturedEvidenceService(GithubPullRequestService githubPullRequestService) {
-    this.githubPullRequestService = githubPullRequestService;
+  @Autowired
+  public GithubCapturedEvidenceService(
+      GithubSourceAdapter githubSourceAdapter,
+      SourceEvidenceCaptureService sourceEvidenceCaptureService,
+      EvidenceService evidenceService) {
+    this.githubSourceAdapter = githubSourceAdapter;
+    this.sourceEvidenceCaptureService = sourceEvidenceCaptureService;
+    this.evidenceService = evidenceService;
   }
 
-  public CapturedEvidenceResponse fromPullRequest(
-      String repoSlug, int pullNumber, String usernameHint) {
-    RepositorySlug repositorySlug = parseRepositorySlug(repoSlug);
-    GithubPullRequestBundle bundle =
-        githubPullRequestService.pullRequestDetails(
-            repositorySlug.owner(), repositorySlug.repo(), pullNumber);
-    GithubPullSummary pullRequest = bundle.pullRequest();
-    String profileLine =
-        usernameHint == null || usernameHint.isBlank()
-            ? "Contexto/perfil relacionado a leitura: " + pullRequest.authorLogin()
-            : "Contexto/perfil relacionado a leitura: " + usernameHint.trim();
-    String bodyPreview =
-        pullRequest.bodyPreview() == null || pullRequest.bodyPreview().isBlank()
-            ? "Sem descricao no PR."
-            : pullRequest.bodyPreview();
-
-    String evidence =
-        String.join(
-            "\n\n",
-            "GitHub - repositorio %s - PR #%d".formatted(bundle.repository(), pullRequest.number()),
-            profileLine,
-            "Titulo: " + pullRequest.title(),
-            "Volume coletado via API (+%d -%d linhas, %d arquivo(s))."
-                .formatted(bundle.additions(), bundle.deletions(), bundle.changedFilesCount()),
-            "Descricao/resumo:\n" + bodyPreview,
-            "Link publico do PR: " + pullRequest.htmlUrl(),
-            "Leitura preparada automaticamente para revisao no Promova.");
-
-    return new CapturedEvidenceResponse(
-        "github-%s-%s-pr-%d"
-            .formatted(repositorySlug.owner(), repositorySlug.repo(), pullRequest.number()),
-        "GitHub",
-        "PR #%d - %s".formatted(pullRequest.number(), bundle.repository()),
-        evidence,
-        "L3",
-        "L4",
-        0);
+  /** Convenience constructor for focused unit tests that do not need the generic bridge bean. */
+  public GithubCapturedEvidenceService(
+      GithubSourceAdapter githubSourceAdapter, EvidenceService evidenceService) {
+    this.githubSourceAdapter = githubSourceAdapter;
+    this.sourceEvidenceCaptureService = null;
+    this.evidenceService = evidenceService;
   }
 
-  private RepositorySlug parseRepositorySlug(String repoSlug) {
-    if (repoSlug == null || !repoSlug.contains("/")) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Repository must be in owner/repo format");
+  public EvidenceResponse fromPullRequest(
+      User user, String repoSlug, int pullNumber, String usernameHint) {
+    String externalId = githubSourceAdapter.externalIdFor(repoSlug, pullNumber);
+    Optional<EvidenceResponse> existing =
+        evidenceService.findByNaturalKey(user, GithubSourceAdapter.SOURCE, externalId);
+    if (existing.isPresent()) {
+      return existing.get();
     }
 
-    String[] parts = repoSlug.trim().split("/", 2);
-    githubPullRequestService.validateRepository(parts[0], parts[1]);
-    return new RepositorySlug(parts[0], parts[1]);
+    NormalizedEvidence normalized =
+        githubSourceAdapter.fetchPullRequest(repoSlug, pullNumber, usernameHint);
+    return capture(user, normalized).evidence();
   }
 
-  private record RepositorySlug(String owner, String repo) {}
+  /** Captures already-normalized source data through the existing evidence path. */
+  public EvidenceCaptureResult capture(User user, NormalizedEvidence normalizedEvidence) {
+    if (sourceEvidenceCaptureService != null) {
+      return sourceEvidenceCaptureService.capture(user, normalizedEvidence);
+    }
+    return
+        new EvidenceCaptureResult(
+            evidenceService.capture(
+                user,
+                normalizedEvidence.source(),
+                normalizedEvidence.externalId(),
+                normalizedEvidence.sourceMeta(),
+                normalizedEvidence.evidenceText(),
+                normalizedEvidence.sourceUrl()),
+            true);
+  }
 }

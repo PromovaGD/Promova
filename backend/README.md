@@ -19,15 +19,39 @@ cd backend
 O endpoint fica disponivel em:
 
 ```text
-GET  http://localhost:8080/evidences/next?cursor=0
+GET  http://localhost:8080/evidences?status=PENDING
+GET  http://localhost:8080/evidences/{evidenceId}
 GET  http://localhost:8080/evidences/github/pull-request?repo=owner/repo&pullNumber=123
 GET  http://localhost:8080/api/github/repos/{owner}/{repo}/pulls?state=all
 GET  http://localhost:8080/api/github/repos/{owner}/{repo}/pulls/{number}
 GET  http://localhost:8080/api/github/repos/{owner}/{repo}/pulls/search?q=author:usuario
-POST http://localhost:8080/analyze
+GET  http://localhost:8080/api/github/settings
+PUT  http://localhost:8080/api/github/settings
+POST http://localhost:8080/api/github/settings/test
+POST http://localhost:8080/api/github/sync
+POST http://localhost:8080/evidences/{evidenceId}/analysis
 ```
 
 Para repositorios privados ou limites maiores de rate limit, defina `GITHUB_TOKEN` antes de iniciar o backend. A URL base da API tambem pode ser alterada via `github.api.base-url` em `application.properties`.
+
+`/api/github/settings` recebe `{"repoSlug":"owner/repo","authorLogin":"login"}` e persiste
+uma configuracao por usuario. `POST /api/github/settings/test` verifica o repositorio salvo e
+`POST /api/github/sync` pagina pull requests fechados, importa apenas PRs merged do login
+configurado dentro do lookback, e retorna `discovered`, `created`, `existing`, `failed`,
+`lastSyncAt` e `lastSyncOutcome`. A Evidence usa a chave unica por usuario, fonte e externalId,
+portanto uma repeticao informa os itens como existentes sem criar linhas duplicadas.
+
+O acesso ao GitHub e exclusivamente pelo `GITHUB_TOKEN` do servidor. Repositorios privados
+exigem que o token da empresa tenha acesso; isso nao e uma autorizacao GitHub por usuario, nao
+usa OAuth e nenhum token pessoal e armazenado.
+
+Configuracao opcional do sync:
+
+```properties
+github.sync.lookback-days=${GITHUB_SYNC_LOOKBACK_DAYS:90}
+github.sync.page-size=${GITHUB_SYNC_PAGE_SIZE:50}
+github.sync.max-pages=${GITHUB_SYNC_MAX_PAGES:10}
+```
 
 ## Analise com IA via OpenRouter
 
@@ -57,13 +81,15 @@ Para trocar o modelo:
 $env:OPENROUTER_MODEL="qwen/qwen3-next-80b-a3b-instruct:free"
 ```
 
-Depois envie uma evidencia para `/analyze`:
+Solicite a analise pelo endpoint autenticado, sem corpo de requisicao. O servidor carrega a
+Evidence PENDING pertencente ao usuario autenticado, o perfil e o career framework, executa o
+engine e persiste o resultado. A evidencia, os niveis e a classificacao nao sao enviados pelo
+navegador:
 
 ```powershell
 Invoke-RestMethod -Method Post `
-  -Uri http://localhost:8080/analyze `
-  -ContentType "application/json" `
-  -Body '{"evidence":"Refactored the checkout service and improved latency by 30% while adding dashboards and alerts","currentLevel":"L3","targetLevel":"L4"}'
+  -Uri http://localhost:8080/evidences/{evidenceId}/analysis `
+  -Headers @{ Authorization = "Bearer <session-token>" }
 ```
 
 Configuracoes relevantes:
@@ -130,9 +156,8 @@ Exemplo:
 
 ```powershell
 Invoke-RestMethod -Method Post `
-  -Uri http://localhost:8080/analyze `
-  -ContentType "application/json" `
-  -Body '{"evidence":"Refactored payment module and increased test coverage","currentLevel":"L3","targetLevel":"L4"}'
+  -Uri http://localhost:8080/evidences/{evidenceId}/analysis `
+  -Headers @{ Authorization = "Bearer <session-token>" }
 ```
 
 ## Fluxo interno
@@ -154,3 +179,59 @@ On macOS/Linux:
 cd backend
 ./gradlew test
 ```
+
+## Perfis e migrations
+
+Use `dev` para desenvolvimento local, `test` para testes isolados e `prod` para PostgreSQL:
+
+```powershell
+# Dev é o padrão de bootRun e usa H2 em backend/data/promova.
+./gradlew.bat bootRun
+
+# Os testes ativam test e usam H2 em memória, sem backend/data.
+./gradlew.bat test
+
+# Verifica migrations, startup e schema validation em banco limpo.
+./gradlew.bat migrationStartupSmoke
+```
+
+O perfil `dev` mantém o console H2 e as origens `http://localhost:*` para preservar o fluxo local. Os perfis `test` e `prod` mantêm o console desabilitado; somente o perfil `dev` tem fallback H2 e localhost. O perfil `prod` exige `PROMOVA_DB_URL`, `PROMOVA_DB_USERNAME`, `PROMOVA_DB_PASSWORD` e `PROMOVA_CORS_ALLOWED_ORIGINS`, e usa `spring.jpa.hibernate.ddl-auto=validate`.
+
+As migrations são aplicadas em ordem: `V1__create_core_schema.sql` cria o schema de usuários, sessões, perfis, evidências, integrações e análises; `V2__create_saved_analysis_reviews.sql` cria o histórico de revisões. O Hibernate apenas valida o resultado.
+
+O banco H2 do protótipo foi criado antes do Flyway. O perfil `dev` usa `baseline-on-migrate=true` com baseline explícito na versão `2` para uma base existente equivalente ao schema completo da Task 7; isso não remove dados. Faça backup e confira as tabelas antes de aceitar o baseline. Em produção o baseline automático é desligado: uma base legada deve passar por baseline operacional aprovado na versão correta ou por migração manual se não for compatível. Nunca use `ddl-auto=update` para contornar uma falha de migration.
+
+Configuração mínima de produção:
+
+```text
+SPRING_PROFILES_ACTIVE=prod
+PROMOVA_DB_URL=jdbc:postgresql://db.example.com:5432/promova
+PROMOVA_DB_USERNAME=promova
+PROMOVA_DB_PASSWORD=<secret-from-secret-store>
+PROMOVA_CORS_ALLOWED_ORIGINS=https://promova.example.com
+```
+
+## Source adapter contract
+
+Source integrations implement `br.com.promova.source.SourceAdapter`. Its bounded request contains
+an opaque `scope`, an optional author filter, an `occurredAfter` lookback boundary, and page/page
+size. Its `SourcePageResult` contains only provider-neutral `NormalizedEvidence` values, an
+isolated `failedItems` count, a next-page hint, and the oldest timestamp observed in the provider
+page.
+
+Each `NormalizedEvidence` contains `source`, stable `externalId`, display `sourceMeta`, evidence
+text, source URL, author, `occurredAt`, and safe traceability `providerMetadata`. The
+`SourceEvidenceCaptureService` passes those fields into the existing `EvidenceService` path, so
+per-user ownership, source/external-id uniqueness, duplicate counts, pending status, and trusted
+analysis behavior remain in the evidence domain. Provider DTOs and raw payloads stop at the
+provider adapter; credentials and authorization headers are never normalized.
+
+`GithubSourceAdapter` is the current proof implementation. A future Jira or Slack adapter owns its
+provider DTOs, scope/query semantics, stable external IDs, occurred-at mapping, pagination/rate
+limit handling, and provider-specific failure isolation while returning this same contract.
+Authentication and OAuth/workspace installation, exact Jira/Slack event contracts, permission
+scopes, webhook versus polling decisions, and provider-specific retention/traceability fields are
+deliberately deferred to those future tasks. This task adds no Jira or Slack credentials or
+dependencies.
+
+As origens são separadas por vírgulas. O backend não registra nem devolve tokens; mantenha credenciais fora do Git e do log de deploy.

@@ -1,4 +1,5 @@
-import { fetchEmployeeAnalyses, fetchUserAnalyses, saveUserAnalysis } from "./auth-api.mjs";
+import { fetchEmployeeAnalyses, fetchUserAnalyses } from "./auth-api.mjs";
+import { apiGet, apiPost } from "./http.mjs";
 
 export async function loadAnalysesForCurrentUser(filters = {}) {
   const items = await fetchUserAnalyses(buildDateParams(filters));
@@ -10,27 +11,36 @@ export async function loadAnalysesForEmployee(userId, filters = {}) {
   return items.map(normalizeSavedAnalysis);
 }
 
-export async function persistAnalysis(analysis) {
-  await saveUserAnalysis({
-    externalId: analysis.id,
-    source: analysis.source,
-    sourceMeta: analysis.sourceMeta,
-    evidence: analysis.evidence,
-    currentLevel: analysis.currentLevel,
-    targetLevel: analysis.targetLevel,
-    impactLevel: analysis.impactLevel,
-    confidence: analysis.confidence,
-    justification: analysis.justification,
-    readiness: analysis.readiness,
-    createdAt: analysis.createdAt,
-    competencies: analysis.competencies,
-    suggestions: analysis.suggestions,
-  });
+export async function loadReviewsForCurrentUser(analysisId) {
+  return normalizeReview(
+    await apiGet(`/analyses/${encodeURIComponent(analysisId)}/reviews`, null, { auth: true }),
+  );
+}
+
+export async function loadReviewsForEmployee(employeeId, analysisId) {
+  return normalizeReview(
+    await apiGet(
+      `/admin/employees/${encodeURIComponent(employeeId)}/analyses/${encodeURIComponent(analysisId)}/reviews`,
+      null,
+      { auth: true },
+    ),
+  );
+}
+
+export async function submitReviewForEmployee(employeeId, analysisId, payload) {
+  return normalizeReview(
+    await apiPost(
+      `/admin/employees/${encodeURIComponent(employeeId)}/analyses/${encodeURIComponent(analysisId)}/reviews`,
+      payload,
+      { auth: true },
+    ),
+  );
 }
 
 function normalizeSavedAnalysis(item) {
   return {
     id: item.id,
+    analysisId: item.analysisId ?? null,
     source: item.source,
     sourceMeta: item.sourceMeta,
     evidence: item.evidence,
@@ -43,6 +53,24 @@ function normalizeSavedAnalysis(item) {
     suggestions: item.suggestions || [],
     readiness: item.readiness,
     createdAt: item.createdAt,
+  };
+}
+
+function normalizeReview(item) {
+  return {
+    analysisId: item?.analysisId ?? null,
+    currentStatus: item?.currentStatus || "UNREVIEWED",
+    history: Array.isArray(item?.history)
+      ? item.history.map((review) => ({
+          id: review.id,
+          reviewerId: review.reviewerId,
+          reviewerName: review.reviewerName,
+          reviewerEmail: review.reviewerEmail,
+          createdAt: review.createdAt,
+          status: review.status,
+          comment: review.comment,
+        }))
+      : [],
   };
 }
 

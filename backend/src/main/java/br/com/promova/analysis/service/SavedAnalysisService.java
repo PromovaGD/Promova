@@ -1,9 +1,13 @@
 package br.com.promova.analysis.service;
 
+import br.com.promova.analysis.dto.EvidenceAnalysisResponse;
 import br.com.promova.analysis.dto.SavedAnalysisRequest;
 import br.com.promova.analysis.dto.SavedAnalysisResponse;
 import br.com.promova.analysis.persistence.SavedAnalysis;
 import br.com.promova.analysis.persistence.SavedAnalysisRepository;
+import br.com.promova.analysis.review.persistence.SavedAnalysisReviewRepository;
+import br.com.promova.evidence.Evidence;
+import br.com.promova.framework.CareerFramework;
 import br.com.promova.user.User;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -19,18 +23,22 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class SavedAnalysisService {
   private final SavedAnalysisRepository savedAnalysisRepository;
+  private final SavedAnalysisReviewRepository savedAnalysisReviewRepository;
   private final ObjectMapper objectMapper;
 
   public SavedAnalysisService(
-      SavedAnalysisRepository savedAnalysisRepository, ObjectMapper objectMapper) {
+      SavedAnalysisRepository savedAnalysisRepository,
+      SavedAnalysisReviewRepository savedAnalysisReviewRepository,
+      ObjectMapper objectMapper) {
     this.savedAnalysisRepository = savedAnalysisRepository;
+    this.savedAnalysisReviewRepository = savedAnalysisReviewRepository;
     this.objectMapper = objectMapper;
   }
 
   @Transactional(readOnly = true)
   public List<SavedAnalysisResponse> listForUser(User user, Instant from, Instant to) {
     return savedAnalysisRepository.findByUserAndDateRange(user, from, to).stream()
-        .map(this::toResponse)
+        .map(this::toResponseForTransaction)
         .toList();
   }
 
@@ -54,11 +62,42 @@ public class SavedAnalysisService {
                 request.readiness(),
                 request.createdAt()));
 
-    return toResponse(saved);
+    return toResponseForTransaction(saved);
+  }
+
+  /**
+   * Persists an engine result together with the immutable source snapshot used for that result.
+   * The caller owns the surrounding transaction and is responsible for transitioning the evidence
+   * only after this object has been built successfully.
+   */
+  @Transactional
+  public SavedAnalysisResponse saveEngineResult(
+      Evidence evidence,
+      String currentLevel,
+      String targetLevel,
+      EvidenceAnalysisResponse engineResult,
+      CareerFramework careerFramework,
+      Instant createdAt) {
+    SavedAnalysis saved =
+        savedAnalysisRepository.save(
+            new SavedAnalysis(
+                evidence,
+                currentLevel,
+                targetLevel,
+                engineResult.estimatedLevel(),
+                engineResult.confidence().value(),
+                engineResult.reasoning(),
+                writeJson(safeList(engineResult.competencies())),
+                writeJson(safeList(engineResult.suggestions())),
+                readinessFor(engineResult.estimatedLevel(), targetLevel, careerFramework),
+                createdAt));
+
+    return toResponseForTransaction(saved);
   }
 
   @Transactional
   public void clearForUser(User user, Instant from, Instant to) {
+    savedAnalysisReviewRepository.deleteForAnalysisOwnerAndDateRange(user, from, to);
     if (from == null && to == null) {
       savedAnalysisRepository.deleteAllByUser(user);
       return;
@@ -67,7 +106,7 @@ public class SavedAnalysisService {
     savedAnalysisRepository.deleteByUserAndDateRange(user, from, to);
   }
 
-  private SavedAnalysisResponse toResponse(SavedAnalysis saved) {
+  SavedAnalysisResponse toResponseForTransaction(SavedAnalysis saved) {
     return new SavedAnalysisResponse(
         saved.getExternalId(),
         saved.getUser().getId(),
@@ -82,7 +121,8 @@ public class SavedAnalysisService {
         readList(saved.getCompetenciesJson()),
         readList(saved.getSuggestionsJson()),
         saved.getReadiness(),
-        saved.getCreatedAt());
+        saved.getCreatedAt(),
+        saved.getId());
   }
 
   private List<String> safeList(List<String> values) {
@@ -103,5 +143,18 @@ public class SavedAnalysisService {
     } catch (JsonProcessingException error) {
       return Collections.emptyList();
     }
+  }
+
+  private String readinessFor(
+      String impactLevel, String targetLevel, CareerFramework careerFramework) {
+    boolean reachesTarget =
+        impactLevel.equals(targetLevel) || careerFramework.isAbove(targetLevel, impactLevel);
+    if (reachesTarget) {
+      return "Esta evidência está alinhada com o alvo atual de " + targetLevel + ".";
+    }
+
+    return "Esta evidência ainda está abaixo do alvo de "
+        + targetLevel
+        + ", então pode ser fortalecida com resultados mensuráveis.";
   }
 }

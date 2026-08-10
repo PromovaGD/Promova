@@ -1,12 +1,10 @@
 package br.com.promova.analysis.controller;
 
-import br.com.promova.analysis.dto.SavedAnalysisRequest;
 import br.com.promova.analysis.dto.SavedAnalysisResponse;
 import br.com.promova.analysis.service.SavedAnalysisService;
 import br.com.promova.auth.AuthService;
 import br.com.promova.auth.AuthTokenResolver;
 import br.com.promova.user.User;
-import jakarta.validation.Valid;
 import java.time.Instant;
 import java.util.List;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -14,8 +12,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -48,14 +44,6 @@ public class SavedAnalysisController {
           Instant to) {
     User user = authService.requireUser(requireToken(authorization));
     return savedAnalysisService.listForUser(user, from, to);
-  }
-
-  @PostMapping
-  public SavedAnalysisResponse save(
-      @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
-      @Valid @RequestBody SavedAnalysisRequest request) {
-    User user = authService.requireUser(requireToken(authorization));
-    return savedAnalysisService.save(user, request);
   }
 
   @DeleteMapping

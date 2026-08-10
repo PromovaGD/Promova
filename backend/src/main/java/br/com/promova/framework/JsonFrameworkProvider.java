@@ -25,8 +25,10 @@ public class JsonFrameworkProvider implements FrameworkProvider {
     try {
       CareerFramework careerFramework =
           objectMapper.readValue(frameworkResource.getInputStream(), CareerFramework.class);
-      if (careerFramework.levels() == null || careerFramework.levels().isEmpty()) {
-        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Career framework has no levels");
+      if (careerFramework.levels() == null || careerFramework.levels().size() < 2) {
+        throw new ResponseStatusException(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            "Career framework must declare at least two levels");
       }
       return careerFramework;
     } catch (IOException exception) {

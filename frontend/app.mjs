@@ -2,13 +2,30 @@ import {
   chooseGithubPullRequest,
   createGithubImportState,
   githubImportRequest,
+  applyGithubSettings,
+  setGithubConnectionTestError,
+  setGithubConnectionTestResult,
+  setGithubConnectionTesting,
   setGithubImportError,
   setGithubImportIdle,
   setGithubImportLoading,
   setGithubImportResults,
+  setGithubSettingsError,
+  setGithubSettingsLoading,
+  setGithubSettingsSaving,
+  setGithubSyncError,
+  setGithubSyncLoading,
+  setGithubSyncResult,
   updateGithubImportField,
 } from "./features/github-import/github-import-model.mjs";
-import { loadAnalysesForCurrentUser, loadAnalysesForEmployee, persistAnalysis } from "./services/analyses-api.mjs";
+import {
+  loadAnalysesForCurrentUser,
+  loadAnalysesForEmployee,
+  loadReviewsForCurrentUser,
+  loadReviewsForEmployee,
+  submitReviewForEmployee,
+} from "./services/analyses-api.mjs";
+import { loadInsightsForCurrentUser } from "./services/insights-api.mjs";
 import { analyzeCapturedEvidence } from "./services/analysis-api.mjs";
 import {
   fetchCurrentUser,
@@ -19,12 +36,21 @@ import {
   clearUserAnalyses,
 } from "./services/auth-api.mjs";
 import { clearAuthSession, loadAuthToken, loadAuthUser, saveAuthSession } from "./services/auth-store.mjs";
-import { captureEvidenceFromGithubPullRequest, fetchNextCapturedEvidence } from "./services/evidence-api.mjs";
-import { findGithubPullRequests } from "./services/github-api.mjs";
 import {
-  loadEvidenceCursor,
-  saveEvidenceCursor,
-} from "./services/session-store.mjs";
+  captureEvidenceFromGithubPullRequest,
+  dismissEvidence,
+  fetchEvidence,
+  fetchEvidences,
+} from "./services/evidence-api.mjs";
+import {
+  fetchGithubSettings,
+  findGithubPullRequests,
+  saveGithubSettings,
+  syncGithub,
+  testGithubSettings,
+} from "./services/github-api.mjs";
+import { fetchProfile, updateProfile } from "./services/profile-api.mjs";
+import { clearLegacyEvidenceStorage } from "./services/session-store.mjs";
 import { adminPage } from "./views/admin-view.mjs";
 import { authPage } from "./views/auth-view.mjs";
 import { dashboardPage } from "./views/dashboard-view.mjs";
@@ -35,17 +61,26 @@ import {
   evidenceResultPage,
 } from "./views/evidence-view.mjs";
 import { landingPage } from "./views/landing-view.mjs";
+import { profilePage } from "./views/profile-view.mjs";
 
 const state = {
   view: "home",
-  cursor: loadEvidenceCursor(),
   pendingEvidence: null,
+  pendingEvidences: [],
   pendingStatus: "idle",
   githubImport: createGithubImportState(),
   result: null,
   error: null,
   evidences: [],
+  insights: null,
+  insightsStatus: "idle",
+  insightsError: null,
   user: loadAuthUser(),
+  profile: null,
+  profileDraft: null,
+  profileLoading: false,
+  profileSaving: false,
+  profileError: null,
   authMode: "login",
   authLoading: false,
   authError: null,
@@ -55,6 +90,11 @@ const state = {
   selectedEmployeeId: null,
   adminEvidences: [],
   selectedEvidenceId: null,
+  selectedAnalysisId: null,
+  review: null,
+  reviewStatus: "idle",
+  reviewSaving: false,
+  reviewError: null,
   viewingAsAdmin: false,
 };
 
@@ -81,7 +121,11 @@ async function bootstrapSession() {
   try {
     state.user = await fetchCurrentUser();
     saveAuthSession(token, state.user);
+    await refreshProfile();
     await refreshUserAnalyses();
+    await refreshInsights();
+    await refreshPendingEvidences();
+    await refreshGithubSettings();
   } catch (error) {
     if (error.status === 401 || error.isUnauthorized) {
       expireSession();
@@ -100,14 +144,29 @@ function handleAuthExpired() {
 function expireSession() {
   clearAuthSession();
   state.user = null;
+  state.profile = null;
+  state.profileDraft = null;
+  state.profileLoading = false;
+  state.profileSaving = false;
+  state.profileError = null;
   state.evidences = [];
+  state.insights = null;
+  state.insightsStatus = "idle";
+  state.insightsError = null;
   state.adminEvidences = [];
   state.employees = [];
   state.selectedEmployeeId = null;
   state.selectedEvidenceId = null;
+  state.selectedAnalysisId = null;
+  state.review = null;
+  state.reviewStatus = "idle";
+  state.reviewSaving = false;
+  state.reviewError = null;
   state.pendingEvidence = null;
+  state.pendingEvidences = [];
   state.pendingStatus = "idle";
   state.result = null;
+  state.githubImport = createGithubImportState();
   state.viewingAsAdmin = false;
   state.authLoading = false;
   state.authError = "Sua sessÃ£o expirou. FaÃ§a login novamente.";
@@ -129,15 +188,34 @@ function handleInput(event) {
     const filters = scope === "admin" ? state.adminFilters : state.dashboardFilters;
     filters[key] = filterField.value;
   }
+
+  const profileField = event.target.closest("[data-profile-field]");
+  if (profileField) {
+    state.profileDraft = {
+      ...(state.profileDraft || state.profile || {}),
+      [profileField.dataset.profileField]: profileField.value,
+    };
+  }
 }
 
 async function handleSubmit(event) {
-  const form = event.target.closest("[data-auth-form]");
+  const form = event.target.closest("[data-auth-form], [data-profile-form], [data-review-form]");
   if (!form) {
     return;
   }
 
   event.preventDefault();
+
+  if (form.matches("[data-review-form]")) {
+    await submitAnalysisReview(form, event.submitter);
+    return;
+  }
+
+  if (form.matches("[data-profile-form]")) {
+    await submitProfile(form);
+    return;
+  }
+
   const formData = new FormData(form);
   const payload = {
     email: String(formData.get("email") || "").trim(),
@@ -160,7 +238,11 @@ async function handleSubmit(event) {
     saveAuthSession(response.token, response.user);
     state.user = response.user;
     state.authError = null;
+    await refreshProfile();
     await refreshUserAnalyses();
+    await refreshInsights();
+    await refreshPendingEvidences();
+    await refreshGithubSettings();
     state.view = state.user.role === "ADMIN" ? "admin" : "dashboard";
     if (state.view === "admin") {
       await openAdmin();
@@ -199,9 +281,27 @@ async function handleClick(event) {
     await logoutUser();
     clearAuthSession();
     state.user = null;
+    state.profile = null;
+    state.profileDraft = null;
+    state.profileLoading = false;
+    state.profileSaving = false;
+    state.profileError = null;
     state.evidences = [];
+    state.insights = null;
+    state.insightsStatus = "idle";
+    state.insightsError = null;
+    state.pendingEvidence = null;
+    state.pendingEvidences = [];
     state.employees = [];
     state.adminEvidences = [];
+    state.selectedEmployeeId = null;
+    state.selectedEvidenceId = null;
+    state.selectedAnalysisId = null;
+    state.review = null;
+    state.reviewStatus = "idle";
+    state.reviewSaving = false;
+    state.reviewError = null;
+    state.githubImport = createGithubImportState();
     state.authError = null;
     state.view = "home";
     render();
@@ -213,6 +313,14 @@ async function handleClick(event) {
       return;
     }
     await openDashboard();
+    return;
+  }
+
+  if (action === "open-profile") {
+    if (!requireAuth()) {
+      return;
+    }
+    await openProfile();
     return;
   }
 
@@ -232,10 +340,31 @@ async function handleClick(event) {
   }
 
   if (action === "open-evidence-detail") {
-    state.selectedEvidenceId = trigger.dataset.evidenceId;
+    state.selectedEvidenceId = trigger.dataset.analysisId || trigger.dataset.evidenceId;
+    const pool = state.view === "admin" ? state.adminEvidences : state.evidences;
+    const selected = pool.find((item) => String(item.id) === String(state.selectedEvidenceId));
+    state.selectedAnalysisId =
+      trigger.dataset.savedAnalysisId || selected?.analysisId || null;
+    state.review = null;
+    state.reviewStatus = "loading";
+    state.reviewError = null;
     state.viewingAsAdmin = state.view === "admin";
     state.view = "evidence-detail";
     render();
+    await refreshSelectedAnalysisReview();
+    if (state.user && state.view === "evidence-detail") {
+      render();
+    }
+    return;
+  }
+
+  if (action === "open-pending-evidence") {
+    await openPendingEvidence(trigger.dataset.evidenceId);
+    return;
+  }
+
+  if (action === "dismiss-evidence") {
+    await dismissPendingEvidence(trigger.dataset.evidenceId);
     return;
   }
 
@@ -277,6 +406,11 @@ async function handleClick(event) {
   if (action === "back-dashboard") {
     const returnToAdmin = state.viewingAsAdmin;
     state.viewingAsAdmin = false;
+    state.selectedEvidenceId = null;
+    state.selectedAnalysisId = null;
+    state.review = null;
+    state.reviewStatus = "idle";
+    state.reviewError = null;
     if (returnToAdmin) {
       await openAdmin();
       return;
@@ -293,8 +427,30 @@ async function handleClick(event) {
     return;
   }
 
+  if (action === "reload-insights") {
+    await refreshInsights();
+    state.view = "dashboard";
+    render();
+    return;
+  }
+
   if (action === "search-github-prs") {
     await searchGithubPulls();
+    return;
+  }
+
+  if (action === "save-github-settings") {
+    await saveGithubConnectionSettings();
+    return;
+  }
+
+  if (action === "test-github-settings") {
+    await testGithubConnection();
+    return;
+  }
+
+  if (action === "sync-github") {
+    await syncGithubConnection();
     return;
   }
 
@@ -320,16 +476,84 @@ function requireAuth() {
   return false;
 }
 
+async function openProfile() {
+  state.view = "profile";
+  state.profileError = null;
+  render();
+
+  try {
+    await refreshProfile();
+  } catch (error) {
+    if (!error.isUnauthorized && error.status !== 401) {
+      state.profileError = error.message || "Não foi possível carregar o perfil.";
+    }
+  }
+
+  if (state.user) {
+    render();
+  }
+}
+
+async function refreshProfile() {
+  if (!state.user) {
+    state.profile = null;
+    state.profileDraft = null;
+    return null;
+  }
+
+  state.profileLoading = true;
+  try {
+    const profile = await fetchProfile();
+    state.profile = profile;
+    state.profileDraft = {
+      currentLevel: profile.currentLevel,
+      targetLevel: profile.targetLevel,
+    };
+    state.profileError = null;
+    return profile;
+  } finally {
+    state.profileLoading = false;
+  }
+}
+
+async function submitProfile(form) {
+  const formData = new FormData(form);
+  state.profileSaving = true;
+  state.profileError = null;
+  render();
+
+  try {
+    const profile = await updateProfile({
+      currentLevel: String(formData.get("currentLevel") || ""),
+      targetLevel: String(formData.get("targetLevel") || ""),
+    });
+    state.profile = profile;
+    state.profileDraft = {
+      currentLevel: profile.currentLevel,
+      targetLevel: profile.targetLevel,
+    };
+  } catch (error) {
+    if (!error.isUnauthorized && error.status !== 401) {
+      state.profileError = error.message || "Não foi possível salvar o perfil.";
+    }
+  } finally {
+    state.profileSaving = false;
+    if (state.user) {
+      render();
+    }
+  }
+}
+
 async function openDashboard() {
   state.view = "dashboard";
   state.viewingAsAdmin = false;
+  state.insightsStatus = "loading";
+  state.insightsError = null;
   render();
   await refreshUserAnalyses();
-
-  if (!state.pendingEvidence) {
-    await loadPendingEvidence();
-    render();
-  }
+  await refreshInsights();
+  await refreshPendingEvidences();
+  render();
 }
 
 async function openAdmin() {
@@ -357,6 +581,70 @@ async function refreshUserAnalyses() {
   state.evidences = await loadAnalysesForCurrentUser(state.dashboardFilters);
 }
 
+async function refreshInsights() {
+  if (!state.user) {
+    state.insights = null;
+    state.insightsStatus = "idle";
+    state.insightsError = null;
+    return;
+  }
+
+  state.insightsStatus = "loading";
+  state.insightsError = null;
+
+  try {
+    state.insights = await loadInsightsForCurrentUser(state.dashboardFilters);
+    state.insightsStatus = "ready";
+  } catch (error) {
+    if (error.isUnauthorized || error.status === 401) {
+      return;
+    }
+    state.insights = null;
+    state.insightsStatus = "error";
+    state.insightsError = error.message || "Erro inesperado.";
+  }
+}
+
+async function refreshPendingEvidences() {
+  if (!state.user) {
+    state.pendingEvidences = [];
+    state.pendingEvidence = null;
+    return;
+  }
+
+  state.pendingEvidences = await fetchEvidences({
+    status: "PENDING",
+    ...buildClearParams(state.dashboardFilters),
+  });
+  clearLegacyEvidenceStorage();
+
+  if (state.pendingEvidence) {
+    state.pendingEvidence =
+      state.pendingEvidences.find((item) => String(item.id) === String(state.pendingEvidence.id)) || null;
+  }
+}
+
+async function refreshGithubSettings() {
+  if (!state.user) {
+    state.githubImport = createGithubImportState();
+    return;
+  }
+
+  setGithubSettingsLoading(state.githubImport);
+  try {
+    applyGithubSettings(state.githubImport, await fetchGithubSettings());
+  } catch (error) {
+    if (error.isUnauthorized || error.status === 401) {
+      return;
+    }
+    setGithubSettingsError(
+      state.githubImport,
+      error,
+      "Não foi possível carregar a configuração do GitHub.",
+    );
+  }
+}
+
 async function refreshEmployeeAnalyses() {
   if (!state.selectedEmployeeId) {
     state.adminEvidences = [];
@@ -364,6 +652,61 @@ async function refreshEmployeeAnalyses() {
   }
 
   state.adminEvidences = await loadAnalysesForEmployee(state.selectedEmployeeId, state.adminFilters);
+}
+
+async function refreshSelectedAnalysisReview() {
+  if (!state.selectedAnalysisId) {
+    state.review = { currentStatus: "UNREVIEWED", history: [] };
+    state.reviewStatus = "ready";
+    return;
+  }
+
+  try {
+    state.review = state.viewingAsAdmin
+      ? await loadReviewsForEmployee(state.selectedEmployeeId, state.selectedAnalysisId)
+      : await loadReviewsForCurrentUser(state.selectedAnalysisId);
+    state.reviewStatus = "ready";
+    state.reviewError = null;
+  } catch (error) {
+    if (error.isUnauthorized || error.status === 401) {
+      return;
+    }
+    state.reviewStatus = "error";
+    state.reviewError = error.message || "NÃ£o foi possÃ­vel carregar a revisÃ£o.";
+  }
+}
+
+async function submitAnalysisReview(form, submitter) {
+  if (!state.selectedEmployeeId || !state.selectedAnalysisId) {
+    return;
+  }
+
+  const formData = new FormData(form);
+  const status = submitter?.dataset.reviewStatus || String(formData.get("status") || "");
+  const comment = String(formData.get("comment") || "");
+  state.reviewSaving = true;
+  state.reviewError = null;
+  render();
+
+  try {
+    state.review = await submitReviewForEmployee(
+      state.selectedEmployeeId,
+      state.selectedAnalysisId,
+      { status, comment },
+    );
+    state.reviewStatus = "ready";
+  } catch (error) {
+    if (error.isUnauthorized || error.status === 401) {
+      return;
+    }
+    state.reviewStatus = "error";
+    state.reviewError = error.message || "NÃ£o foi possÃ­vel salvar a revisÃ£o.";
+  } finally {
+    state.reviewSaving = false;
+    if (state.user) {
+      render();
+    }
+  }
 }
 
 async function applyFilters(scope) {
@@ -374,6 +717,8 @@ async function applyFilters(scope) {
   }
 
   await refreshUserAnalyses();
+  await refreshInsights();
+  await refreshPendingEvidences();
   render();
 }
 
@@ -395,6 +740,7 @@ async function clearAnalyses(scope) {
 
   await clearUserAnalyses(buildClearParams(filters));
   await refreshUserAnalyses();
+  await refreshInsights();
   render();
 }
 
@@ -424,21 +770,34 @@ async function openCapturedEvidence() {
   render();
 
   try {
-    const analyzedEvidence = await analyzeCapturedEvidence(state.pendingEvidence);
-    await persistAnalysis(analyzedEvidence);
-    state.cursor = state.pendingEvidence.nextCursor;
-    saveEvidenceCursor(state.cursor);
+    const profile = state.profile || (await refreshProfile());
+    if (!profile) {
+      throw new Error("Seu perfil de carreira não está disponível.");
+    }
+
+    const analyzedEvidence = await analyzeCapturedEvidence(state.pendingEvidence.id);
     state.pendingEvidence = null;
     state.pendingStatus = "idle";
     state.result = analyzedEvidence;
+    state.selectedAnalysisId = analyzedEvidence.analysisId || null;
+    state.review = { currentStatus: "UNREVIEWED", history: [] };
+    state.reviewStatus = "ready";
+    state.reviewError = null;
     state.view = "result";
     await refreshUserAnalyses();
+    await refreshInsights();
+    await refreshPendingEvidences();
   } catch (error) {
+    if (error.isUnauthorized || error.status === 401) {
+      return;
+    }
     state.error = error;
     state.view = "error";
   }
 
-  render();
+  if (state.user) {
+    render();
+  }
 }
 
 async function loadPendingEvidence({ force = false } = {}) {
@@ -451,12 +810,56 @@ async function loadPendingEvidence({ force = false } = {}) {
   render();
 
   try {
-    state.pendingEvidence = await fetchNextCapturedEvidence(state.cursor);
+    await refreshPendingEvidences();
+    state.pendingEvidence = state.pendingEvidences[0] || null;
     state.pendingStatus = "ready";
   } catch (error) {
     state.error = error;
     state.pendingEvidence = null;
     state.pendingStatus = "error";
+  }
+}
+
+async function openPendingEvidence(evidenceId) {
+  state.pendingStatus = "loading";
+  state.error = null;
+  render();
+
+  try {
+    state.pendingEvidence = await fetchEvidence(evidenceId);
+    if (state.pendingEvidence.status !== "PENDING") {
+      throw new Error("Esta evidÃªncia nÃ£o estÃ¡ mais pendente.");
+    }
+    state.pendingStatus = "ready";
+    await openCapturedEvidence();
+  } catch (error) {
+    if (error.isUnauthorized || error.status === 401) {
+      return;
+    }
+    state.error = error;
+    state.pendingEvidence = null;
+    state.pendingStatus = "error";
+    render();
+  }
+}
+
+async function dismissPendingEvidence(evidenceId) {
+  try {
+    await dismissEvidence(evidenceId);
+    state.pendingEvidences = state.pendingEvidences.filter(
+      (item) => String(item.id) !== String(evidenceId),
+    );
+    if (state.pendingEvidence && String(state.pendingEvidence.id) === String(evidenceId)) {
+      state.pendingEvidence = null;
+    }
+    state.pendingStatus = "ready";
+    render();
+  } catch (error) {
+    if (error.isUnauthorized || error.status === 401) {
+      return;
+    }
+    state.error = error;
+    render();
   }
 }
 
@@ -474,15 +877,91 @@ async function searchGithubPulls() {
   render();
 }
 
+async function saveGithubConnectionSettings() {
+  setGithubSettingsSaving(state.githubImport, true);
+  state.githubImport.testMessage = "";
+  state.githubImport.syncError = "";
+  render();
+
+  try {
+    const settings = await saveGithubSettings({
+      repoSlug: state.githubImport.repoSlug,
+      authorLogin: state.githubImport.authorLogin,
+    });
+    applyGithubSettings(state.githubImport, settings);
+  } catch (error) {
+    if (!error.isUnauthorized && error.status !== 401) {
+      setGithubSettingsError(
+        state.githubImport,
+        error,
+        "Não foi possível salvar a configuração do GitHub.",
+      );
+    }
+  } finally {
+    setGithubSettingsSaving(state.githubImport, false);
+    if (state.user) {
+      render();
+    }
+  }
+}
+
+async function testGithubConnection() {
+  setGithubConnectionTesting(state.githubImport);
+  render();
+
+  try {
+    setGithubConnectionTestResult(state.githubImport, await testGithubSettings());
+  } catch (error) {
+    if (!error.isUnauthorized && error.status !== 401) {
+      setGithubConnectionTestError(
+        state.githubImport,
+        error,
+        "Não foi possível testar o acesso ao GitHub.",
+      );
+    }
+  }
+
+  if (state.user) {
+    render();
+  }
+}
+
+async function syncGithubConnection() {
+  setGithubSyncLoading(state.githubImport);
+  render();
+
+  try {
+    setGithubSyncResult(state.githubImport, await syncGithub());
+    await refreshGithubSettings();
+    await refreshPendingEvidences();
+  } catch (error) {
+    if (!error.isUnauthorized && error.status !== 401) {
+      setGithubSyncError(state.githubImport, error, "Não foi possível sincronizar o GitHub.");
+    }
+  }
+
+  if (state.user) {
+    render();
+  }
+}
+
 async function importGithubPullRequest() {
   setGithubImportLoading(state.githubImport);
   render();
 
   try {
-    state.pendingEvidence = await captureEvidenceFromGithubPullRequest(githubImportRequest(state.githubImport));
+    const capturedEvidence = await captureEvidenceFromGithubPullRequest(
+      githubImportRequest(state.githubImport),
+    );
+    state.pendingEvidence = capturedEvidence.status === "PENDING" ? capturedEvidence : null;
     state.pendingStatus = "ready";
     setGithubImportIdle(state.githubImport);
-    await openCapturedEvidence();
+    await refreshPendingEvidences();
+    if (state.pendingEvidence) {
+      await openCapturedEvidence();
+    } else {
+      state.view = "dashboard";
+    }
   } catch (error) {
     setGithubImportError(state.githubImport, error, "Não foi possível importar o PR como evidência.");
     state.view = "dashboard";
@@ -499,6 +978,11 @@ function render() {
 
   if (state.view === "auth") {
     appRoot.innerHTML = authPage(state);
+    return;
+  }
+
+  if (state.view === "profile") {
+    appRoot.innerHTML = profilePage(state);
     return;
   }
 

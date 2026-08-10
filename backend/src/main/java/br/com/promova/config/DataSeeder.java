@@ -2,6 +2,7 @@ package br.com.promova.config;
 
 import br.com.promova.analysis.dto.SavedAnalysisRequest;
 import br.com.promova.analysis.service.SavedAnalysisService;
+import br.com.promova.profile.ProfileService;
 import br.com.promova.user.User;
 import br.com.promova.user.UserRepository;
 import br.com.promova.user.UserRole;
@@ -10,18 +11,22 @@ import java.util.List;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Configuration
+@Profile({"dev", "test"})
 public class DataSeeder {
   @Bean
   CommandLineRunner seedUsers(
       UserRepository userRepository,
       SavedAnalysisService savedAnalysisService,
-      PasswordEncoder passwordEncoder) {
+      PasswordEncoder passwordEncoder,
+      ProfileService profileService) {
     return args -> {
       if (userRepository.count() > 0) {
+        userRepository.findAll().forEach(profileService::ensureProfile);
         return;
       }
 
@@ -55,6 +60,8 @@ public class DataSeeder {
                   "pedro.costa@empresa.com",
                   passwordEncoder.encode("senha123"),
                   UserRole.EMPLOYEE));
+
+      userRepository.findAll().forEach(profileService::ensureProfile);
 
       seedAnalysis(
           savedAnalysisService,

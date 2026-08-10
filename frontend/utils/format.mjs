@@ -25,6 +25,14 @@ export function formatTimestamp(isoDate) {
   }).format(new Date(isoDate));
 }
 
+export function formatCount(value) {
+  return new Intl.NumberFormat("pt-BR").format(Number(value) || 0);
+}
+
+export function formatPercentage(value) {
+  return `${Math.round(Number(value) || 0)}%`;
+}
+
 export function badgeClass(level) {
   if (level === "L4" || level === "L5") {
     return "badge success";

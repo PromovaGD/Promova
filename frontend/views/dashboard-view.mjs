@@ -1,7 +1,14 @@
 import { appPage, pageHero } from "../components/layout.mjs";
 import { githubImportPanel } from "../features/github-import/github-import-panel.mjs";
 import { escapeHtml } from "../utils/html.mjs";
-import { LEVELS, badgeClass, confidenceLabel, formatTimestamp, sourceBadgeClass } from "../utils/format.mjs";
+import {
+  badgeClass,
+  confidenceLabel,
+  formatCount,
+  formatPercentage,
+  formatTimestamp,
+  sourceBadgeClass,
+} from "../utils/format.mjs";
 
 export function dashboardPage(state) {
   return appPage(
@@ -62,63 +69,290 @@ function dashboardFilters(state) {
 }
 
 function liveDashboardPreview(state) {
-  const filters = state.viewingAsAdmin ? state.adminFilters || {} : state.dashboardFilters || {};
-  const evidences = filterEvidencesLocally(state.evidences, filters);
-  const counts = LEVELS.reduce((accumulator, level) => {
-    accumulator[level] = evidences.filter((item) => item.impactLevel === level).length;
-    return accumulator;
-  }, {});
-  const latest = evidences[0];
-  const sources = [...new Set(evidences.map((item) => item.source))];
+  const evidences = state.evidences || [];
 
   return `
     <div class="dashboard-shell live-dashboard">
-      <div class="dashboard-metrics">
-        <div class="metric-card blue">
-          <span class="metric-label">Evid&ecirc;ncias</span>
-          <strong class="metric-value">${evidences.length}</strong>
-          <span class="metric-sub">${state.viewingAsAdmin ? "Do funcion&aacute;rio" : "Salvas na conta"}</span>
-        </div>
-        <div class="metric-card green">
-          <span class="metric-label">&Uacute;ltima classifica&ccedil;&atilde;o</span>
-          <strong class="metric-value">${latest ? escapeHtml(latest.impactLevel) : "&mdash;"}</strong>
-          <span class="metric-sub">${latest ? escapeHtml(formatTimestamp(latest.createdAt)) : "Nenhuma ainda"}</span>
-        </div>
-        <div class="metric-card purple">
-          <span class="metric-label">Ferramentas</span>
-          <strong class="metric-value">${sources.length}</strong>
-          <span class="metric-sub">${sources.length ? escapeHtml(sources.join(", ")) : "Sem fontes"}</span>
-        </div>
-      </div>
+      ${state.viewingAsAdmin ? adminDashboardSummary(evidences) : insightsDashboard(state)}
       ${pendingInbox(state)}
       ${evidences.length ? evidenceFeed(evidences) : pendingEvidence(state)}
     </div>
   `;
 }
 
-function filterEvidencesLocally(evidences, filters = {}) {
-  if (!filters?.dateFrom && !filters?.dateTo) {
-    return evidences;
+function adminDashboardSummary(evidences) {
+  const latest = evidences[0];
+  const sources = [...new Set(evidences.map((item) => item.source))];
+
+  return `
+    <div class="dashboard-metrics">
+      <div class="metric-card blue">
+        <span class="metric-label">Evid&ecirc;ncias</span>
+        <strong class="metric-value">${formatCount(evidences.length)}</strong>
+        <span class="metric-sub">Do funcion&aacute;rio</span>
+      </div>
+      <div class="metric-card green">
+        <span class="metric-label">&Uacute;ltima classifica&ccedil;&atilde;o</span>
+        <strong class="metric-value">${latest ? escapeHtml(latest.impactLevel) : "&mdash;"}</strong>
+        <span class="metric-sub">${latest ? escapeHtml(formatTimestamp(latest.createdAt)) : "Nenhuma ainda"}</span>
+      </div>
+      <div class="metric-card purple">
+        <span class="metric-label">Ferramentas</span>
+        <strong class="metric-value">${formatCount(sources.length)}</strong>
+        <span class="metric-sub">${sources.length ? escapeHtml(sources.join(", ")) : "Sem fontes"}</span>
+      </div>
+    </div>
+  `;
+}
+
+function insightsDashboard(state) {
+  if (state.insightsStatus === "error") {
+    return insightsErrorPanel(state.insightsError);
   }
 
-  return evidences.filter((item) => {
-    const createdAt = new Date(item.createdAt).getTime();
-    if (filters.dateFrom) {
-      const from = new Date(`${filters.dateFrom}T00:00:00`).getTime();
-      if (createdAt < from) {
-        return false;
-      }
-    }
+  if (state.insightsStatus !== "ready" || !state.insights) {
+    return insightsLoadingPanel();
+  }
 
-    if (filters.dateTo) {
-      const to = new Date(`${filters.dateTo}T23:59:59.999`).getTime();
-      if (createdAt > to) {
-        return false;
-      }
-    }
+  const insights = state.insights;
+  return `
+    ${insightOverview(insights)}
+    ${insightDistributionSection(
+      "Fontes das evid&ecirc;ncias",
+      "De quais ferramentas vieram as an&aacute;lises salvas neste per&iacute;odo.",
+      insights.sourceDistribution,
+    )}
+    ${insightDistributionSection(
+      "N&iacute;veis estimados",
+      "Como as an&aacute;lises salvas foram distribu&iacute;das por n&iacute;vel estimado.",
+      insights.estimatedLevelDistribution,
+    )}
+    ${criterionCoverageSection(insights)}
+    ${trendSection(insights.recentTrend)}
+    ${gapsSection(insights.gaps)}
+  `;
+}
 
-    return true;
-  });
+function insightOverview(insights) {
+  const sourceLabels = (insights.sourceDistribution || []).map((item) => item.label).filter(Boolean);
+  const hasEvidence = Number(insights.totalEvidence) > 0;
+
+  return `
+    <section class="insights-panel" aria-labelledby="insights-title">
+      <div class="insights-heading">
+        <div>
+          <span class="eyebrow">Vis&atilde;o de carreira</span>
+          <h2 id="insights-title">Evid&ecirc;ncias que apoiam sua evolu&ccedil;&atilde;o</h2>
+          <p class="section-lead">Resumo server-side das an&aacute;lises salvas e do framework de carreira configurado.</p>
+        </div>
+        <p class="insights-disclaimer">Este resumo organiza evid&ecirc;ncias salvas; n&atilde;o &eacute; uma decis&atilde;o de promo&ccedil;&atilde;o.</p>
+      </div>
+      <div class="dashboard-metrics insights-metrics">
+        <div class="metric-card blue">
+          <span class="metric-label">Evid&ecirc;ncias salvas</span>
+          <strong class="metric-value">${formatCount(insights.totalEvidence)}</strong>
+          <span class="metric-sub">${hasEvidence ? "No per&iacute;odo selecionado" : "Nenhuma no per&iacute;odo"}</span>
+        </div>
+        <div class="metric-card green">
+          <span class="metric-label">Crit&eacute;rios com apoio</span>
+          <strong class="metric-value">${formatCount(insights.criteriaWithEvidence)}<span class="metric-denominator"> / ${formatCount(insights.criteriaCount)}</span></strong>
+          <span class="metric-sub">Crit&eacute;rios do framework atual</span>
+        </div>
+        <div class="metric-card purple">
+          <span class="metric-label">Fontes</span>
+          <strong class="metric-value">${formatCount(sourceLabels.length)}</strong>
+          <span class="metric-sub">${sourceLabels.length ? escapeHtml(sourceLabels.join(", ")) : "Nenhuma fonte"}</span>
+        </div>
+      </div>
+      ${
+        hasEvidence
+          ? ""
+          : `<div class="empty-state insight-empty"><p>Nenhuma an&aacute;lise salva no per&iacute;odo selecionado.</p><p>Sem evid&ecirc;ncia de apoio n&atilde;o significa evid&ecirc;ncia negativa; significa apenas que ainda n&atilde;o h&aacute; um registro salvo correspondente.</p></div>`
+      }
+    </section>
+  `;
+}
+
+function insightDistributionSection(title, copy, items = []) {
+  return `
+    <section class="insights-section" aria-labelledby="${slugify(title)}">
+      <div class="section-heading">
+        <h3 class="section-title" id="${slugify(title)}">${title}</h3>
+        <p class="section-lead">${copy}</p>
+      </div>
+      ${
+        items.length
+          ? `<div class="insight-bars">${items.map(insightBar).join("")}</div>`
+          : `<div class="insight-inline-empty">Nenhum dado salvo para este per&iacute;odo.</div>`
+      }
+    </section>
+  `;
+}
+
+function insightBar(item) {
+  const label = item.label || "Sem r&oacute;tulo";
+  const count = Number(item.count) || 0;
+  const percentage = boundedPercentage(item.percentage);
+
+  return `
+    <div class="insight-bar-row">
+      <div class="insight-bar-label">
+        <span>${escapeHtml(label)}</span>
+        <strong>${formatCount(count)}</strong>
+      </div>
+      <div class="insight-bar-track" role="img" aria-label="${escapeHtml(label)}: ${formatCount(count)} evid&ecirc;ncia${count === 1 ? "" : "s"} (${formatPercentage(percentage)})">
+        <span class="insight-bar-fill" style="--insight-bar-width: ${percentage}%"></span>
+      </div>
+      <p class="insight-bar-text">${escapeHtml(label)}: ${formatCount(count)} evid&ecirc;ncia${count === 1 ? "" : "s"} (${formatPercentage(percentage)}).</p>
+    </div>
+  `;
+}
+
+function criterionCoverageSection(insights) {
+  const coverage = insights.criterionCoverage || [];
+
+  return `
+    <section class="insights-section" aria-labelledby="criterion-coverage-title">
+      <div class="section-heading">
+        <h3 class="section-title" id="criterion-coverage-title">Cobertura do framework</h3>
+        <p class="section-lead">Cada crit&eacute;rio abaixo &eacute; comparado aos nomes de compet&ecirc;ncia retornados pelas an&aacute;lises salvas.</p>
+      </div>
+      ${
+        coverage.length
+          ? `<div class="criterion-grid">${coverage.map(criterionCard).join("")}</div>`
+          : `<div class="insight-inline-empty">O framework atual n&atilde;o possui crit&eacute;rios configurados.</div>`
+      }
+    </section>
+  `;
+}
+
+function criterionCard(item) {
+  const supported = item.status === "SUPPORTED";
+  const evidence = Array.isArray(item.supportingEvidence) ? item.supportingEvidence : [];
+  const criterionId = slugify(`${item.level || "level"}-${item.criterion || "criterion"}`);
+
+  return `
+    <article class="criterion-card ${supported ? "supported" : "missing"}" aria-labelledby="${criterionId}">
+      <div class="criterion-card-heading">
+        <div>
+          <span class="criterion-level">${escapeHtml(item.level || "N&iacute;vel")}${item.levelTitle ? ` &middot; ${escapeHtml(item.levelTitle)}` : ""}</span>
+          <h4 id="${criterionId}">${escapeHtml(item.criterion || "Crit&eacute;rio sem nome")}</h4>
+        </div>
+        <span class="criterion-status">${supported ? "Com evid&ecirc;ncia" : "Sem evid&ecirc;ncia"}</span>
+      </div>
+      <details class="criterion-description">
+        <summary>Ver descri&ccedil;&atilde;o</summary>
+        <p>${escapeHtml(item.description || "Descri&ccedil;&atilde;o n&atilde;o configurada.")}</p>
+      </details>
+      ${
+        supported
+          ? `<p class="criterion-support-copy">${formatCount(item.evidenceCount)} evid&ecirc;ncia${Number(item.evidenceCount) === 1 ? "" : "s"} de apoio no per&iacute;odo.</p>
+             <ul class="criterion-evidence-list">${evidence.map(criterionEvidenceItem).join("")}</ul>`
+          : `<p class="criterion-missing-copy">Sem evid&ecirc;ncia de apoio salva neste per&iacute;odo. Isso n&atilde;o &eacute; uma avalia&ccedil;&atilde;o negativa.</p>`
+      }
+    </article>
+  `;
+}
+
+function criterionEvidenceItem(item) {
+  const title = item.title || "Evid&ecirc;ncia salva";
+  const timestamp = item.createdAt ? formatTimestamp(item.createdAt) : "Data indispon&iacute;vel";
+  const evidenceId = Number(item.evidenceId);
+  const canDrillDown = Number.isSafeInteger(evidenceId) && evidenceId > 0;
+
+  if (!canDrillDown) {
+    return `
+      <li>
+        <div class="criterion-evidence-reference legacy">
+          <strong>${escapeHtml(title)}</strong>
+          <span>${escapeHtml(item.source || "Fonte desconhecida")} &middot; ${escapeHtml(timestamp)}</span>
+          <small>Detalhe indispon&iacute;vel para refer&ecirc;ncias hist&oacute;ricas.</small>
+        </div>
+      </li>
+    `;
+  }
+
+  return `
+    <li>
+      <button class="criterion-evidence-link" type="button" data-action="open-evidence-detail" data-evidence-id="${escapeHtml(String(evidenceId))}" data-analysis-id="${escapeHtml(item.id || "")}">
+        <strong>${escapeHtml(title)}</strong>
+        <span>${escapeHtml(item.source || "Fonte desconhecida")} &middot; ${escapeHtml(timestamp)}</span>
+      </button>
+    </li>
+  `;
+}
+
+function trendSection(items = []) {
+  return `
+    <section class="insights-section" aria-labelledby="trend-title">
+      <div class="section-heading">
+        <h3 class="section-title" id="trend-title">Tend&ecirc;ncia recente</h3>
+        <p class="section-lead">Distribui&ccedil;&atilde;o server-side das an&aacute;lises salvas dentro do per&iacute;odo selecionado.</p>
+      </div>
+      ${
+        items.length
+          ? `<div class="insight-bars trend-bars">${items.map(insightBar).join("")}</div>`
+          : `<div class="insight-inline-empty">Ainda n&atilde;o h&aacute; an&aacute;lises salvas para formar uma tend&ecirc;ncia.</div>`
+      }
+    </section>
+  `;
+}
+
+function gapsSection(gaps = []) {
+  return `
+    <section class="insights-section insights-gaps" aria-labelledby="gaps-title">
+      <div class="section-heading">
+        <h3 class="section-title" id="gaps-title">Crit&eacute;rios sem evid&ecirc;ncia de apoio</h3>
+        <p class="section-lead">Estes itens est&atilde;o no framework atual, mas n&atilde;o tiveram uma compet&ecirc;ncia correspondente nas an&aacute;lises salvas do per&iacute;odo.</p>
+      </div>
+      ${
+        gaps.length
+          ? `<ul class="insight-gap-list">${gaps.map(gapItem).join("")}</ul>`
+          : `<div class="insight-inline-empty">N&atilde;o h&aacute; crit&eacute;rios sem apoio no per&iacute;odo analisado.</div>`
+      }
+    </section>
+  `;
+}
+
+function gapItem(item) {
+  return `
+    <li>
+      <strong>${escapeHtml(item.level || "N&iacute;vel")} &middot; ${escapeHtml(item.criterion || "Crit&eacute;rio")}</strong>
+      <span>Sem evid&ecirc;ncia salva correspondente; isso n&atilde;o indica evid&ecirc;ncia negativa.</span>
+    </li>
+  `;
+}
+
+function insightsLoadingPanel() {
+  return `
+    <section class="insights-panel" aria-live="polite">
+      <div class="loading-strip"><span class="loading-dot"></span><span>Carregando a vis&atilde;o de evid&ecirc;ncias...</span></div>
+    </section>
+  `;
+}
+
+function insightsErrorPanel(error) {
+  return `
+    <section class="insights-panel" aria-live="assertive">
+      <div class="empty-state insight-error">
+        <p>N&atilde;o foi poss&iacute;vel carregar os insights deste per&iacute;odo.</p>
+        ${error ? `<p class="error-text">${escapeHtml(error)}</p>` : ""}
+        <button class="button primary" type="button" data-action="reload-insights">Tentar novamente</button>
+      </div>
+    </section>
+  `;
+}
+
+function boundedPercentage(value) {
+  const numericValue = Number(value) || 0;
+  return Math.max(0, Math.min(100, Math.round(numericValue)));
+}
+
+function slugify(value) {
+  return String(value || "section")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "") || "section";
 }
 
 function evidenceFeed(evidences) {
@@ -195,6 +429,10 @@ function pendingInboxItem(item) {
 function pendingEvidence(state) {
   if (state.viewingAsAdmin) {
     return emptyPanel("Este funcion&aacute;rio ainda n&atilde;o possui evid&ecirc;ncias no per&iacute;odo selecionado.");
+  }
+
+  if (state.insightsStatus === "ready" && Number(state.insights?.totalEvidence) === 0) {
+    return "";
   }
 
   if (state.pendingStatus === "loading") {

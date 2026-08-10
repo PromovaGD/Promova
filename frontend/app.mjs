@@ -21,6 +21,7 @@ import {
 import { clearAuthSession, loadAuthToken, loadAuthUser, saveAuthSession } from "./services/auth-store.mjs";
 import { captureEvidenceFromGithubPullRequest, fetchNextCapturedEvidence } from "./services/evidence-api.mjs";
 import { findGithubPullRequests } from "./services/github-api.mjs";
+import { fetchProfile, updateProfile } from "./services/profile-api.mjs";
 import {
   loadEvidenceCursor,
   saveEvidenceCursor,
@@ -35,6 +36,7 @@ import {
   evidenceResultPage,
 } from "./views/evidence-view.mjs";
 import { landingPage } from "./views/landing-view.mjs";
+import { profilePage } from "./views/profile-view.mjs";
 
 const state = {
   view: "home",
@@ -46,6 +48,11 @@ const state = {
   error: null,
   evidences: [],
   user: loadAuthUser(),
+  profile: null,
+  profileDraft: null,
+  profileLoading: false,
+  profileSaving: false,
+  profileError: null,
   authMode: "login",
   authLoading: false,
   authError: null,
@@ -81,6 +88,7 @@ async function bootstrapSession() {
   try {
     state.user = await fetchCurrentUser();
     saveAuthSession(token, state.user);
+    await refreshProfile();
     await refreshUserAnalyses();
   } catch (error) {
     if (error.status === 401 || error.isUnauthorized) {
@@ -100,6 +108,11 @@ function handleAuthExpired() {
 function expireSession() {
   clearAuthSession();
   state.user = null;
+  state.profile = null;
+  state.profileDraft = null;
+  state.profileLoading = false;
+  state.profileSaving = false;
+  state.profileError = null;
   state.evidences = [];
   state.adminEvidences = [];
   state.employees = [];
@@ -129,15 +142,29 @@ function handleInput(event) {
     const filters = scope === "admin" ? state.adminFilters : state.dashboardFilters;
     filters[key] = filterField.value;
   }
+
+  const profileField = event.target.closest("[data-profile-field]");
+  if (profileField) {
+    state.profileDraft = {
+      ...(state.profileDraft || state.profile || {}),
+      [profileField.dataset.profileField]: profileField.value,
+    };
+  }
 }
 
 async function handleSubmit(event) {
-  const form = event.target.closest("[data-auth-form]");
+  const form = event.target.closest("[data-auth-form], [data-profile-form]");
   if (!form) {
     return;
   }
 
   event.preventDefault();
+
+  if (form.matches("[data-profile-form]")) {
+    await submitProfile(form);
+    return;
+  }
+
   const formData = new FormData(form);
   const payload = {
     email: String(formData.get("email") || "").trim(),
@@ -160,6 +187,7 @@ async function handleSubmit(event) {
     saveAuthSession(response.token, response.user);
     state.user = response.user;
     state.authError = null;
+    await refreshProfile();
     await refreshUserAnalyses();
     state.view = state.user.role === "ADMIN" ? "admin" : "dashboard";
     if (state.view === "admin") {
@@ -199,6 +227,11 @@ async function handleClick(event) {
     await logoutUser();
     clearAuthSession();
     state.user = null;
+    state.profile = null;
+    state.profileDraft = null;
+    state.profileLoading = false;
+    state.profileSaving = false;
+    state.profileError = null;
     state.evidences = [];
     state.employees = [];
     state.adminEvidences = [];
@@ -213,6 +246,14 @@ async function handleClick(event) {
       return;
     }
     await openDashboard();
+    return;
+  }
+
+  if (action === "open-profile") {
+    if (!requireAuth()) {
+      return;
+    }
+    await openProfile();
     return;
   }
 
@@ -320,6 +361,74 @@ function requireAuth() {
   return false;
 }
 
+async function openProfile() {
+  state.view = "profile";
+  state.profileError = null;
+  render();
+
+  try {
+    await refreshProfile();
+  } catch (error) {
+    if (!error.isUnauthorized && error.status !== 401) {
+      state.profileError = error.message || "Não foi possível carregar o perfil.";
+    }
+  }
+
+  if (state.user) {
+    render();
+  }
+}
+
+async function refreshProfile() {
+  if (!state.user) {
+    state.profile = null;
+    state.profileDraft = null;
+    return null;
+  }
+
+  state.profileLoading = true;
+  try {
+    const profile = await fetchProfile();
+    state.profile = profile;
+    state.profileDraft = {
+      currentLevel: profile.currentLevel,
+      targetLevel: profile.targetLevel,
+    };
+    state.profileError = null;
+    return profile;
+  } finally {
+    state.profileLoading = false;
+  }
+}
+
+async function submitProfile(form) {
+  const formData = new FormData(form);
+  state.profileSaving = true;
+  state.profileError = null;
+  render();
+
+  try {
+    const profile = await updateProfile({
+      currentLevel: String(formData.get("currentLevel") || ""),
+      targetLevel: String(formData.get("targetLevel") || ""),
+    });
+    state.profile = profile;
+    state.profileDraft = {
+      currentLevel: profile.currentLevel,
+      targetLevel: profile.targetLevel,
+    };
+  } catch (error) {
+    if (!error.isUnauthorized && error.status !== 401) {
+      state.profileError = error.message || "Não foi possível salvar o perfil.";
+    }
+  } finally {
+    state.profileSaving = false;
+    if (state.user) {
+      render();
+    }
+  }
+}
+
 async function openDashboard() {
   state.view = "dashboard";
   state.viewingAsAdmin = false;
@@ -424,7 +533,16 @@ async function openCapturedEvidence() {
   render();
 
   try {
-    const analyzedEvidence = await analyzeCapturedEvidence(state.pendingEvidence);
+    const profile = state.profile || (await refreshProfile());
+    if (!profile) {
+      throw new Error("Seu perfil de carreira não está disponível.");
+    }
+
+    const analyzedEvidence = await analyzeCapturedEvidence({
+      ...state.pendingEvidence,
+      currentLevel: profile.currentLevel,
+      targetLevel: profile.targetLevel,
+    });
     await persistAnalysis(analyzedEvidence);
     state.cursor = state.pendingEvidence.nextCursor;
     saveEvidenceCursor(state.cursor);
@@ -434,11 +552,16 @@ async function openCapturedEvidence() {
     state.view = "result";
     await refreshUserAnalyses();
   } catch (error) {
+    if (error.isUnauthorized || error.status === 401) {
+      return;
+    }
     state.error = error;
     state.view = "error";
   }
 
-  render();
+  if (state.user) {
+    render();
+  }
 }
 
 async function loadPendingEvidence({ force = false } = {}) {
@@ -499,6 +622,11 @@ function render() {
 
   if (state.view === "auth") {
     appRoot.innerHTML = authPage(state);
+    return;
+  }
+
+  if (state.view === "profile") {
+    appRoot.innerHTML = profilePage(state);
     return;
   }
 

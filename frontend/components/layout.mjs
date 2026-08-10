@@ -17,6 +17,7 @@ export function siteHeader(mode, user = null) {
   }
 
   if (mode !== "landing" && user) {
+    appLinks.push({ label: "Perfil", action: "open-profile" });
     appLinks.push({ label: "Nova evidência", action: "open-form" });
   }
 

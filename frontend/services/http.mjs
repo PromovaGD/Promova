@@ -1,5 +1,5 @@
 import { API_BASE_URL } from "../config.mjs";
-import { loadAuthToken } from "./auth-store.mjs";
+import { clearAuthSession, loadAuthToken } from "./auth-store.mjs";
 
 export async function apiGet(path, params, options = {}) {
   const response = await fetch(`${API_BASE_URL}${path}${queryString(params)}`, {
@@ -24,9 +24,7 @@ export async function apiDelete(path, params, options = {}) {
     headers: buildHeaders(options),
   });
 
-  if (!response.ok) {
-    throw new Error(`Request failed: ${response.status}`);
-  }
+  return parseApiResponse(response);
 }
 
 async function parseApiResponse(response) {
@@ -42,7 +40,17 @@ async function parseApiResponse(response) {
       // Keep default message.
     }
 
-    throw new Error(message);
+    const error = new Error(message);
+    error.status = response.status;
+    error.isUnauthorized = response.status === 401;
+    error.isForbidden = response.status === 403;
+
+    if (error.isUnauthorized) {
+      clearAuthSession();
+      notifyAuthExpired();
+    }
+
+    throw error;
   }
 
   if (response.status === 204) {
@@ -59,7 +67,7 @@ function buildHeaders(options, withJson = false) {
     headers["Content-Type"] = "application/json";
   }
 
-  if (options.auth) {
+  if (options.auth !== false) {
     const token = loadAuthToken();
     if (token) {
       headers.Authorization = `Bearer ${token}`;
@@ -67,6 +75,12 @@ function buildHeaders(options, withJson = false) {
   }
 
   return headers;
+}
+
+function notifyAuthExpired() {
+  if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
+    window.dispatchEvent(new Event("promova:auth-expired"));
+  }
 }
 
 function queryString(params) {

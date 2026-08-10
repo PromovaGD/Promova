@@ -65,6 +65,9 @@ export function startApp(root) {
   appRoot.addEventListener("click", handleClick);
   appRoot.addEventListener("input", handleInput);
   appRoot.addEventListener("submit", handleSubmit);
+  if (typeof window !== "undefined") {
+    window.addEventListener("promova:auth-expired", handleAuthExpired);
+  }
   bootstrapSession();
 }
 
@@ -79,12 +82,36 @@ async function bootstrapSession() {
     state.user = await fetchCurrentUser();
     saveAuthSession(token, state.user);
     await refreshUserAnalyses();
-  } catch {
-    clearAuthSession();
-    state.user = null;
-    state.evidences = [];
+  } catch (error) {
+    if (error.status === 401 || error.isUnauthorized) {
+      expireSession();
+      return;
+    }
+    state.error = error;
   }
 
+  render();
+}
+
+function handleAuthExpired() {
+  expireSession();
+}
+
+function expireSession() {
+  clearAuthSession();
+  state.user = null;
+  state.evidences = [];
+  state.adminEvidences = [];
+  state.employees = [];
+  state.selectedEmployeeId = null;
+  state.selectedEvidenceId = null;
+  state.pendingEvidence = null;
+  state.pendingStatus = "idle";
+  state.result = null;
+  state.viewingAsAdmin = false;
+  state.authLoading = false;
+  state.authError = "Sua sessÃ£o expirou. FaÃ§a login novamente.";
+  state.view = "auth";
   render();
 }
 
@@ -175,6 +202,7 @@ async function handleClick(event) {
     state.evidences = [];
     state.employees = [];
     state.adminEvidences = [];
+    state.authError = null;
     state.view = "home";
     render();
     return;

@@ -2,30 +2,30 @@ package br.com.promova.github.connection;
 
 import br.com.promova.evidence.service.EvidenceCaptureResult;
 import br.com.promova.evidence.service.EvidenceService;
-import br.com.promova.evidence.service.GithubCapturedEvidenceService;
 import br.com.promova.github.connection.dto.GithubSyncResponse;
-import br.com.promova.github.dto.GithubPullRequestPage;
-import br.com.promova.github.dto.GithubPullSummary;
-import br.com.promova.github.service.GithubPullRequestService;
 import br.com.promova.github.support.GithubApiException;
+import br.com.promova.source.NormalizedEvidence;
+import br.com.promova.source.SourceAdapter;
+import br.com.promova.source.SourceAdapterRequest;
+import br.com.promova.source.SourceEvidenceCaptureService;
+import br.com.promova.source.SourcePageResult;
 import br.com.promova.user.User;
 import java.time.Clock;
 import java.time.Duration;
 import java.time.Instant;
-import java.time.format.DateTimeParseException;
-import java.util.Locale;
-import java.util.Optional;
-import org.springframework.beans.factory.annotation.Value;
+import java.util.Objects;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+/** GitHub-facing sync orchestration backed internally by the provider-neutral source contract. */
 @Service
 public class GithubSyncService {
   private final GithubConnectionSettingsService settingsService;
-  private final GithubPullRequestService githubPullRequestService;
-  private final GithubCapturedEvidenceService githubCapturedEvidenceService;
+  private final SourceAdapter sourceAdapter;
+  private final SourceEvidenceCaptureService sourceEvidenceCaptureService;
   private final EvidenceService evidenceService;
   private final Clock clock;
   private final int lookbackDays;
@@ -34,16 +34,17 @@ public class GithubSyncService {
 
   public GithubSyncService(
       GithubConnectionSettingsService settingsService,
-      GithubPullRequestService githubPullRequestService,
-      GithubCapturedEvidenceService githubCapturedEvidenceService,
+      @Qualifier("githubSourceAdapter")
+      SourceAdapter sourceAdapter,
+      SourceEvidenceCaptureService sourceEvidenceCaptureService,
       EvidenceService evidenceService,
       Clock clock,
       @Value("${github.sync.lookback-days:90}") int lookbackDays,
       @Value("${github.sync.page-size:50}") int pageSize,
       @Value("${github.sync.max-pages:10}") int maxPages) {
     this.settingsService = settingsService;
-    this.githubPullRequestService = githubPullRequestService;
-    this.githubCapturedEvidenceService = githubCapturedEvidenceService;
+    this.sourceAdapter = sourceAdapter;
+    this.sourceEvidenceCaptureService = sourceEvidenceCaptureService;
     this.evidenceService = evidenceService;
     this.clock = clock;
     this.lookbackDays = clamp(lookbackDays, 1, 3650, 90);
@@ -53,8 +54,8 @@ public class GithubSyncService {
 
   public GithubSyncResponse sync(User user) {
     GithubConnectionSettings settings = settingsService.requireConfigured(user);
-    RepositorySlug repository = parseRepository(settings.getRepoSlug());
-    String authorLogin = settings.getAuthorLogin();
+    String scope = settings.getRepoSlug();
+    String author = settings.getAuthorLogin();
     Instant syncAt = clock.instant();
     Instant cutoff = syncAt.minus(Duration.ofDays(lookbackDays));
     Counters counters = new Counters();
@@ -62,18 +63,16 @@ public class GithubSyncService {
     try {
       boolean hasMorePages = true;
       for (int page = 1; page <= maxPages && hasMorePages; page++) {
-        GithubPullRequestPage response =
-            githubPullRequestService.listClosedPullRequestsForSync(
-                repository.owner(), repository.repo(), pageSize, page);
-        counters.failed += response.malformedItems();
+        SourcePageResult response =
+            Objects.requireNonNull(
+                sourceAdapter.discover(
+                    new SourceAdapterRequest(scope, author, cutoff, pageSize, page)),
+                "source adapter returned no page result");
+        counters.failed += response.failedItems();
 
-        for (GithubPullSummary pullRequest : response.pullRequests()) {
-          if (!matchesSyncFilter(pullRequest, authorLogin, cutoff)) {
-            continue;
-          }
-
+        for (NormalizedEvidence normalizedEvidence : response.items()) {
           counters.discovered++;
-          captureOne(user, repository, pullRequest, counters);
+          captureOne(user, normalizedEvidence, counters);
         }
 
         hasMorePages =
@@ -87,8 +86,8 @@ public class GithubSyncService {
       settingsService.recordSyncOutcome(user, syncAt, outcome);
       return
           new GithubSyncResponse(
-              settings.getRepoSlug(),
-              authorLogin,
+              scope,
+              author,
               counters.discovered,
               counters.created,
               counters.existing,
@@ -108,12 +107,10 @@ public class GithubSyncService {
   }
 
   private void captureOne(
-      User user, RepositorySlug repository, GithubPullSummary pullRequest, Counters counters) {
-    String externalId = externalId(repository, pullRequest.number());
+      User user, NormalizedEvidence normalizedEvidence, Counters counters) {
+    String externalId = normalizedEvidence.externalId();
     try {
-      EvidenceCaptureResult result =
-          githubCapturedEvidenceService.fromPullSummary(
-              user, repository.owner() + "/" + repository.repo(), pullRequest);
+      EvidenceCaptureResult result = sourceEvidenceCaptureService.capture(user, normalizedEvidence);
       if (result.created()) {
         counters.created++;
       } else {
@@ -132,37 +129,18 @@ public class GithubSyncService {
   }
 
   private void classifyCaptureFailure(User user, String externalId, Counters counters) {
-    if (evidenceService.findByNaturalKey(user, "GitHub", externalId).isPresent()) {
+    if (evidenceService.findByNaturalKey(user, sourceAdapter.source(), externalId).isPresent()) {
       counters.existing++;
     } else {
       counters.failed++;
     }
   }
 
-  private boolean matchesSyncFilter(
-      GithubPullSummary pullRequest, String authorLogin, Instant cutoff) {
-    if (pullRequest == null
-        || pullRequest.number() < 1
-        || !"closed".equalsIgnoreCase(pullRequest.state())
-        || pullRequest.mergedAt() == null
-        || pullRequest.mergedAt().isBlank()
-        || pullRequest.authorLogin() == null
-        || !pullRequest.authorLogin().equalsIgnoreCase(authorLogin)) {
-      return false;
+  private boolean pageIsOlderThanCutoff(SourcePageResult response, Instant cutoff) {
+    if (response.oldestObservedAt() == null) {
+      return response.failedItems() == 0;
     }
-
-    return parseInstant(pullRequest.updatedAt())
-        .map(updatedAt -> !updatedAt.isBefore(cutoff))
-        .orElse(false);
-  }
-
-  private boolean pageIsOlderThanCutoff(GithubPullRequestPage response, Instant cutoff) {
-    if (response.pullRequests().isEmpty()) {
-      return response.malformedItems() == 0;
-    }
-
-    GithubPullSummary last = response.pullRequests().get(response.pullRequests().size() - 1);
-    return parseInstant(last.updatedAt()).map(updatedAt -> updatedAt.isBefore(cutoff)).orElse(false);
+    return response.oldestObservedAt().isBefore(cutoff);
   }
 
   private void recordFailure(User user, Instant syncAt, String outcome) {
@@ -173,43 +151,12 @@ public class GithubSyncService {
     }
   }
 
-  private RepositorySlug parseRepository(String repoSlug) {
-    String[] parts = repoSlug == null ? new String[0] : repoSlug.split("/", -1);
-    if (parts.length != 2 || parts[0].isBlank() || parts[1].isBlank()) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Repository must be in owner/repo format");
-    }
-    githubPullRequestService.validateRepository(parts[0], parts[1]);
-    return new RepositorySlug(parts[0], parts[1]);
-  }
-
-  private String externalId(RepositorySlug repository, int pullNumber) {
-    return "github:%s/%s#%d"
-        .formatted(
-            repository.owner().toLowerCase(Locale.ROOT),
-            repository.repo().toLowerCase(Locale.ROOT),
-            pullNumber);
-  }
-
-  private Optional<Instant> parseInstant(String value) {
-    if (value == null || value.isBlank()) {
-      return Optional.empty();
-    }
-    try {
-      return Optional.of(Instant.parse(value));
-    } catch (DateTimeParseException exception) {
-      return Optional.empty();
-    }
-  }
-
   private int clamp(int value, int minimum, int maximum, int fallback) {
     if (value < minimum) {
       return fallback;
     }
     return Math.min(value, maximum);
   }
-
-  private record RepositorySlug(String owner, String repo) {}
 
   private static final class Counters {
     private int discovered;

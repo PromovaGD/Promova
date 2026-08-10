@@ -166,3 +166,34 @@ OAuth e nao armazena tokens pessoais.
 ## Observações
 
 O motor de análise está isolado atrás da interface `AnalysisEngine`. O mock segue disponível para desenvolvimento local, enquanto o provider `openrouter` usa um LLM real com prompt de sistema orientado pelo career framework enviado pelo backend.
+
+## Perfis, banco de dados e deploy
+
+O backend usa perfis Spring explícitos:
+
+- `dev` é o padrão quando nenhum perfil é informado. Usa H2 em arquivo em `backend/data/promova`, habilita o console H2 e permite o frontend local em qualquer porta `localhost`.
+- `test` usa um banco H2 em memória com nome aleatório por contexto, executa as migrations e exige `spring.jpa.hibernate.ddl-auto=validate`. O Gradle ativa esse perfil para os testes; ele nunca aponta para `backend/data`.
+- `prod` exige PostgreSQL e não possui fallback para H2, console H2 ou origens localhost. Ative com `SPRING_PROFILES_ACTIVE=prod`.
+
+As migrations versionadas ficam em `backend/src/main/resources/db/migration`:
+
+- `V1__create_core_schema.sql` cria usuários, sessões, perfis, evidências, configurações do GitHub e análises salvas.
+- `V2__create_saved_analysis_reviews.sql` cria o histórico de revisões administrativas.
+
+Um banco novo é criado integralmente pelas migrations e validado pelo Hibernate. O banco de protótipo anterior ao Flyway não é apagado nem atualizado por `ddl-auto`. No perfil `dev`, um banco H2 existente sem `flyway_schema_history` é explicitamente baselineado na versão `2`, correspondente ao schema aceito da Task 7; faça backup e confirme o schema antes de usar essa compatibilidade. O perfil `prod` mantém o baseline automático desligado: uma base PostgreSQL legada deve ser baselineada por um procedimento de deploy aprovado somente depois de verificada, ou migrada manualmente se houver divergências.
+
+Para produção, configure sem colocar segredos no repositório:
+
+```powershell
+$env:SPRING_PROFILES_ACTIVE="prod"
+$env:PROMOVA_DB_URL="jdbc:postgresql://db.example.com:5432/promova"
+$env:PROMOVA_DB_USERNAME="promova"
+$env:PROMOVA_DB_PASSWORD="<secret-from-secret-store>"
+$env:PROMOVA_CORS_ALLOWED_ORIGINS="https://promova.example.com"
+cd backend
+./gradlew.bat bootRun
+```
+
+`PROMOVA_CORS_ALLOWED_ORIGINS` é uma lista separada por vírgulas. Sem uma origem configurada, nenhuma origem cross-site recebe permissão; no perfil `prod`, a variável é obrigatória. Tokens de GitHub/OpenRouter continuam sendo lidos somente de variáveis de ambiente. Bancos locais, tokens e saídas geradas permanecem ignorados pelo Git.
+
+O pipeline executa `npm run check`, o teste de startup/migrations `./gradlew.bat migrationStartupSmoke`, a suíte `./gradlew.bat test` e `./gradlew.bat bootJar`.

@@ -12,7 +12,6 @@ import br.com.promova.user.User;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -24,7 +23,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/api/github")
-@CrossOrigin(originPatterns = {"http://localhost:*", "http://127.0.0.1:*"})
 public class GithubConnectionController {
   private final AuthService authService;
   private final AuthTokenResolver authTokenResolver;

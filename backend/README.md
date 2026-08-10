@@ -179,3 +179,36 @@ On macOS/Linux:
 cd backend
 ./gradlew test
 ```
+
+## Perfis e migrations
+
+Use `dev` para desenvolvimento local, `test` para testes isolados e `prod` para PostgreSQL:
+
+```powershell
+# Dev é o padrão de bootRun e usa H2 em backend/data/promova.
+./gradlew.bat bootRun
+
+# Os testes ativam test e usam H2 em memória, sem backend/data.
+./gradlew.bat test
+
+# Verifica migrations, startup e schema validation em banco limpo.
+./gradlew.bat migrationStartupSmoke
+```
+
+O perfil `dev` mantém o console H2 e as origens `http://localhost:*` para preservar o fluxo local. Os perfis `test` e `prod` mantêm o console desabilitado; somente o perfil `dev` tem fallback H2 e localhost. O perfil `prod` exige `PROMOVA_DB_URL`, `PROMOVA_DB_USERNAME`, `PROMOVA_DB_PASSWORD` e `PROMOVA_CORS_ALLOWED_ORIGINS`, e usa `spring.jpa.hibernate.ddl-auto=validate`.
+
+As migrations são aplicadas em ordem: `V1__create_core_schema.sql` cria o schema de usuários, sessões, perfis, evidências, integrações e análises; `V2__create_saved_analysis_reviews.sql` cria o histórico de revisões. O Hibernate apenas valida o resultado.
+
+O banco H2 do protótipo foi criado antes do Flyway. O perfil `dev` usa `baseline-on-migrate=true` com baseline explícito na versão `2` para uma base existente equivalente ao schema completo da Task 7; isso não remove dados. Faça backup e confira as tabelas antes de aceitar o baseline. Em produção o baseline automático é desligado: uma base legada deve passar por baseline operacional aprovado na versão correta ou por migração manual se não for compatível. Nunca use `ddl-auto=update` para contornar uma falha de migration.
+
+Configuração mínima de produção:
+
+```text
+SPRING_PROFILES_ACTIVE=prod
+PROMOVA_DB_URL=jdbc:postgresql://db.example.com:5432/promova
+PROMOVA_DB_USERNAME=promova
+PROMOVA_DB_PASSWORD=<secret-from-secret-store>
+PROMOVA_CORS_ALLOWED_ORIGINS=https://promova.example.com
+```
+
+As origens são separadas por vírgulas. O backend não registra nem devolve tokens; mantenha credenciais fora do Git e do log de deploy.

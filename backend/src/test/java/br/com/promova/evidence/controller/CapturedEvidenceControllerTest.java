@@ -10,6 +10,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import br.com.promova.auth.AuthService;
 import br.com.promova.auth.AuthTokenResolver;
+import br.com.promova.analysis.dto.SavedAnalysisResponse;
+import br.com.promova.analysis.service.EvidenceAnalysisService;
 import br.com.promova.config.ApiExceptionHandler;
 import br.com.promova.config.WebConfig;
 import br.com.promova.evidence.EvidenceStatus;
@@ -40,6 +42,7 @@ class CapturedEvidenceControllerTest {
   @MockitoBean private AuthTokenResolver authTokenResolver;
   @MockitoBean private EvidenceService evidenceService;
   @MockitoBean private GithubCapturedEvidenceService githubCapturedEvidenceService;
+  @MockitoBean private EvidenceAnalysisService evidenceAnalysisService;
 
   private User employee;
 
@@ -53,6 +56,11 @@ class CapturedEvidenceControllerTest {
   @Test
   void rejectsAnonymousEvidenceList() throws Exception {
     mockMvc.perform(get("/evidences")).andExpect(status().isUnauthorized());
+  }
+
+  @Test
+  void rejectsAnonymousAnalysisRequests() throws Exception {
+    mockMvc.perform(post("/evidences/41/analysis")).andExpect(status().isUnauthorized());
   }
 
   @Test
@@ -111,6 +119,49 @@ class CapturedEvidenceControllerTest {
             post("/evidences/41/dismiss")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
         .andExpect(status().isConflict());
+  }
+
+  @Test
+  void delegatesAnalysisWithoutBindingClientClassificationFields() throws Exception {
+    SavedAnalysisResponse response =
+        new SavedAnalysisResponse(
+            "github:acme/project#7",
+            7L,
+            "GitHub",
+            "PR #7 - acme/project",
+            "Changed the checkout service",
+            "L3",
+            "L4",
+            "L4",
+            "high",
+            "Server-owned reasoning",
+            List.of("Ownership"),
+            List.of("Add measurable impact"),
+            "Aligned with target",
+            Instant.parse("2026-05-12T10:00:00Z"));
+    when(evidenceAnalysisService.analyzeOwnedEvidence(employee, 41L)).thenReturn(response);
+
+    mockMvc
+        .perform(
+            post("/evidences/41/analysis")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer test-token")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(
+                    """
+                    {
+                      "estimatedLevel": "L99",
+                      "impactLevel": "L99",
+                      "confidence": "high",
+                      "reasoning": "client-authored",
+                      "userId": 999,
+                      "createdAt": "2099-01-01T00:00:00Z"
+                    }
+                    """))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.impactLevel").value("L4"))
+        .andExpect(jsonPath("$.justification").value("Server-owned reasoning"));
+
+    verify(evidenceAnalysisService).analyzeOwnedEvidence(employee, 41L);
   }
 
   @Test

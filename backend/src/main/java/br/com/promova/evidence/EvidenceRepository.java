@@ -1,9 +1,11 @@
 package br.com.promova.evidence;
 
+import jakarta.persistence.LockModeType;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -28,4 +30,9 @@ public interface EvidenceRepository extends JpaRepository<Evidence, Long> {
 
   @Query("SELECT e FROM Evidence e WHERE e.id = :id AND e.user.id = :userId")
   Optional<Evidence> findByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);
+
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("SELECT e FROM Evidence e WHERE e.id = :id AND e.user.id = :userId")
+  Optional<Evidence> findByIdAndUserIdForUpdate(
+      @Param("id") Long id, @Param("userId") Long userId);
 }

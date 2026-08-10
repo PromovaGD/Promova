@@ -125,10 +125,16 @@ cd backend
 Endpoints principais:
 
 ```text
-GET  /evidences/next?cursor=0
+GET  /evidences?status=PENDING
+GET  /evidences/{evidenceId}
+POST /evidences/{evidenceId}/analysis
 GET  /evidences/github/pull-request?repo=owner/repo&pullNumber=123
-POST /analyze
 ```
+
+A analise e solicitada pelo endpoint autenticado `POST /evidences/{evidenceId}/analysis`, sem
+corpo de requisicao. O servidor carrega a Evidence PENDING pertencente ao usuario autenticado,
+o perfil e o career framework, executa o engine e persiste o resultado. A evidencia, os niveis e a
+classificacao nao sao enviados nem definidos pelo navegador.
 
 Endpoints da integração com GitHub:
 
@@ -137,6 +143,25 @@ GET /api/github/repos/{owner}/{repo}/pulls?state=all
 GET /api/github/repos/{owner}/{repo}/pulls/{number}
 GET /api/github/repos/{owner}/{repo}/pulls/search?q=author:usuario
 ```
+
+Configuracao da conexao e sync autenticados:
+
+```text
+GET  /api/github/settings
+PUT  /api/github/settings                  {"repoSlug":"owner/repo","authorLogin":"login"}
+POST /api/github/settings/test             testa o repositorio salvo
+POST /api/github/sync                       importa PRs fechados e merged recentes
+```
+
+As configuracoes sao persistidas por usuario e sempre lidas no contexto autenticado. O sync
+pagina o GitHub com `github.sync.page-size`, limitado por `github.sync.max-pages`, e aplica
+`github.sync.lookback-days`. A resposta informa `discovered`, `created`, `existing`, `failed`,
+`lastSyncAt` e `lastSyncOutcome`; uma repeticao reutiliza a chave unica de Evidence e nao cria
+duplicatas.
+
+O GitHub usa somente o `GITHUB_TOKEN` configurado no servidor. Repositorios privados exigem que
+esse token da empresa tenha acesso; a tela nao representa autorizacao GitHub por usuario, nao usa
+OAuth e nao armazena tokens pessoais.
 
 ## Observações
 

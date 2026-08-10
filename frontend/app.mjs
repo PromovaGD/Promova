@@ -2,10 +2,20 @@ import {
   chooseGithubPullRequest,
   createGithubImportState,
   githubImportRequest,
+  applyGithubSettings,
+  setGithubConnectionTestError,
+  setGithubConnectionTestResult,
+  setGithubConnectionTesting,
   setGithubImportError,
   setGithubImportIdle,
   setGithubImportLoading,
   setGithubImportResults,
+  setGithubSettingsError,
+  setGithubSettingsLoading,
+  setGithubSettingsSaving,
+  setGithubSyncError,
+  setGithubSyncLoading,
+  setGithubSyncResult,
   updateGithubImportField,
 } from "./features/github-import/github-import-model.mjs";
 import { loadAnalysesForCurrentUser, loadAnalysesForEmployee } from "./services/analyses-api.mjs";
@@ -25,7 +35,13 @@ import {
   fetchEvidence,
   fetchEvidences,
 } from "./services/evidence-api.mjs";
-import { findGithubPullRequests } from "./services/github-api.mjs";
+import {
+  fetchGithubSettings,
+  findGithubPullRequests,
+  saveGithubSettings,
+  syncGithub,
+  testGithubSettings,
+} from "./services/github-api.mjs";
 import { fetchProfile, updateProfile } from "./services/profile-api.mjs";
 import { clearLegacyEvidenceStorage } from "./services/session-store.mjs";
 import { adminPage } from "./views/admin-view.mjs";
@@ -93,6 +109,7 @@ async function bootstrapSession() {
     await refreshProfile();
     await refreshUserAnalyses();
     await refreshPendingEvidences();
+    await refreshGithubSettings();
   } catch (error) {
     if (error.status === 401 || error.isUnauthorized) {
       expireSession();
@@ -125,6 +142,7 @@ function expireSession() {
   state.pendingEvidences = [];
   state.pendingStatus = "idle";
   state.result = null;
+  state.githubImport = createGithubImportState();
   state.viewingAsAdmin = false;
   state.authLoading = false;
   state.authError = "Sua sessÃ£o expirou. FaÃ§a login novamente.";
@@ -194,6 +212,7 @@ async function handleSubmit(event) {
     await refreshProfile();
     await refreshUserAnalyses();
     await refreshPendingEvidences();
+    await refreshGithubSettings();
     state.view = state.user.role === "ADMIN" ? "admin" : "dashboard";
     if (state.view === "admin") {
       await openAdmin();
@@ -242,6 +261,7 @@ async function handleClick(event) {
     state.pendingEvidences = [];
     state.employees = [];
     state.adminEvidences = [];
+    state.githubImport = createGithubImportState();
     state.authError = null;
     state.view = "home";
     render();
@@ -353,6 +373,21 @@ async function handleClick(event) {
 
   if (action === "search-github-prs") {
     await searchGithubPulls();
+    return;
+  }
+
+  if (action === "save-github-settings") {
+    await saveGithubConnectionSettings();
+    return;
+  }
+
+  if (action === "test-github-settings") {
+    await testGithubConnection();
+    return;
+  }
+
+  if (action === "sync-github") {
+    await syncGithubConnection();
     return;
   }
 
@@ -496,6 +531,27 @@ async function refreshPendingEvidences() {
   if (state.pendingEvidence) {
     state.pendingEvidence =
       state.pendingEvidences.find((item) => String(item.id) === String(state.pendingEvidence.id)) || null;
+  }
+}
+
+async function refreshGithubSettings() {
+  if (!state.user) {
+    state.githubImport = createGithubImportState();
+    return;
+  }
+
+  setGithubSettingsLoading(state.githubImport);
+  try {
+    applyGithubSettings(state.githubImport, await fetchGithubSettings());
+  } catch (error) {
+    if (error.isUnauthorized || error.status === 401) {
+      return;
+    }
+    setGithubSettingsError(
+      state.githubImport,
+      error,
+      "Não foi possível carregar a configuração do GitHub.",
+    );
   }
 }
 
@@ -667,6 +723,74 @@ async function searchGithubPulls() {
   }
 
   render();
+}
+
+async function saveGithubConnectionSettings() {
+  setGithubSettingsSaving(state.githubImport, true);
+  state.githubImport.testMessage = "";
+  state.githubImport.syncError = "";
+  render();
+
+  try {
+    const settings = await saveGithubSettings({
+      repoSlug: state.githubImport.repoSlug,
+      authorLogin: state.githubImport.authorLogin,
+    });
+    applyGithubSettings(state.githubImport, settings);
+  } catch (error) {
+    if (!error.isUnauthorized && error.status !== 401) {
+      setGithubSettingsError(
+        state.githubImport,
+        error,
+        "Não foi possível salvar a configuração do GitHub.",
+      );
+    }
+  } finally {
+    setGithubSettingsSaving(state.githubImport, false);
+    if (state.user) {
+      render();
+    }
+  }
+}
+
+async function testGithubConnection() {
+  setGithubConnectionTesting(state.githubImport);
+  render();
+
+  try {
+    setGithubConnectionTestResult(state.githubImport, await testGithubSettings());
+  } catch (error) {
+    if (!error.isUnauthorized && error.status !== 401) {
+      setGithubConnectionTestError(
+        state.githubImport,
+        error,
+        "Não foi possível testar o acesso ao GitHub.",
+      );
+    }
+  }
+
+  if (state.user) {
+    render();
+  }
+}
+
+async function syncGithubConnection() {
+  setGithubSyncLoading(state.githubImport);
+  render();
+
+  try {
+    setGithubSyncResult(state.githubImport, await syncGithub());
+    await refreshGithubSettings();
+    await refreshPendingEvidences();
+  } catch (error) {
+    if (!error.isUnauthorized && error.status !== 401) {
+      setGithubSyncError(state.githubImport, error, "Não foi possível sincronizar o GitHub.");
+    }
+  }
+
+  if (state.user) {
+    render();
+  }
 }
 
 async function importGithubPullRequest() {

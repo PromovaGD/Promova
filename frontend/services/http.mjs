@@ -18,6 +18,16 @@ export async function apiPost(path, body, options = {}) {
   return parseApiResponse(response);
 }
 
+export async function apiPut(path, body, options = {}) {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "PUT",
+    headers: buildHeaders(options, true),
+    body: JSON.stringify(body ?? {}),
+  });
+
+  return parseApiResponse(response);
+}
+
 export async function apiDelete(path, params, options = {}) {
   const response = await fetch(`${API_BASE_URL}${path}${queryString(params)}`, {
     method: "DELETE",

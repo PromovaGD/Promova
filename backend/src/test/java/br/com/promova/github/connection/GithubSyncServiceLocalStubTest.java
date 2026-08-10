@@ -11,12 +11,13 @@ import br.com.promova.evidence.EvidenceStatus;
 import br.com.promova.evidence.dto.EvidenceResponse;
 import br.com.promova.evidence.service.EvidenceCaptureResult;
 import br.com.promova.evidence.service.EvidenceService;
-import br.com.promova.evidence.service.GithubCapturedEvidenceService;
+import br.com.promova.github.adapter.GithubSourceAdapter;
 import br.com.promova.github.client.GithubApiClient;
 import br.com.promova.github.service.GithubPullRequestService;
-import br.com.promova.github.dto.GithubPullSummary;
 import br.com.promova.github.support.GithubApiException;
 import br.com.promova.github.support.GithubPayloadException;
+import br.com.promova.source.NormalizedEvidence;
+import br.com.promova.source.SourceEvidenceCaptureService;
 import br.com.promova.user.User;
 import br.com.promova.user.UserRole;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,14 +42,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.server.ResponseStatusException;
 
 @ExtendWith(MockitoExtension.class)
 class GithubSyncServiceLocalStubTest {
   private static final Instant NOW = Instant.parse("2026-08-09T12:00:00Z");
 
   @Mock private GithubConnectionSettingsService settingsService;
-  @Mock private GithubCapturedEvidenceService githubCapturedEvidenceService;
+  @Mock private SourceEvidenceCaptureService sourceEvidenceCaptureService;
   @Mock private EvidenceService evidenceService;
 
   private HttpServer server;
@@ -91,13 +91,14 @@ class GithubSyncServiceLocalStubTest {
 
     GithubSyncService syncService = newSyncService(2, 10);
     AtomicInteger captures = new AtomicInteger();
-    when(githubCapturedEvidenceService.fromPullSummary(eq(user), eq("acme/project"), any()))
+    when(sourceEvidenceCaptureService.capture(eq(user), any(NormalizedEvidence.class)))
         .thenAnswer(
             invocation -> {
-              GithubPullSummary pullRequest = invocation.getArgument(2);
+              NormalizedEvidence normalized = invocation.getArgument(1);
+              int number = pullNumber(normalized.externalId());
               return
                   new EvidenceCaptureResult(
-                      response(pullRequest.number()), captures.getAndIncrement() < 2);
+                      response(number), captures.getAndIncrement() < 2);
             });
 
     var first = syncService.sync(user);
@@ -127,13 +128,42 @@ class GithubSyncServiceLocalStubTest {
                 "[%s,{\"number\":\"not-a-number\"}]".formatted(pull(20, "octocat", true))));
 
     GithubSyncService syncService = newSyncService(2, 1);
-    when(githubCapturedEvidenceService.fromPullSummary(eq(user), eq("acme/project"), any()))
+    when(sourceEvidenceCaptureService.capture(eq(user), any(NormalizedEvidence.class)))
         .thenReturn(new EvidenceCaptureResult(response(20), true));
 
     var result = syncService.sync(user);
 
     assertThat(result.discovered()).isEqualTo(1);
     assertThat(result.created()).isEqualTo(1);
+    assertThat(result.failed()).isEqualTo(1);
+    assertThat(result.lastSyncOutcome()).isEqualTo("PARTIAL");
+  }
+
+  @Test
+  void isolatesOneCaptureFailureAndContinuesWithTheOtherNormalizedItems() throws Exception {
+    startServer(
+        exchange ->
+            respond(
+                exchange,
+                200,
+                "[%s,%s]".formatted(pull(30, "octocat", true), pull(31, "octocat", true))));
+    when(evidenceService.findByNaturalKey(any(), eq("GitHub"), any(String.class)))
+        .thenReturn(java.util.Optional.empty());
+    when(sourceEvidenceCaptureService.capture(eq(user), any(NormalizedEvidence.class)))
+        .thenAnswer(
+            invocation -> {
+              NormalizedEvidence normalized = invocation.getArgument(1);
+              if (normalized.externalId().endsWith("#31")) {
+                throw new IllegalStateException("one item failed");
+              }
+              return new EvidenceCaptureResult(response(30), true);
+            });
+
+    var result = newSyncService(3, 10).sync(user);
+
+    assertThat(result.discovered()).isEqualTo(2);
+    assertThat(result.created()).isEqualTo(1);
+    assertThat(result.existing()).isZero();
     assertThat(result.failed()).isEqualTo(1);
     assertThat(result.lastSyncOutcome()).isEqualTo("PARTIAL");
   }
@@ -159,8 +189,8 @@ class GithubSyncServiceLocalStubTest {
     GithubSyncService syncService =
         new GithubSyncService(
             settingsService,
-            new GithubPullRequestService(client),
-            githubCapturedEvidenceService,
+            new GithubSourceAdapter(new GithubPullRequestService(client)),
+            sourceEvidenceCaptureService,
             evidenceService,
             Clock.fixed(NOW, ZoneOffset.UTC),
             30,
@@ -179,15 +209,18 @@ class GithubSyncServiceLocalStubTest {
   }
 
   private GithubSyncService newSyncService(int pageSize, int maxPages) {
-    return new GithubSyncService(
-        settingsService,
-        new GithubPullRequestService(new GithubApiClient(new ObjectMapper(), baseUrl(), "stub-secret")),
-        githubCapturedEvidenceService,
-        evidenceService,
-        Clock.fixed(NOW, ZoneOffset.UTC),
-        30,
-        pageSize,
-        maxPages);
+    return
+        new GithubSyncService(
+            settingsService,
+            new GithubSourceAdapter(
+                new GithubPullRequestService(
+                    new GithubApiClient(new ObjectMapper(), baseUrl(), "stub-secret"))),
+            sourceEvidenceCaptureService,
+            evidenceService,
+            Clock.fixed(NOW, ZoneOffset.UTC),
+            30,
+            pageSize,
+            maxPages);
   }
 
   private void startServer(HttpHandler handler) throws IOException {
@@ -233,6 +266,10 @@ class GithubSyncServiceLocalStubTest {
             capturedAt,
             capturedAt,
             EvidenceStatus.PENDING);
+  }
+
+  private int pullNumber(String externalId) {
+    return Integer.parseInt(externalId.substring(externalId.indexOf('#') + 1));
   }
 
   private int queryValue(HttpExchange exchange, String name) {

@@ -27,16 +27,17 @@ class GithubApiClientLocalStubTest {
   @Test
   void usesTheConfiguredRelativePathAndServerTokenWithoutExposingIt() throws Exception {
     AtomicReference<String> authorization = new AtomicReference<>();
+    String secret = "server-secret";
     startServer(
         exchange -> {
           authorization.set(exchange.getRequestHeaders().getFirst("Authorization"));
-          respond(exchange, 200, "{\"full_name\":\"acme/project\"}");
+          respond(exchange, 200, "{\"full_name\":\"acme/project\",\"body\":\"echo " + secret + "\"}");
         });
 
-    String secret = "server-secret";
     var response = new GithubApiClient(new ObjectMapper(), baseUrl() + "/", secret).get("/repos/acme/project");
 
     assertThat(response.path("full_name").asText()).isEqualTo("acme/project");
+    assertThat(response.toString()).doesNotContain(secret);
     assertThat(authorization).hasValue("Bearer " + secret);
   }
 

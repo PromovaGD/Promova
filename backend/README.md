@@ -211,4 +211,27 @@ PROMOVA_DB_PASSWORD=<secret-from-secret-store>
 PROMOVA_CORS_ALLOWED_ORIGINS=https://promova.example.com
 ```
 
+## Source adapter contract
+
+Source integrations implement `br.com.promova.source.SourceAdapter`. Its bounded request contains
+an opaque `scope`, an optional author filter, an `occurredAfter` lookback boundary, and page/page
+size. Its `SourcePageResult` contains only provider-neutral `NormalizedEvidence` values, an
+isolated `failedItems` count, a next-page hint, and the oldest timestamp observed in the provider
+page.
+
+Each `NormalizedEvidence` contains `source`, stable `externalId`, display `sourceMeta`, evidence
+text, source URL, author, `occurredAt`, and safe traceability `providerMetadata`. The
+`SourceEvidenceCaptureService` passes those fields into the existing `EvidenceService` path, so
+per-user ownership, source/external-id uniqueness, duplicate counts, pending status, and trusted
+analysis behavior remain in the evidence domain. Provider DTOs and raw payloads stop at the
+provider adapter; credentials and authorization headers are never normalized.
+
+`GithubSourceAdapter` is the current proof implementation. A future Jira or Slack adapter owns its
+provider DTOs, scope/query semantics, stable external IDs, occurred-at mapping, pagination/rate
+limit handling, and provider-specific failure isolation while returning this same contract.
+Authentication and OAuth/workspace installation, exact Jira/Slack event contracts, permission
+scopes, webhook versus polling decisions, and provider-specific retention/traceability fields are
+deliberately deferred to those future tasks. This task adds no Jira or Slack credentials or
+dependencies.
+
 As origens são separadas por vírgulas. O backend não registra nem devolve tokens; mantenha credenciais fora do Git e do log de deploy.

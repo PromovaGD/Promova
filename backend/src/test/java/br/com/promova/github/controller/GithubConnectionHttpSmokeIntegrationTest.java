@@ -21,19 +21,19 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
 @SpringBootTest(
     webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
     properties = {
-      "spring.datasource.url=jdbc:h2:mem:github-http-smoke-test;DB_CLOSE_DELAY=-1",
-      "spring.jpa.hibernate.ddl-auto=create-drop",
       "github.api.token=stub-server-secret",
       "github.sync.lookback-days=90",
       "github.sync.page-size=2",
       "github.sync.max-pages=10"
     })
+@ActiveProfiles("test")
 class GithubConnectionHttpSmokeIntegrationTest {
   private static final String SERVER_TOKEN = "stub-server-secret";
   private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();

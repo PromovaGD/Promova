@@ -8,12 +8,10 @@ import br.com.promova.user.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest(
-    properties = {
-      "spring.datasource.url=jdbc:h2:mem:promova-seed-defaults;DB_CLOSE_DELAY=-1",
-      "spring.jpa.hibernate.ddl-auto=create-drop"
-    })
+@SpringBootTest
+@ActiveProfiles("test")
 class DataSeederDefaultsIntegrationTest {
   @Autowired private UserRepository userRepository;
   @Autowired private CareerProfileRepository profileRepository;

@@ -20,7 +20,7 @@ export async function loadReviewsForCurrentUser(analysisId) {
 export async function loadReviewsForEmployee(employeeId, analysisId) {
   return normalizeReview(
     await apiGet(
-      `/admin/employees/${encodeURIComponent(employeeId)}/analyses/${encodeURIComponent(analysisId)}/reviews`,
+      `/manager/employees/${encodeURIComponent(employeeId)}/analyses/${encodeURIComponent(analysisId)}/reviews`,
       null,
       { auth: true },
     ),
@@ -30,7 +30,7 @@ export async function loadReviewsForEmployee(employeeId, analysisId) {
 export async function submitReviewForEmployee(employeeId, analysisId, payload) {
   return normalizeReview(
     await apiPost(
-      `/admin/employees/${encodeURIComponent(employeeId)}/analyses/${encodeURIComponent(analysisId)}/reviews`,
+      `/manager/employees/${encodeURIComponent(employeeId)}/analyses/${encodeURIComponent(analysisId)}/reviews`,
       payload,
       { auth: true },
     ),

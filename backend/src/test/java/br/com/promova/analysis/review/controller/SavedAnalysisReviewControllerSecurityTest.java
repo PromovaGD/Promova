@@ -82,45 +82,45 @@ class SavedAnalysisReviewControllerSecurityTest {
   }
 
   @Test
-  void adminCanAppendAReviewForAVisibleEmployeeAnalysis() throws Exception {
-    User admin = user("Admin", "admin@example.com", UserRole.ADMIN, 1L);
+  void managerCanAppendAReviewForAVisibleEmployeeAnalysis() throws Exception {
+    User manager = user("Manager", "manager@example.com", UserRole.MANAGER, 1L);
     User employee = user("Employee", "employee@example.com", UserRole.EMPLOYEE, 2L);
-    authenticate(admin);
+    authenticate(manager);
     when(userRepository.findById(2L)).thenReturn(Optional.of(employee));
     SavedAnalysisReviewResponse event =
         new SavedAnalysisReviewResponse(
             9L,
             1L,
-            "Admin",
-            "admin@example.com",
+            "Manager",
+            "manager@example.com",
             Instant.parse("2026-08-09T10:00:00Z"),
             ReviewStatus.ACCEPTED,
             "Evidence is clear.");
-    when(analysisReviewService.appendForAdmin(eq(admin), eq(2L), eq(41L), any()))
+    when(analysisReviewService.appendForManager(eq(manager), eq(2L), eq(41L), any()))
         .thenReturn(new AnalysisReviewResponse(41L, ReviewStatus.ACCEPTED, List.of(event)));
 
     mockMvc
         .perform(
-            post("/admin/employees/2/analyses/41/reviews")
+            post("/manager/employees/2/analyses/41/reviews")
                 .header(HttpHeaders.AUTHORIZATION, bearer())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"status\":\"ACCEPTED\",\"comment\":\"Evidence is clear.\"}"))
         .andExpect(status().isCreated())
         .andExpect(jsonPath("$.currentStatus").value("ACCEPTED"))
         .andExpect(jsonPath("$.history[0].reviewerId").value(1))
-        .andExpect(jsonPath("$.history[0].reviewerEmail").value("admin@example.com"));
+        .andExpect(jsonPath("$.history[0].reviewerEmail").value("manager@example.com"));
 
-    verify(analysisReviewService).appendForAdmin(eq(admin), eq(2L), eq(41L), any());
+    verify(analysisReviewService).appendForManager(eq(manager), eq(2L), eq(41L), any());
   }
 
   @Test
-  void employeeCannotUseTheAdminReviewRoute() throws Exception {
+  void employeeCannotUseTheManagerReviewRoute() throws Exception {
     User employee = user("Employee", "employee@example.com", UserRole.EMPLOYEE, 2L);
     authenticate(employee);
 
     mockMvc
         .perform(
-            post("/admin/employees/3/analyses/41/reviews")
+            post("/manager/employees/3/analyses/41/reviews")
                 .header(HttpHeaders.AUTHORIZATION, bearer())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"status\":\"ACCEPTED\"}"))
@@ -141,20 +141,20 @@ class SavedAnalysisReviewControllerSecurityTest {
 
   @Test
   void rejectsOversizedCommentsBeforeCreatingAnEvent() throws Exception {
-    User admin = user("Admin", "admin@example.com", UserRole.ADMIN, 1L);
+    User manager = user("Manager", "manager@example.com", UserRole.MANAGER, 1L);
     User employee = user("Employee", "employee@example.com", UserRole.EMPLOYEE, 2L);
-    authenticate(admin);
+    authenticate(manager);
     when(userRepository.findById(2L)).thenReturn(Optional.of(employee));
 
     mockMvc
         .perform(
-            post("/admin/employees/2/analyses/41/reviews")
+            post("/manager/employees/2/analyses/41/reviews")
                 .header(HttpHeaders.AUTHORIZATION, bearer())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"status\":\"ACCEPTED\",\"comment\":\"" + "x".repeat(2001) + "\"}"))
         .andExpect(status().isBadRequest());
 
-    verify(analysisReviewService, never()).appendForAdmin(any(), any(), any(), any());
+    verify(analysisReviewService, never()).appendForManager(any(), any(), any(), any());
   }
 
   private void authenticate(User user) {

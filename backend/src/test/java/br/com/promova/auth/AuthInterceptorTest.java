@@ -45,9 +45,9 @@ class AuthInterceptorTest {
   }
 
   @Test
-  void rejectsEmployeeFromAdminRoutesWithForbidden() {
+  void rejectsEmployeeFromManagerRoutesWithForbidden() {
     User employee = new User("Employee", "employee@example.com", "hash", UserRole.EMPLOYEE);
-    when(request.getRequestURI()).thenReturn("/admin/employees");
+    when(request.getRequestURI()).thenReturn("/manager/employees");
     when(authTokenResolver.resolve("Bearer employee-token")).thenReturn("employee-token");
     when(request.getHeader("Authorization")).thenReturn("Bearer employee-token");
     when(authService.requireUser("employee-token")).thenReturn(employee);
@@ -59,14 +59,25 @@ class AuthInterceptorTest {
   }
 
   @Test
-  void allowsAuthenticatedAdminRequests() {
-    User admin = new User("Admin", "admin@example.com", "hash", UserRole.ADMIN);
-    when(request.getRequestURI()).thenReturn("/admin/employees");
-    when(request.getHeader("Authorization")).thenReturn("Bearer admin-token");
-    when(authTokenResolver.resolve("Bearer admin-token")).thenReturn("admin-token");
-    when(authService.requireUser("admin-token")).thenReturn(admin);
+  void allowsAuthenticatedManagerRequests() {
+    User manager = new User("Manager", "manager@example.com", "hash", UserRole.MANAGER);
+    when(request.getRequestURI()).thenReturn("/manager/employees");
+    when(request.getHeader("Authorization")).thenReturn("Bearer manager-token");
+    when(authTokenResolver.resolve("Bearer manager-token")).thenReturn("manager-token");
+    when(authService.requireUser("manager-token")).thenReturn(manager);
 
     assertThat(interceptor.preHandle(request, response, null)).isTrue();
+  }
+
+  @Test
+  void rejectsMalformedBearerHeaderWithUnauthorized() {
+    when(request.getHeader("Authorization")).thenReturn("Bearer malformed token");
+    when(authTokenResolver.resolve("Bearer malformed token")).thenReturn(null);
+
+    ResponseStatusException exception =
+        assertThrows(ResponseStatusException.class, () -> interceptor.preHandle(request, response, null));
+
+    assertThat(exception.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
   }
 
   @Test

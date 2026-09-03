@@ -63,9 +63,9 @@ test("employees get review visibility without administrative instructions", () =
   assert.doesNotMatch(html, /data-review-form/);
 });
 
-test("admins retain the review history and review actions", () => {
+test("managers retain the review history and review actions", () => {
   const html = evidenceDetailPage({
-    user: { name: "Admin", role: "ADMIN" },
+    user: { name: "Manager", role: "MANAGER" },
     viewingAsAdmin: true,
     evidences: [],
     adminEvidences: [savedEvidence],
@@ -75,7 +75,7 @@ test("admins retain the review history and review actions", () => {
       history: [
         {
           status: "ACCEPTED",
-          reviewerName: "Admin",
+          reviewerName: "Manager",
           createdAt: "2026-09-02T12:30:00.000Z",
           comment: "Evidência conferida.",
         },
@@ -86,7 +86,7 @@ test("admins retain the review history and review actions", () => {
     reviewError: null,
   });
 
-  assert.match(html, /Revisão administrativa/);
+  assert.match(html, /Revisão gerencial/);
   assert.match(html, /review-form/);
   assert.match(html, /Aceitar an&aacute;lise/);
   assert.match(html, /Evidência conferida/);

@@ -39,7 +39,7 @@ class InsightsControllerSecurityTest {
     mockMvc
         .perform(get("/insights"))
         .andExpect(status().isUnauthorized())
-        .andExpect(jsonPath("$.message").value("Token ausente."));
+        .andExpect(jsonPath("$.message").value("Autenticação necessária."));
   }
 
   @Test

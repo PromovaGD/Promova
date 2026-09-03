@@ -30,8 +30,9 @@ class SavedAnalysisReviewRepositoryTest {
   void ordersSameTimestampEventsByServerGeneratedId() {
     User owner =
         userRepository.save(new User("Owner", "owner-order@example.com", "hash", UserRole.EMPLOYEE));
-    User admin =
-        userRepository.save(new User("Admin", "admin-order@example.com", "hash", UserRole.ADMIN));
+    User manager =
+        userRepository.save(
+            new User("Manager", "manager-order@example.com", "hash", UserRole.MANAGER));
     SavedAnalysis analysis =
         savedAnalysisRepository.save(
             new SavedAnalysis(
@@ -53,11 +54,11 @@ class SavedAnalysisReviewRepositoryTest {
     SavedAnalysisReview first =
         reviewRepository.save(
             new SavedAnalysisReview(
-                analysis, admin, ReviewStatus.ACCEPTED, "First", SAME_INSTANT));
+                analysis, manager, ReviewStatus.ACCEPTED, "First", SAME_INSTANT));
     SavedAnalysisReview second =
         reviewRepository.save(
             new SavedAnalysisReview(
-                analysis, admin, ReviewStatus.NEEDS_CONTEXT, "Second", SAME_INSTANT));
+                analysis, manager, ReviewStatus.NEEDS_CONTEXT, "Second", SAME_INSTANT));
 
     List<SavedAnalysisReview> history =
         reviewRepository.findHistoryForAnalysis(analysis.getId(), owner.getId());

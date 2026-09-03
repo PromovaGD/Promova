@@ -5,6 +5,7 @@ import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import br.com.promova.analysis.service.SavedAnalysisService;
 import br.com.promova.profile.ProfileService;
@@ -60,5 +61,11 @@ class DataSeederTest {
     runner.run();
 
     verify(profileService, atLeastOnce()).ensureProfile(any(User.class));
+    assertThat(savedUsers)
+        .anySatisfy(
+            user -> {
+              assertThat(user.getEmail()).isEqualTo("manager@promova.com");
+              assertThat(user.getRole()).isEqualTo(UserRole.MANAGER);
+            });
   }
 }

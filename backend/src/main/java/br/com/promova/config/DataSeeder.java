@@ -32,10 +32,10 @@ public class DataSeeder {
 
       userRepository.save(
           new User(
-              "Administrador",
-              "admin@promova.com",
-              passwordEncoder.encode("admin123"),
-              UserRole.ADMIN));
+              "Gestor",
+              "manager@promova.com",
+              passwordEncoder.encode("manager123"),
+              UserRole.MANAGER));
 
       User joao =
           userRepository.save(

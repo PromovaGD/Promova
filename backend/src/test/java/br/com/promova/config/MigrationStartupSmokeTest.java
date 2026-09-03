@@ -26,8 +26,8 @@ class MigrationStartupSmokeTest {
     MigrationInfo current = flyway.info().current();
 
     assertThat(current).isNotNull();
-    assertThat(current.getVersion().getVersion()).isEqualTo("2");
-    assertThat(current.getDescription()).isEqualTo("create saved analysis reviews");
+    assertThat(current.getVersion().getVersion()).isEqualTo("3");
+    assertThat(current.getDescription()).isEqualTo("migrate admin role to manager");
     assertThat(environment.getProperty("spring.jpa.hibernate.ddl-auto")).isEqualTo("validate");
     assertThat(environment.getProperty("spring.datasource.url"))
         .startsWith("jdbc:h2:mem:")

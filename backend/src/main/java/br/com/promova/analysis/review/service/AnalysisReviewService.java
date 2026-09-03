@@ -36,16 +36,16 @@ public class AnalysisReviewService {
   }
 
   @Transactional(readOnly = true)
-  public AnalysisReviewResponse listForAdmin(Long ownerId, Long analysisId) {
+  public AnalysisReviewResponse listForManager(Long ownerId, Long analysisId) {
     SavedAnalysis analysis = requireAnalysis(analysisId, ownerId);
     return responseFor(analysis);
   }
 
   @Transactional
-  public AnalysisReviewResponse appendForAdmin(
+  public AnalysisReviewResponse appendForManager(
       User reviewer, Long ownerId, Long analysisId, SavedAnalysisReviewRequest request) {
-    if (reviewer == null || reviewer.getRole() != UserRole.ADMIN) {
-      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin review access required.");
+    if (reviewer == null || reviewer.getRole() != UserRole.MANAGER) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Manager review access required.");
     }
 
     SavedAnalysis analysis = requireAnalysis(analysisId, ownerId);

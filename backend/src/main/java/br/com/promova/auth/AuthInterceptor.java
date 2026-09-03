@@ -36,9 +36,8 @@ public class AuthInterceptor implements HandlerInterceptor {
     }
 
     User user = authService.requireUser(token);
-    if (requiresAdmin(path) && user.getRole() != UserRole.ADMIN) {
-      throw new ResponseStatusException(
-          HttpStatus.FORBIDDEN, "Acesso restrito a administradores.");
+    if (requiresManager(path) && user.getRole() != UserRole.MANAGER) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso restrito a gestores.");
     }
 
     return true;
@@ -60,7 +59,7 @@ public class AuthInterceptor implements HandlerInterceptor {
     return "/auth/register".equals(path) || "/auth/login".equals(path);
   }
 
-  private boolean requiresAdmin(String path) {
-    return "/admin".equals(path) || path.startsWith("/admin/");
+  private boolean requiresManager(String path) {
+    return "/manager".equals(path) || path.startsWith("/manager/");
   }
 }

@@ -51,7 +51,7 @@ import {
 } from "./services/github-api.mjs";
 import { fetchProfile, updateProfile } from "./services/profile-api.mjs";
 import { clearLegacyEvidenceStorage } from "./services/session-store.mjs";
-import { adminPage } from "./views/admin-view.mjs";
+import { managerPage, permissionPage } from "./views/manager-view.mjs";
 import { authPage } from "./views/auth-view.mjs";
 import { dashboardPage } from "./views/dashboard-view.mjs";
 import {
@@ -98,6 +98,7 @@ const state = {
   reviewSaving: false,
   reviewError: null,
   viewingAsAdmin: false,
+  permissionError: null,
 };
 
 const DASHBOARD_TABS = ["dashboard", "framework", "criteria", "connections"];
@@ -114,8 +115,9 @@ export function startApp(root) {
   appRoot.addEventListener("keydown", handleKeydown);
   if (typeof window !== "undefined") {
     window.addEventListener("promova:auth-expired", handleAuthExpired);
+    window.addEventListener("promova:permission-denied", handlePermissionDenied);
   }
-  bootstrapSession();
+  return bootstrapSession();
 }
 
 async function bootstrapSession() {
@@ -128,11 +130,11 @@ async function bootstrapSession() {
   try {
     state.user = await fetchCurrentUser();
     saveAuthSession(token, state.user);
-    await refreshProfile();
-    await refreshUserAnalyses();
-    await refreshInsights();
-    await refreshPendingEvidences();
-    await refreshGithubSettings();
+    if (state.user.role === "MANAGER") {
+      await openManager();
+    } else {
+      await loadEmployeeWorkspace();
+    }
   } catch (error) {
     if (error.status === 401 || error.isUnauthorized) {
       expireSession();
@@ -146,6 +148,10 @@ async function bootstrapSession() {
 
 function handleAuthExpired() {
   expireSession();
+}
+
+function handlePermissionDenied(event) {
+  showPermissionError(event?.detail?.message);
 }
 
 function expireSession() {
@@ -176,6 +182,7 @@ function expireSession() {
   state.githubImport = createGithubImportState();
   state.dashboardTab = "dashboard";
   state.viewingAsAdmin = false;
+  state.permissionError = null;
   state.authLoading = false;
   state.authError = "Sua sessão expirou. Faça login novamente.";
   state.view = "auth";
@@ -275,14 +282,11 @@ async function handleSubmit(event) {
     saveAuthSession(response.token, response.user);
     state.user = response.user;
     state.authError = null;
-    await refreshProfile();
-    await refreshUserAnalyses();
-    await refreshInsights();
-    await refreshPendingEvidences();
-    await refreshGithubSettings();
-    state.view = state.user.role === "ADMIN" ? "admin" : "dashboard";
-    if (state.view === "admin") {
-      await openAdmin();
+    if (state.user.role === "MANAGER") {
+      await openManager();
+    } else {
+      await loadEmployeeWorkspace();
+      state.view = "dashboard";
     }
   } catch (error) {
     state.authError = error.message || "Não foi possível autenticar.";
@@ -340,6 +344,7 @@ async function handleClick(event) {
     state.reviewError = null;
     state.githubImport = createGithubImportState();
     state.dashboardTab = "dashboard";
+    state.permissionError = null;
     state.authError = null;
     state.view = "home";
     render();
@@ -347,7 +352,7 @@ async function handleClick(event) {
   }
 
   if (action === "open-dashboard") {
-    if (!requireAuth()) {
+    if (!requireEmployeeAccess()) {
       return;
     }
     await openDashboard();
@@ -355,7 +360,7 @@ async function handleClick(event) {
   }
 
   if (action === "open-connections") {
-    if (!requireAuth()) {
+    if (!requireEmployeeAccess()) {
       return;
     }
     state.view = "dashboard";
@@ -373,18 +378,22 @@ async function handleClick(event) {
   }
 
   if (action === "open-profile") {
-    if (!requireAuth()) {
+    if (!requireEmployeeAccess()) {
       return;
     }
     await openProfile();
     return;
   }
 
-  if (action === "open-admin") {
-    if (!requireAuth() || state.user.role !== "ADMIN") {
+  if (action === "open-manager") {
+    if (!requireAuth()) {
       return;
     }
-    await openAdmin();
+    if (state.user.role !== "MANAGER") {
+      showPermissionError();
+      return;
+    }
+    await openManager();
     return;
   }
 
@@ -397,14 +406,14 @@ async function handleClick(event) {
 
   if (action === "open-evidence-detail") {
     state.selectedEvidenceId = trigger.dataset.analysisId || trigger.dataset.evidenceId;
-    const pool = state.view === "admin" ? state.adminEvidences : state.evidences;
+    const pool = state.view === "manager" ? state.adminEvidences : state.evidences;
     const selected = pool.find((item) => String(item.id) === String(state.selectedEvidenceId));
     state.selectedAnalysisId =
       trigger.dataset.savedAnalysisId || selected?.analysisId || null;
     state.review = null;
     state.reviewStatus = "loading";
     state.reviewError = null;
-    state.viewingAsAdmin = state.view === "admin";
+    state.viewingAsAdmin = state.view === "manager";
     state.view = "evidence-detail";
     render();
     await refreshSelectedAnalysisReview();
@@ -445,7 +454,7 @@ async function handleClick(event) {
   }
 
   if (action === "open-form" || action === "back-form") {
-    if (!requireAuth()) {
+    if (!requireEmployeeAccess()) {
       return;
     }
     await openCapturedEvidence();
@@ -468,7 +477,11 @@ async function handleClick(event) {
     state.reviewStatus = "idle";
     state.reviewError = null;
     if (returnToAdmin) {
-      await openAdmin();
+      await openManager();
+      return;
+    }
+    if (state.user?.role === "MANAGER") {
+      await openManager();
       return;
     }
     state.dashboardTab = "dashboard";
@@ -535,6 +548,23 @@ function requireAuth() {
   state.authError = "Faça login para continuar.";
   render();
   return false;
+}
+
+function requireEmployeeAccess() {
+  if (!requireAuth()) {
+    return false;
+  }
+  if (state.user.role === "MANAGER") {
+    showPermissionError("O Manager Console não oferece ações do painel de funcionário.");
+    return false;
+  }
+  return true;
+}
+
+function showPermissionError(message) {
+  state.permissionError = message || "Você não tem permissão para realizar esta ação.";
+  state.view = "permission-error";
+  render();
 }
 
 function selectDashboardTab(nextTab, focus = false) {
@@ -631,9 +661,10 @@ async function openDashboard() {
   render();
 }
 
-async function openAdmin() {
-  state.view = "admin";
+async function openManager() {
+  state.view = "manager";
   state.viewingAsAdmin = true;
+  state.permissionError = null;
   render();
 
   try {
@@ -645,6 +676,14 @@ async function openAdmin() {
   }
 
   render();
+}
+
+async function loadEmployeeWorkspace() {
+  await refreshProfile();
+  await refreshUserAnalyses();
+  await refreshInsights();
+  await refreshPendingEvidences();
+  await refreshGithubSettings();
 }
 
 async function refreshUserAnalyses() {
@@ -1055,8 +1094,10 @@ function render() {
     page = authPage(state);
   } else if (state.view === "profile") {
     page = profilePage(state);
-  } else if (state.view === "admin") {
-    page = adminPage(state);
+  } else if (state.view === "manager") {
+    page = managerPage(state);
+  } else if (state.view === "permission-error") {
+    page = permissionPage(state);
   } else if (state.view === "dashboard") {
     page = dashboardPage(state);
   } else if (state.view === "evidence-detail") {

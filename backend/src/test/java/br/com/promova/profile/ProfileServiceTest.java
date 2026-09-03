@@ -61,7 +61,7 @@ class ProfileServiceTest {
 
   @Test
   void updatesOnlyTheAuthenticatedUsersProfileAndLeavesRoleUntouched() {
-    User employee = user(7L, UserRole.ADMIN);
+    User employee = user(7L, UserRole.MANAGER);
     CareerProfile profile = new CareerProfile(employee, "L2", "L10");
     when(profileRepository.findByUserId(7L)).thenReturn(Optional.of(profile));
 
@@ -71,7 +71,7 @@ class ProfileServiceTest {
     assertThat(response.currentLevel()).isEqualTo("L10");
     assertThat(response.targetLevel()).isEqualTo("L11");
     assertThat(profile.getUser()).isSameAs(employee);
-    assertThat(employee.getRole()).isEqualTo(UserRole.ADMIN);
+    assertThat(employee.getRole()).isEqualTo(UserRole.MANAGER);
     verify(profileRepository).findByUserId(eq(7L));
     verify(profileRepository, never()).findByUserId(eq(8L));
   }

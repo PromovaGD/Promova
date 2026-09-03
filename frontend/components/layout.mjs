@@ -1,6 +1,9 @@
 import { escapeHtml } from "../utils/html.mjs";
 import { roleLabel } from "../utils/format.mjs";
 
+const BRAND_SYMBOL_SRC = "./frontend/assets/promova-symbol.png";
+const BRAND_WORDMARK_SRC = "./frontend/assets/promova-wordmark.png";
+
 export function siteHeader(mode, user = null) {
   const landingLinks = [
     ["#product", "Produto"],
@@ -38,12 +41,8 @@ export function siteHeader(mode, user = null) {
 
   return `
     <header class="site-header">
-      <a class="brand" href="#" data-action="back-home" aria-label="Ir para a página inicial">
-        <span class="brand-mark">PV</span>
-        <span class="brand-copy">
-          <span class="brand-name">Promova</span>
-          <span class="brand-tagline">Evolução de carreira com evidências</span>
-        </span>
+      <a class="brand" href="#" data-action="back-home" aria-label="Promova — ir para a página inicial">
+        ${brandLockup()}
       </a>
       <nav class="site-nav" aria-label="Principal">${nav}</nav>
       <div class="header-actions">
@@ -77,12 +76,8 @@ export function footerLinks() {
   return `
     <footer class="site-footer">
       <div class="container footer-row">
-        <a class="brand footer-brand" href="#" data-action="back-home">
-          <span class="brand-mark">PV</span>
-          <span class="brand-copy">
-            <span class="brand-name">Promova</span>
-            <span class="brand-tagline">Evolução de carreira com evidências</span>
-          </span>
+        <a class="brand footer-brand" href="#" data-action="back-home" aria-label="Promova — ir para a página inicial">
+          ${brandLockup()}
         </a>
         <nav class="footer-links" aria-label="Rodapé">
           <a href="#product">Produto</a>
@@ -92,6 +87,16 @@ export function footerLinks() {
         <p class="footer-copy">© 2026 Promova. Todos os direitos reservados.</p>
       </div>
     </footer>
+  `;
+}
+
+function brandLockup() {
+  return `
+    <img class="brand-mark" src="${BRAND_SYMBOL_SRC}" alt="" aria-hidden="true" />
+    <span class="brand-copy">
+      <img class="brand-wordmark" src="${BRAND_WORDMARK_SRC}" alt="Promova" />
+      <span class="brand-tagline">Evolução de carreira com evidências</span>
+    </span>
   `;
 }
 

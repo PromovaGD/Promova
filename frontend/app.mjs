@@ -56,6 +56,7 @@ import { authPage } from "./views/auth-view.mjs";
 import { dashboardPage } from "./views/dashboard-view.mjs";
 import {
   evidenceDetailPage,
+  evidenceEmptyPage,
   evidenceErrorPage,
   evidenceLoadingPage,
   evidenceResultPage,
@@ -85,6 +86,7 @@ const state = {
   authLoading: false,
   authError: null,
   dashboardFilters: {},
+  dashboardTab: "dashboard",
   adminFilters: {},
   employees: [],
   selectedEmployeeId: null,
@@ -98,13 +100,18 @@ const state = {
   viewingAsAdmin: false,
 };
 
+const DASHBOARD_TABS = ["dashboard", "framework", "criteria", "connections"];
+
 let appRoot;
+let lastRenderedView = null;
 
 export function startApp(root) {
   appRoot = root;
+  lastRenderedView = null;
   appRoot.addEventListener("click", handleClick);
   appRoot.addEventListener("input", handleInput);
   appRoot.addEventListener("submit", handleSubmit);
+  appRoot.addEventListener("keydown", handleKeydown);
   if (typeof window !== "undefined") {
     window.addEventListener("promova:auth-expired", handleAuthExpired);
   }
@@ -167,9 +174,10 @@ function expireSession() {
   state.pendingStatus = "idle";
   state.result = null;
   state.githubImport = createGithubImportState();
+  state.dashboardTab = "dashboard";
   state.viewingAsAdmin = false;
   state.authLoading = false;
-  state.authError = "Sua sessÃ£o expirou. FaÃ§a login novamente.";
+  state.authError = "Sua sessão expirou. Faça login novamente.";
   state.view = "auth";
   render();
 }
@@ -196,6 +204,35 @@ function handleInput(event) {
       [profileField.dataset.profileField]: profileField.value,
     };
   }
+}
+
+function handleKeydown(event) {
+  const tab = event.target.closest?.('[role="tab"][data-dashboard-tab]');
+  if (!tab || state.view !== "dashboard" || state.viewingAsAdmin) {
+    return;
+  }
+
+  const tabs = Array.from(appRoot.querySelectorAll('[role="tab"][data-dashboard-tab]'));
+  const currentIndex = tabs.indexOf(tab);
+  if (currentIndex < 0) {
+    return;
+  }
+
+  let nextIndex;
+  if (event.key === "ArrowRight") {
+    nextIndex = (currentIndex + 1) % tabs.length;
+  } else if (event.key === "ArrowLeft") {
+    nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+  } else if (event.key === "Home") {
+    nextIndex = 0;
+  } else if (event.key === "End") {
+    nextIndex = tabs.length - 1;
+  } else {
+    return;
+  }
+
+  event.preventDefault();
+  selectDashboardTab(tabs[nextIndex].dataset.dashboardTab, true);
 }
 
 async function handleSubmit(event) {
@@ -302,6 +339,7 @@ async function handleClick(event) {
     state.reviewSaving = false;
     state.reviewError = null;
     state.githubImport = createGithubImportState();
+    state.dashboardTab = "dashboard";
     state.authError = null;
     state.view = "home";
     render();
@@ -313,6 +351,24 @@ async function handleClick(event) {
       return;
     }
     await openDashboard();
+    return;
+  }
+
+  if (action === "open-connections") {
+    if (!requireAuth()) {
+      return;
+    }
+    state.view = "dashboard";
+    state.viewingAsAdmin = false;
+    state.dashboardTab = "connections";
+    state.error = null;
+    render();
+    return;
+  }
+
+  if (action === "switch-dashboard-tab") {
+    const nextTab = trigger.dataset.dashboardTab;
+    selectDashboardTab(nextTab, true);
     return;
   }
 
@@ -415,14 +471,19 @@ async function handleClick(event) {
       await openAdmin();
       return;
     }
+    state.dashboardTab = "dashboard";
     state.view = "dashboard";
     render();
     return;
   }
 
   if (action === "reload-pending") {
-    await loadPendingEvidence({ force: true });
+    state.dashboardTab = "dashboard";
     state.view = "dashboard";
+    await loadPendingEvidence({ force: true });
+    if (state.pendingStatus === "error") {
+      state.view = "error";
+    }
     render();
     return;
   }
@@ -474,6 +535,19 @@ function requireAuth() {
   state.authError = "Faça login para continuar.";
   render();
   return false;
+}
+
+function selectDashboardTab(nextTab, focus = false) {
+  if (!DASHBOARD_TABS.includes(nextTab)) {
+    return;
+  }
+
+  state.dashboardTab = nextTab;
+  render();
+
+  if (focus) {
+    appRoot.querySelector(`#dashboard-tab-${nextTab}`)?.focus();
+  }
 }
 
 async function openProfile() {
@@ -547,6 +621,7 @@ async function submitProfile(form) {
 async function openDashboard() {
   state.view = "dashboard";
   state.viewingAsAdmin = false;
+  state.dashboardTab = "dashboard";
   state.insightsStatus = "loading";
   state.insightsError = null;
   render();
@@ -672,7 +747,7 @@ async function refreshSelectedAnalysisReview() {
       return;
     }
     state.reviewStatus = "error";
-    state.reviewError = error.message || "NÃ£o foi possÃ­vel carregar a revisÃ£o.";
+    state.reviewError = error.message || "Não foi possível carregar a revisão.";
   }
 }
 
@@ -700,7 +775,7 @@ async function submitAnalysisReview(form, submitter) {
       return;
     }
     state.reviewStatus = "error";
-    state.reviewError = error.message || "NÃ£o foi possÃ­vel salvar a revisÃ£o.";
+    state.reviewError = error.message || "Não foi possível salvar a revisão.";
   } finally {
     state.reviewSaving = false;
     if (state.user) {
@@ -761,7 +836,7 @@ async function openCapturedEvidence() {
   }
 
   if (!state.pendingEvidence) {
-    state.view = "error";
+    state.view = state.pendingStatus === "error" ? "error" : "empty-evidence";
     render();
     return;
   }
@@ -828,7 +903,7 @@ async function openPendingEvidence(evidenceId) {
   try {
     state.pendingEvidence = await fetchEvidence(evidenceId);
     if (state.pendingEvidence.status !== "PENDING") {
-      throw new Error("Esta evidÃªncia nÃ£o estÃ¡ mais pendente.");
+      throw new Error("Esta evidência não está mais pendente.");
     }
     state.pendingStatus = "ready";
     await openCapturedEvidence();
@@ -971,45 +1046,64 @@ async function importGithubPullRequest() {
 }
 
 function render() {
+  const viewChanged = lastRenderedView !== state.view;
+  let page;
+
   if (state.view === "home") {
-    appRoot.innerHTML = landingPage();
-    return;
+    page = landingPage();
+  } else if (state.view === "auth") {
+    page = authPage(state);
+  } else if (state.view === "profile") {
+    page = profilePage(state);
+  } else if (state.view === "admin") {
+    page = adminPage(state);
+  } else if (state.view === "dashboard") {
+    page = dashboardPage(state);
+  } else if (state.view === "evidence-detail") {
+    page = evidenceDetailPage(state);
+  } else if (state.view === "loading-evidence") {
+    page = evidenceLoadingPage(state);
+  } else if (state.view === "empty-evidence") {
+    page = evidenceEmptyPage(state);
+  } else if (state.view === "error") {
+    page = evidenceErrorPage(state, state.error?.message || "Erro inesperado.");
+  } else {
+    page = evidenceResultPage(state);
   }
 
-  if (state.view === "auth") {
-    appRoot.innerHTML = authPage(state);
-    return;
+  appRoot.innerHTML = page;
+  lastRenderedView = state.view;
+
+  if (viewChanged) {
+    resetScrollPosition();
+  }
+}
+
+function resetScrollPosition() {
+  scrollToTop();
+
+  if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
+    window.requestAnimationFrame(scrollToTop);
+  }
+}
+
+function scrollToTop() {
+  if (typeof window !== "undefined" && typeof window.scrollTo === "function") {
+    try {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    } catch {
+      try {
+        window.scrollTo(0, 0);
+      } catch {
+        // Some test environments expose scrollTo without implementing it.
+      }
+    }
   }
 
-  if (state.view === "profile") {
-    appRoot.innerHTML = profilePage(state);
-    return;
+  if (typeof document !== "undefined") {
+    document.documentElement.scrollTop = 0;
+    if (document.body) {
+      document.body.scrollTop = 0;
+    }
   }
-
-  if (state.view === "admin") {
-    appRoot.innerHTML = adminPage(state);
-    return;
-  }
-
-  if (state.view === "dashboard") {
-    appRoot.innerHTML = dashboardPage(state);
-    return;
-  }
-
-  if (state.view === "evidence-detail") {
-    appRoot.innerHTML = evidenceDetailPage(state);
-    return;
-  }
-
-  if (state.view === "loading-evidence") {
-    appRoot.innerHTML = evidenceLoadingPage(state);
-    return;
-  }
-
-  if (state.view === "error") {
-    appRoot.innerHTML = evidenceErrorPage(state, state.error?.message || "Erro inesperado.");
-    return;
-  }
-
-  appRoot.innerHTML = evidenceResultPage(state);
 }

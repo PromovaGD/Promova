@@ -7,6 +7,7 @@
     "dev": "node scripts/dev-server.js",
     "build": "node scripts/build.js",
     "lint": "node scripts/lint.js",
-    "check": "npm run lint && npm run build"
+    "test": "node --test frontend/tests/*.test.mjs",
+    "check": "npm run lint && npm test && npm run build"
   }
 }

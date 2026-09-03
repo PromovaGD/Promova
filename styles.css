@@ -2041,29 +2041,42 @@ a {
     flex-direction: column;
   }
 
-  .site-header,
-  .footer-row {
+  .site-header {
+    align-items: center;
     gap: 16px;
+    text-align: center;
+  }
+
+  .footer-row {
+    justify-content: center;
+    gap: 16px;
+    text-align: center;
+  }
+
+  .brand,
+  .footer-brand {
+    justify-content: center;
+    width: 100%;
   }
 
   .brand-mark {
-    width: 40px;
-    height: 48px;
+    width: 48px;
+    height: 58px;
   }
 
   .brand-copy {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 3px;
+    display: none;
   }
 
-  .brand-wordmark {
-    width: 96px;
+  .site-nav,
+  .header-actions,
+  .footer-links {
+    justify-content: center;
+    width: 100%;
   }
 
-  .brand-tagline {
-    max-width: 190px;
-    font-size: 0.78rem;
+  .footer-copy {
+    width: 100%;
   }
 
   .info-card,

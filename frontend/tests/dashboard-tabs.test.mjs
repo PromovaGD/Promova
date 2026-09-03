@@ -64,7 +64,7 @@ test("dashboard tabs render one focused panel at a time", () => {
   assert.match(dashboard, /dashboard-panel-dashboard/);
   assert.match(dashboard, /id="recent-evidence"/);
   assert.match(dashboard, /Evid&ecirc;ncias recentes/);
-  assert.ok(dashboard.indexOf('id="recent-evidence"') < dashboard.indexOf('id="insights-title"'));
+  assert.ok(dashboard.indexOf('id="insights-title"') < dashboard.indexOf('id="recent-evidence"'));
   assert.match(dashboard, /Fontes das evid&ecirc;ncias/);
   assert.doesNotMatch(dashboard, /id="criterion-coverage-title"/);
   assert.doesNotMatch(dashboard, /github-connection-title/);

@@ -147,7 +147,7 @@ function liveDashboardPreview(state, activeTab = "dashboard") {
       ${
         state.viewingAsAdmin
           ? `${adminDashboardSummary(evidences)}${recentEvidenceSection(state)}`
-          : `${showEvidenceLists ? pendingInbox(state) : ""}${showEvidenceLists ? recentEvidenceSection(state) : ""}${insightsDashboard(state, activeTab)}`
+          : `${insightsDashboard(state, activeTab)}${showEvidenceLists ? pendingInbox(state) : ""}${showEvidenceLists ? recentEvidenceSection(state) : ""}`
       }
     </div>
   `;

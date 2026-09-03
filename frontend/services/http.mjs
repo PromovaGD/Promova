@@ -5,7 +5,7 @@ export async function apiGet(path, params, options = {}) {
   const response = await fetch(`${API_BASE_URL}${path}${queryString(params)}`, {
     headers: buildHeaders(options),
   });
-  return parseApiResponse(response);
+  return parseApiResponse(response, options);
 }
 
 export async function apiPost(path, body, options = {}) {
@@ -15,7 +15,7 @@ export async function apiPost(path, body, options = {}) {
     body: JSON.stringify(body ?? {}),
   });
 
-  return parseApiResponse(response);
+  return parseApiResponse(response, options);
 }
 
 export async function apiPut(path, body, options = {}) {
@@ -25,7 +25,7 @@ export async function apiPut(path, body, options = {}) {
     body: JSON.stringify(body ?? {}),
   });
 
-  return parseApiResponse(response);
+  return parseApiResponse(response, options);
 }
 
 export async function apiDelete(path, params, options = {}) {
@@ -34,10 +34,10 @@ export async function apiDelete(path, params, options = {}) {
     headers: buildHeaders(options),
   });
 
-  return parseApiResponse(response);
+  return parseApiResponse(response, options);
 }
 
-async function parseApiResponse(response) {
+async function parseApiResponse(response, options = {}) {
   if (!response.ok) {
     let message = `Request failed: ${response.status}`;
 
@@ -55,7 +55,7 @@ async function parseApiResponse(response) {
     error.isUnauthorized = response.status === 401;
     error.isForbidden = response.status === 403;
 
-    if (error.isUnauthorized) {
+    if (error.isUnauthorized && options.auth !== false) {
       clearAuthSession();
       notifyAuthExpired();
     }

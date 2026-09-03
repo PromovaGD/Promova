@@ -16,18 +16,88 @@ export function dashboardPage(state) {
       title: "Suas evidências",
       subtitle: "Painel de análises",
       copy: "Acompanhe sua caixa de entrada de evidências pendentes e o histórico de análises da sua conta.",
-    }) + githubImportPanel(state.githubImport, state.pendingEvidences),
+    }),
     { user: state.user, mode: "app" },
   );
 }
 
 export function dashboardContent(state, hero) {
+  if (state.viewingAsAdmin) {
+    return `
+      ${pageHero(hero.subtitle, hero.title, hero.copy)}
+      ${state.viewedEmployee ? adminContextBanner(state.viewedEmployee) : ""}
+      ${dashboardFilters(state)}
+      ${liveDashboardPreview(state)}
+    `;
+  }
+
+  const activeTab = normalizeDashboardTab(state.dashboardTab);
+
   return `
     ${pageHero(hero.subtitle, hero.title, hero.copy)}
-    ${state.viewingAsAdmin && state.viewedEmployee ? adminContextBanner(state.viewedEmployee) : ""}
-    ${dashboardFilters(state)}
-    ${liveDashboardPreview(state)}
+    ${dashboardTabs(activeTab)}
+    ${activeTab === "connections" ? "" : dashboardFilters(state)}
+    ${dashboardTabPanel(state, activeTab)}
   `;
+}
+
+function dashboardTabs(activeTab) {
+  const tabs = [
+    ["dashboard", "Dashboard"],
+    ["framework", "Cobertura do framework"],
+    ["criteria", "Critérios"],
+    ["connections", "Conexões"],
+  ];
+
+  return `
+    <nav class="dashboard-tabs" aria-label="Seções do painel de evidências">
+      <div class="dashboard-tab-list" role="tablist" aria-label="Visualizações do painel">
+        ${tabs
+          .map(([id, label]) => {
+            const selected = id === activeTab;
+            return `
+              <button
+                class="dashboard-tab ${selected ? "active" : ""}"
+                id="dashboard-tab-${id}"
+                type="button"
+                role="tab"
+                aria-selected="${selected}"
+                aria-controls="dashboard-panel-${id}"
+                tabindex="${selected ? "0" : "-1"}"
+                data-action="switch-dashboard-tab"
+                data-dashboard-tab="${id}"
+              >${label}</button>
+            `;
+          })
+          .join("")}
+      </div>
+    </nav>
+  `;
+}
+
+function dashboardTabPanel(state, activeTab) {
+  const content =
+    activeTab === "connections"
+      ? githubImportPanel(state.githubImport, state.pendingEvidences)
+      : liveDashboardPreview(state, activeTab);
+
+  return `
+    <div
+      class="dashboard-tab-panel dashboard-tab-panel-${activeTab}"
+      id="dashboard-panel-${activeTab}"
+      role="tabpanel"
+      aria-labelledby="dashboard-tab-${activeTab}"
+      tabindex="0"
+    >
+      ${content}
+    </div>
+  `;
+}
+
+function normalizeDashboardTab(tab) {
+  return ["dashboard", "framework", "criteria", "connections"].includes(tab)
+    ? tab
+    : "dashboard";
 }
 
 function adminContextBanner(employee) {
@@ -68,14 +138,17 @@ function dashboardFilters(state) {
   `;
 }
 
-function liveDashboardPreview(state) {
+function liveDashboardPreview(state, activeTab = "dashboard") {
   const evidences = state.evidences || [];
+  const showEvidenceLists = state.viewingAsAdmin || activeTab === "dashboard";
 
   return `
     <div class="dashboard-shell live-dashboard">
-      ${state.viewingAsAdmin ? adminDashboardSummary(evidences) : insightsDashboard(state)}
-      ${pendingInbox(state)}
-      ${evidences.length ? evidenceFeed(evidences) : pendingEvidence(state)}
+      ${
+        state.viewingAsAdmin
+          ? `${adminDashboardSummary(evidences)}${recentEvidenceSection(state)}`
+          : `${showEvidenceLists ? pendingInbox(state) : ""}${showEvidenceLists ? recentEvidenceSection(state) : ""}${insightsDashboard(state, activeTab)}`
+      }
     </div>
   `;
 }
@@ -105,7 +178,7 @@ function adminDashboardSummary(evidences) {
   `;
 }
 
-function insightsDashboard(state) {
+function insightsDashboard(state, activeTab = "dashboard") {
   if (state.insightsStatus === "error") {
     return insightsErrorPanel(state.insightsError);
   }
@@ -115,6 +188,15 @@ function insightsDashboard(state) {
   }
 
   const insights = state.insights;
+
+  if (activeTab === "framework") {
+    return criterionCoverageSection(insights);
+  }
+
+  if (activeTab === "criteria") {
+    return gapsSection(insights.gaps);
+  }
+
   return `
     ${insightOverview(insights)}
     ${insightDistributionSection(
@@ -127,9 +209,7 @@ function insightsDashboard(state) {
       "Como as an&aacute;lises salvas foram distribu&iacute;das por n&iacute;vel estimado.",
       insights.estimatedLevelDistribution,
     )}
-    ${criterionCoverageSection(insights)}
     ${trendSection(insights.recentTrend)}
-    ${gapsSection(insights.gaps)}
   `;
 }
 
@@ -215,14 +295,56 @@ function criterionCoverageSection(insights) {
     <section class="insights-section" aria-labelledby="criterion-coverage-title">
       <div class="section-heading">
         <h3 class="section-title" id="criterion-coverage-title">Cobertura do framework</h3>
-        <p class="section-lead">Cada crit&eacute;rio abaixo &eacute; comparado aos nomes de compet&ecirc;ncia retornados pelas an&aacute;lises salvas.</p>
+        <p class="section-lead">Os crit&eacute;rios est&atilde;o agrupados por n&iacute;vel. Abra um grupo para revisar sua cobertura e acessar as evid&ecirc;ncias relacionadas.</p>
       </div>
       ${
         coverage.length
-          ? `<div class="criterion-grid">${coverage.map(criterionCard).join("")}</div>`
+          ? `<div class="criterion-level-groups">${groupCriteriaByLevel(coverage).map(criterionLevelGroup).join("")}</div>`
           : `<div class="insight-inline-empty">O framework atual n&atilde;o possui crit&eacute;rios configurados.</div>`
       }
     </section>
+  `;
+}
+
+function groupCriteriaByLevel(coverage) {
+  const groups = [];
+  const groupsByLevel = new Map();
+
+  coverage.forEach((item) => {
+    const level = item.level || "Nível não informado";
+    let group = groupsByLevel.get(level);
+
+    if (!group) {
+      group = { level, levelTitle: item.levelTitle || "", items: [] };
+      groupsByLevel.set(level, group);
+      groups.push(group);
+    }
+
+    group.items.push(item);
+  });
+
+  return groups;
+}
+
+function criterionLevelGroup(group, index) {
+  const supportedCount = group.items.filter((item) => item.status === "SUPPORTED").length;
+  const groupId = `criterion-level-${slugify(group.level)}`;
+  const criteriaLabel = `${formatCount(group.items.length)} crit&eacute;rio${group.items.length === 1 ? "" : "s"}`;
+  const supportedLabel = `${formatCount(supportedCount)} com evid&ecirc;ncia`;
+
+  return `
+    <details class="criterion-level-group" ${index === 0 ? "open" : ""}>
+      <summary aria-controls="${groupId}-panel">
+        <span class="criterion-level-group-title">
+          <span class="criterion-level">${escapeHtml(group.level)}</span>
+          <strong>${escapeHtml(group.levelTitle || group.level)}</strong>
+        </span>
+        <span class="criterion-level-group-meta">${criteriaLabel} &middot; ${supportedLabel}</span>
+      </summary>
+      <div class="criterion-grid" id="${groupId}-panel">
+        ${group.items.map(criterionCard).join("")}
+      </div>
+    </details>
   `;
 }
 
@@ -389,6 +511,42 @@ function evidenceFeed(evidences) {
   `;
 }
 
+function recentEvidenceSection(state) {
+  const evidences = state.evidences || [];
+  const count = evidences.length;
+  const countLabel = `${formatCount(count)} evid&ecirc;ncia${count === 1 ? "" : "s"} salva${count === 1 ? "" : "s"}`;
+  const emptyMessage = state.viewingAsAdmin
+    ? "Este funcion&aacute;rio ainda n&atilde;o possui evid&ecirc;ncias analisadas no per&iacute;odo selecionado."
+    : "Ainda n&atilde;o h&aacute; evid&ecirc;ncias salvas no per&iacute;odo selecionado.";
+
+  return `
+    <section class="recent-evidence-section" id="recent-evidence" aria-labelledby="recent-evidence-title">
+      <div class="recent-evidence-heading">
+        <div>
+          <span class="eyebrow">Hist&oacute;rico salvo</span>
+          <h2 class="section-title" id="recent-evidence-title">Evid&ecirc;ncias recentes</h2>
+          <p class="section-lead">Abra uma an&aacute;lise para revisar a classifica&ccedil;&atilde;o, as compet&ecirc;ncias e o hist&oacute;rico de revis&atilde;o.</p>
+        </div>
+        <span class="recent-evidence-count" aria-label="${countLabel}">${countLabel}</span>
+      </div>
+      ${count ? evidenceFeed(evidences) : recentEvidenceEmpty(emptyMessage, state.viewingAsAdmin)}
+    </section>
+  `;
+}
+
+function recentEvidenceEmpty(message, isAdmin) {
+  return `
+    <div class="empty-state recent-evidence-empty">
+      <p>${message}</p>
+      ${
+        isAdmin
+          ? ""
+          : `<button class="button primary" type="button" data-action="open-connections">Abrir Conex&otilde;es e importar</button>`
+      }
+    </div>
+  `;
+}
+
 function pendingInbox(state) {
   if (state.viewingAsAdmin || !state.pendingEvidences?.length) {
     return "";
@@ -423,35 +581,6 @@ function pendingInboxItem(item) {
         <button class="button ghost compact" type="button" data-action="dismiss-evidence" data-evidence-id="${escapeHtml(item.id)}">Dispensar</button>
       </div>
     </article>
-  `;
-}
-
-function pendingEvidence(state) {
-  if (state.viewingAsAdmin) {
-    return emptyPanel("Este funcion&aacute;rio ainda n&atilde;o possui evid&ecirc;ncias no per&iacute;odo selecionado.");
-  }
-
-  if (state.insightsStatus === "ready" && Number(state.insights?.totalEvidence) === 0) {
-    return "";
-  }
-
-  if (state.pendingStatus === "loading") {
-    return emptyPanel("Buscando evid&ecirc;ncias pendentes...");
-  }
-
-  if (state.pendingStatus === "error") {
-    return emptyPanel("N&atilde;o foi poss&iacute;vel buscar as evid&ecirc;ncias pendentes no backend.", "Tentar novamente", "reload-pending");
-  }
-
-  return emptyPanel("Nenhuma an&aacute;lise salva no per&iacute;odo selecionado.", "Atualizar", "reload-pending");
-}
-
-function emptyPanel(message, actionLabel, action) {
-  return `
-    <div class="empty-state dashboard-empty">
-      <p>${message}</p>
-      ${action ? `<button class="button primary" type="button" data-action="${action}">${actionLabel}</button>` : ""}
-    </div>
   `;
 }
 

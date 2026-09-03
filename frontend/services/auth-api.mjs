@@ -28,11 +28,11 @@ export async function fetchCurrentUser() {
 }
 
 export async function fetchEmployees() {
-  return apiGet("/admin/employees", null, { auth: true });
+  return apiGet("/manager/employees", null, { auth: true });
 }
 
 export async function fetchEmployeeAnalyses(userId, params) {
-  return apiGet(`/admin/employees/${userId}/analyses`, params, { auth: true });
+  return apiGet(`/manager/employees/${userId}/analyses`, params, { auth: true });
 }
 
 export async function fetchUserAnalyses(params) {

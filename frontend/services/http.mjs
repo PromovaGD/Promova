@@ -58,6 +58,8 @@ async function parseApiResponse(response) {
     if (error.isUnauthorized) {
       clearAuthSession();
       notifyAuthExpired();
+    } else if (error.isForbidden) {
+      notifyPermissionDenied(message);
     }
 
     throw error;
@@ -90,6 +92,16 @@ function buildHeaders(options, withJson = false) {
 function notifyAuthExpired() {
   if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
     window.dispatchEvent(new Event("promova:auth-expired"));
+  }
+}
+
+function notifyPermissionDenied(message) {
+  if (typeof window !== "undefined" && typeof window.dispatchEvent === "function") {
+    window.dispatchEvent(
+      new CustomEvent("promova:permission-denied", {
+        detail: { message: message || "Você não tem permissão para realizar esta ação." },
+      }),
+    );
   }
 }
 

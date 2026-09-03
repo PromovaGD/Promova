@@ -74,5 +74,5 @@ export function confidenceLabel(confidence) {
 }
 
 export function roleLabel(role) {
-  return role === "ADMIN" ? "Administrador" : "Funcionário";
+  return role === "MANAGER" ? "Gestor" : "Funcionário";
 }

@@ -2,7 +2,7 @@ import { dashboardContent } from "./dashboard-view.mjs";
 import { appPage } from "../components/layout.mjs";
 import { escapeHtml } from "../utils/html.mjs";
 
-export function adminPage(state) {
+export function managerPage(state) {
   const selectedEmployee =
     state.employees.find((employee) => employee.id === state.selectedEmployeeId) || state.employees[0];
 
@@ -11,9 +11,9 @@ export function adminPage(state) {
     <div class="admin-shell">
       <aside class="admin-sidebar">
         <div class="admin-sidebar-head">
-          <span class="eyebrow">Administração</span>
+          <span class="eyebrow">Manager Console</span>
           <h2>Funcionários</h2>
-          <p class="card-copy">Selecione um funcionário para ver o painel de análises.</p>
+          <p class="card-copy">Selecione um funcionário para acompanhar as análises.</p>
         </div>
         <nav class="admin-employee-list" aria-label="Funcionários">
           ${state.employees
@@ -35,7 +35,6 @@ export function adminPage(state) {
             )
             .join("")}
         </nav>
-        <button class="button secondary admin-back" type="button" data-action="open-dashboard">Meu painel</button>
       </aside>
 
       <section class="admin-main">
@@ -60,7 +59,24 @@ export function adminPage(state) {
       </section>
     </div>
   `,
-    { user: state.user, mode: "admin" },
+    { user: state.user, mode: "manager" },
+  );
+}
+
+export function permissionPage(state) {
+  const destinationAction = state.user?.role === "MANAGER" ? "open-manager" : "open-dashboard";
+  const destinationLabel = state.user?.role === "MANAGER" ? "Voltar ao Manager Console" : "Voltar ao painel";
+
+  return appPage(
+    `
+      <div class="empty-state dashboard-empty" role="alert">
+        <span class="eyebrow">Permissão necessária</span>
+        <h1>Você não pode acessar este recurso</h1>
+        <p>${escapeHtml(state.permissionError || "Você não tem permissão para realizar esta ação.")}</p>
+        <button class="button primary" type="button" data-action="${destinationAction}">${destinationLabel}</button>
+      </div>
+    `,
+    { user: state.user, mode: state.user?.role === "MANAGER" ? "manager" : "app" },
   );
 }
 

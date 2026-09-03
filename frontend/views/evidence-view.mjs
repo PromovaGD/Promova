@@ -172,16 +172,16 @@ function reviewPanel(state, options) {
   const status = review.currentStatus || "UNREVIEWED";
   const history = Array.isArray(review.history) ? review.history : [];
   const isAdminReview =
-    options.fromDashboard && state.viewingAsAdmin && state.user?.role === "ADMIN";
+    options.fromDashboard && state.viewingAsAdmin && state.user?.role === "MANAGER";
   const canReview = isAdminReview;
   const saving = state.reviewSaving;
-  const eyebrow = isAdminReview ? "Revisão administrativa" : "Acompanhamento da revisão";
+  const eyebrow = isAdminReview ? "Revisão gerencial" : "Acompanhamento da revisão";
   const title = isAdminReview ? "Status atual" : "Acompanhamento";
   const emptyMessage = isAdminReview
     ? `Nenhum evento registrado. Esta an&aacute;lise est&aacute; <strong>n&atilde;o revisada</strong>.`
     : "Nenhuma atualização de revisão foi registrada para esta análise.";
   const readonlyMessage = isAdminReview
-    ? "O histórico é imutável. Apenas administradores podem registrar uma nova revisão."
+    ? "O histórico é imutável. Apenas gestores podem registrar uma nova revisão."
     : "O status e as atualizações desta revisão aparecerão aqui quando houver novidades.";
 
   return `
@@ -226,7 +226,7 @@ function reviewPanel(state, options) {
 }
 
 function reviewHistoryItem(item) {
-  const reviewer = item.reviewerName || item.reviewerEmail || "Administrador";
+  const reviewer = item.reviewerName || item.reviewerEmail || "Gestor";
   const timestamp = item.createdAt ? formatTimestamp(item.createdAt) : "Data indispon&iacute;vel";
   return `
     <li class="review-history-item">

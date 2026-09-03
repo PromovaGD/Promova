@@ -178,7 +178,8 @@ O backend usa perfis Spring explícitos:
 As migrations versionadas ficam em `backend/src/main/resources/db/migration`:
 
 - `V1__create_core_schema.sql` cria usuários, sessões, perfis, evidências, configurações do GitHub e análises salvas.
-- `V2__create_saved_analysis_reviews.sql` cria o histórico de revisões administrativas.
+- `V2__create_saved_analysis_reviews.sql` cria o histórico de revisões gerenciais.
+- `V3__migrate_admin_role_to_manager.sql` converte contas privilegiadas legadas para `MANAGER` e restringe os papéis persistidos a `EMPLOYEE` e `MANAGER`.
 
 Um banco novo é criado integralmente pelas migrations e validado pelo Hibernate. O banco de protótipo anterior ao Flyway não é apagado nem atualizado por `ddl-auto`. No perfil `dev`, um banco H2 existente sem `flyway_schema_history` é explicitamente baselineado na versão `2`, correspondente ao schema aceito da Task 7; faça backup e confirme o schema antes de usar essa compatibilidade. O perfil `prod` mantém o baseline automático desligado: uma base PostgreSQL legada deve ser baselineada por um procedimento de deploy aprovado somente depois de verificada, ou migrada manualmente se houver divergências.
 

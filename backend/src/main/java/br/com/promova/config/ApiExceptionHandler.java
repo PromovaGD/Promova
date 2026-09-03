@@ -15,7 +15,13 @@ import org.springframework.web.server.ResponseStatusException;
 public class ApiExceptionHandler {
   @ExceptionHandler(ResponseStatusException.class)
   public ResponseEntity<Map<String, String>> handleResponseStatus(ResponseStatusException exception) {
-    String message = exception.getReason() == null ? "Erro na requisição." : exception.getReason();
+    String message =
+        switch (exception.getStatusCode().value()) {
+          case 401 -> "Autenticação necessária.";
+          case 403 -> "Você não tem permissão para realizar esta ação.";
+          default ->
+              exception.getReason() == null ? "Erro na requisição." : exception.getReason();
+        };
     return ResponseEntity.status(exception.getStatusCode()).body(Map.of("message", message));
   }
 

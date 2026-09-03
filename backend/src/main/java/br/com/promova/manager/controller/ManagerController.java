@@ -1,4 +1,4 @@
-package br.com.promova.admin.controller;
+package br.com.promova.manager.controller;
 
 import br.com.promova.analysis.dto.SavedAnalysisResponse;
 import br.com.promova.analysis.service.SavedAnalysisService;
@@ -24,14 +24,14 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
-@RequestMapping("/admin")
-public class AdminController {
+@RequestMapping("/manager")
+public class ManagerController {
   private final AuthService authService;
   private final AuthTokenResolver authTokenResolver;
   private final UserRepository userRepository;
   private final SavedAnalysisService savedAnalysisService;
 
-  public AdminController(
+  public ManagerController(
       AuthService authService,
       AuthTokenResolver authTokenResolver,
       UserRepository userRepository,
@@ -46,8 +46,8 @@ public class AdminController {
   @Transactional(readOnly = true)
   public List<UserSummaryResponse> employees(
       @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
-    User admin = requireAdmin(authorization);
-    return userRepository.findAllExcept(admin.getId()).stream()
+    User manager = requireManager(authorization);
+    return userRepository.findAllExcept(manager.getId()).stream()
         .map(UserSummaryResponse::from)
         .toList();
   }
@@ -61,11 +61,11 @@ public class AdminController {
           Instant from,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
           Instant to) {
-    User admin = requireAdmin(authorization);
+    User manager = requireManager(authorization);
     User employee =
         userRepository
             .findById(userId)
-            .filter(user -> !user.getId().equals(admin.getId()))
+            .filter(user -> !user.getId().equals(manager.getId()))
             .orElseThrow(
                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
 
@@ -78,21 +78,22 @@ public class AdminController {
       @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
       @PathVariable Long userId,
       @RequestParam UserRole role) {
-    requireAdmin(authorization);
-    
-    User user = userRepository
-        .findById(userId)
-        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
-    
+    requireManager(authorization);
+
+    User user =
+        userRepository
+            .findById(userId)
+            .orElseThrow(
+                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado."));
+
     user.setRole(role);
-    User updated = userRepository.save(user);
-    return UserSummaryResponse.from(updated);
+    return UserSummaryResponse.from(userRepository.save(user));
   }
 
-  private User requireAdmin(String authorization) {
+  private User requireManager(String authorization) {
     User user = authService.requireUser(requireToken(authorization));
-    if (user.getRole() != UserRole.ADMIN) {
-      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso restrito a administradores.");
+    if (user.getRole() != UserRole.MANAGER) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Acesso restrito a gestores.");
     }
     return user;
   }

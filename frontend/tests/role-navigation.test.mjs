@@ -1,0 +1,49 @@
+import assert from "node:assert/strict";
+import test from "node:test";
+
+import { siteHeader } from "../components/layout.mjs";
+import { roleLabel } from "../utils/format.mjs";
+import { managerPage, permissionPage } from "../views/manager-view.mjs";
+
+const manager = { id: 1, name: "Marina Gestora", email: "manager@example.com", role: "MANAGER" };
+const employee = { id: 2, name: "João Silva", email: "employee@example.com", role: "EMPLOYEE" };
+
+test("manager navigation exposes only the Manager Console workspace", () => {
+  const header = siteHeader("manager", manager);
+  const page = managerPage({
+    user: manager,
+    employees: [],
+    selectedEmployeeId: null,
+    adminEvidences: [],
+    adminFilters: {},
+  });
+
+  assert.match(header, /Manager Console/);
+  assert.match(header, /data-action="open-manager"/);
+  assert.doesNotMatch(header, /data-action="open-dashboard"/);
+  assert.doesNotMatch(header, /data-action="open-profile"/);
+  assert.doesNotMatch(header, /data-action="open-form"/);
+  assert.doesNotMatch(page, /Meu painel/);
+  assert.doesNotMatch(page, /Administrador|Administração/);
+  assert.equal(roleLabel(manager.role), "Gestor");
+});
+
+test("employee navigation keeps dashboard, profile, and evidence actions", () => {
+  const header = siteHeader("app", employee);
+
+  assert.match(header, /data-action="open-dashboard"/);
+  assert.match(header, /data-action="open-profile"/);
+  assert.match(header, /data-action="open-form"/);
+  assert.doesNotMatch(header, /data-action="open-manager"/);
+  assert.equal(roleLabel(employee.role), "Funcionário");
+});
+
+test("permission errors preserve role-appropriate navigation destinations", () => {
+  const managerHtml = permissionPage({ user: manager, permissionError: "Acesso negado." });
+  const employeeHtml = permissionPage({ user: employee, permissionError: "Acesso negado." });
+
+  assert.match(managerHtml, /Acesso negado/);
+  assert.match(managerHtml, /data-action="open-manager"/);
+  assert.doesNotMatch(managerHtml, /data-action="open-dashboard"/);
+  assert.match(employeeHtml, /data-action="open-dashboard"/);
+});

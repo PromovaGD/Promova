@@ -7,16 +7,16 @@ export function siteHeader(mode, user = null) {
     ["#how-it-works", "Como funciona"],
     ["#benefits", "Benefícios"],
   ];
-  const appLinks = [
-    { label: "Início", action: "back-home" },
-    { label: "Painel", action: "open-dashboard" },
-  ];
+  const isManager = user?.role === "MANAGER";
+  const appLinks = [{ label: "Início", action: "back-home" }];
 
-  if (user?.role === "ADMIN") {
-    appLinks.push({ label: "Admin", action: "open-admin" });
+  if (isManager) {
+    appLinks.push({ label: "Manager Console", action: "open-manager" });
+  } else {
+    appLinks.push({ label: "Painel", action: "open-dashboard" });
   }
 
-  if (mode !== "landing" && user) {
+  if (mode !== "landing" && user && !isManager) {
     appLinks.push({ label: "Perfil", action: "open-profile" });
     appLinks.push({ label: "Nova evidência", action: "open-form" });
   }
@@ -33,8 +33,10 @@ export function siteHeader(mode, user = null) {
           )
           .join("");
 
-  const ctaAction = mode === "landing" ? "open-auth" : user ? "open-form" : "open-auth";
-  const ctaLabel = mode === "landing" ? "Começar agora" : user ? "Ver nova evidência" : "Entrar";
+  const ctaAction =
+    mode === "landing" ? "open-auth" : isManager ? "open-manager" : user ? "open-form" : "open-auth";
+  const ctaLabel =
+    mode === "landing" ? "Começar agora" : isManager ? "Manager Console" : user ? "Ver nova evidência" : "Entrar";
 
   return `
     <header class="site-header">

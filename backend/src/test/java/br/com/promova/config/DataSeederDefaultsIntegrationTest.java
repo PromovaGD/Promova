@@ -4,7 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import br.com.promova.profile.CareerProfile;
 import br.com.promova.profile.CareerProfileRepository;
+import br.com.promova.user.User;
 import br.com.promova.user.UserRepository;
+import br.com.promova.user.UserRole;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,5 +30,12 @@ class DataSeederDefaultsIntegrationTest {
     assertThat(joaoProfile.getTargetLevel()).isEqualTo("L4");
     assertThat(mariaProfile.getCurrentLevel()).isEqualTo("L3");
     assertThat(mariaProfile.getTargetLevel()).isEqualTo("L4");
+  }
+
+  @Test
+  void seedsThePrivilegedAccountAsManager() {
+    User manager = userRepository.findByEmailIgnoreCase("manager@promova.com").orElseThrow();
+
+    assertThat(manager.getRole()).isEqualTo(UserRole.MANAGER);
   }
 }

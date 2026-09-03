@@ -10,7 +10,7 @@ public enum ReviewStatus {
   ACCEPTED,
   NEEDS_CONTEXT;
 
-  /** Parses an admin action status; UNREVIEWED is derived and cannot be appended as an event. */
+  /** Parses a manager action status; UNREVIEWED is derived and cannot be appended as an event. */
   public static ReviewStatus parseAction(String value) {
     if (value == null || value.isBlank()) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Review status is required.");

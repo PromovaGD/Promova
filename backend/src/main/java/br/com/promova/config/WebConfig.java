@@ -41,8 +41,8 @@ public class WebConfig implements WebMvcConfigurer {
             "/api/github/**",
             "/profile",
             "/profile/**",
-            "/admin",
-            "/admin/**");
+            "/manager",
+            "/manager/**");
   }
 
   @Override

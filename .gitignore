@@ -4,6 +4,10 @@ node_modules/
 # Frontend output
 dist/
 
+# Local Minecraft Bomb Relay experiment
+/bomb-relay/
+/BOMB_BANANA_MINECRAFT_MVP.md
+
 # Backend output
 backend/.gradle/
 backend/build/

@@ -50,6 +50,26 @@ export function evidenceResultPage(state) {
   return appPage(renderAnalysisDetail(state.result, state), { user: state.user, mode: "app" });
 }
 
+export function evidenceEmptyPage(state) {
+  return appPage(
+    `
+    ${pageHero(
+      "Nova evidência",
+      "Não há novas evidências para revisar",
+      "Sua caixa de entrada está em dia. Você pode voltar ao painel ou importar uma nova evidência pelas conexões.",
+    )}
+    <div class="empty-state dashboard-empty empty-evidence-state">
+      <p>Quando uma nova evidência estiver disponível, ela aparecerá aqui para análise.</p>
+      <div class="form-actions">
+        <button class="button primary" type="button" data-action="back-dashboard">Voltar ao painel</button>
+        <button class="button secondary" type="button" data-action="open-connections">Abrir Conexões e importar</button>
+      </div>
+    </div>
+  `,
+    { user: state.user, mode: "app" },
+  );
+}
+
 export function evidenceDetailPage(state) {
   const evidence = findEvidence(state);
 
@@ -151,16 +171,25 @@ function reviewPanel(state, options) {
   const review = state.review || { currentStatus: "UNREVIEWED", history: [] };
   const status = review.currentStatus || "UNREVIEWED";
   const history = Array.isArray(review.history) ? review.history : [];
-  const canReview =
-    options.fromDashboard && state.viewingAsAdmin && state.user?.role === "ADMIN";
+  const isAdminReview =
+    options.fromDashboard && state.viewingAsAdmin && state.user?.role === "MANAGER";
+  const canReview = isAdminReview;
   const saving = state.reviewSaving;
+  const eyebrow = isAdminReview ? "Revisão gerencial" : "Acompanhamento da revisão";
+  const title = isAdminReview ? "Status atual" : "Acompanhamento";
+  const emptyMessage = isAdminReview
+    ? `Nenhum evento registrado. Esta an&aacute;lise est&aacute; <strong>n&atilde;o revisada</strong>.`
+    : "Nenhuma atualização de revisão foi registrada para esta análise.";
+  const readonlyMessage = isAdminReview
+    ? "O histórico é imutável. Apenas gestores podem registrar uma nova revisão."
+    : "O status e as atualizações desta revisão aparecerão aqui quando houver novidades.";
 
   return `
     <section class="analysis-card review-card" aria-labelledby="review-title">
       <div class="review-heading">
         <div>
-          <span class="score-label">Revis&atilde;o administrativa</span>
-          <h3 id="review-title">Status atual</h3>
+          <span class="score-label">${eyebrow}</span>
+          <h3 id="review-title">${title}</h3>
         </div>
         <span class="review-status ${reviewStatusClass(status)}">${escapeHtml(reviewStatusLabel(status))}</span>
       </div>
@@ -173,7 +202,7 @@ function reviewPanel(state, options) {
       ${
         history.length
           ? `<ol class="review-history">${history.map(reviewHistoryItem).join("")}</ol>`
-          : `<p class="review-empty">Nenhum evento registrado. Esta an&aacute;lise est&aacute; <strong>n&atilde;o revisada</strong>.</p>`
+          : `<p class="review-empty">${emptyMessage}</p>`
       }
       ${
         canReview
@@ -190,14 +219,14 @@ function reviewPanel(state, options) {
               </div>
             </form>
           `
-          : `<p class="review-readonly">O hist&oacute;rico &eacute; imut&aacute;vel. Apenas administradores podem registrar uma nova revis&atilde;o.</p>`
+          : `<p class="review-readonly">${escapeHtml(readonlyMessage)}</p>`
       }
     </section>
   `;
 }
 
 function reviewHistoryItem(item) {
-  const reviewer = item.reviewerName || item.reviewerEmail || "Administrador";
+  const reviewer = item.reviewerName || item.reviewerEmail || "Gestor";
   const timestamp = item.createdAt ? formatTimestamp(item.createdAt) : "Data indispon&iacute;vel";
   return `
     <li class="review-history-item">
@@ -219,7 +248,7 @@ function reviewStatusLabel(status) {
     return "Precisa de contexto";
   }
 
-  return "Nao revisada";
+  return "Não revisada";
 }
 
 function reviewStatusClass(status) {

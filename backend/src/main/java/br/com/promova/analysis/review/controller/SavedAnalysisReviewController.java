@@ -45,7 +45,7 @@ public class SavedAnalysisReviewController {
     return analysisReviewService.listForOwner(requireUser(authorization), analysisId);
   }
 
-  /** Employees have read-only review access; admin writes use the explicit admin route below. */
+  /** Employees have read-only review access; manager writes use the explicit manager route below. */
   @PostMapping("/analyses/{analysisId}/reviews")
   public void rejectOwnerWrite(
       @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
@@ -55,40 +55,40 @@ public class SavedAnalysisReviewController {
         HttpStatus.FORBIDDEN, "Employees cannot create or change reviews.");
   }
 
-  @GetMapping("/admin/employees/{employeeId}/analyses/{analysisId}/reviews")
-  public AnalysisReviewResponse adminHistory(
+  @GetMapping("/manager/employees/{employeeId}/analyses/{analysisId}/reviews")
+  public AnalysisReviewResponse managerHistory(
       @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
       @PathVariable Long employeeId,
       @PathVariable Long analysisId) {
-    User admin = requireAdmin(authorization);
-    requireAdminVisibleEmployee(admin, employeeId);
-    return analysisReviewService.listForAdmin(employeeId, analysisId);
+    User manager = requireManager(authorization);
+    requireManagerVisibleEmployee(manager, employeeId);
+    return analysisReviewService.listForManager(employeeId, analysisId);
   }
 
-  @PostMapping("/admin/employees/{employeeId}/analyses/{analysisId}/reviews")
+  @PostMapping("/manager/employees/{employeeId}/analyses/{analysisId}/reviews")
   @ResponseStatus(HttpStatus.CREATED)
-  public AnalysisReviewResponse appendAdminReview(
+  public AnalysisReviewResponse appendManagerReview(
       @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
       @PathVariable Long employeeId,
       @PathVariable Long analysisId,
       @Valid @RequestBody SavedAnalysisReviewRequest request) {
-    User admin = requireAdmin(authorization);
-    requireAdminVisibleEmployee(admin, employeeId);
-    return analysisReviewService.appendForAdmin(admin, employeeId, analysisId, request);
+    User manager = requireManager(authorization);
+    requireManagerVisibleEmployee(manager, employeeId);
+    return analysisReviewService.appendForManager(manager, employeeId, analysisId, request);
   }
 
-  private User requireAdminVisibleEmployee(User admin, Long employeeId) {
+  private User requireManagerVisibleEmployee(User manager, Long employeeId) {
     return userRepository
         .findById(employeeId)
-        .filter(user -> !user.getId().equals(admin.getId()))
+        .filter(user -> !user.getId().equals(manager.getId()))
         .orElseThrow(
             () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found."));
   }
 
-  private User requireAdmin(String authorization) {
+  private User requireManager(String authorization) {
     User user = requireUser(authorization);
-    if (user.getRole() != UserRole.ADMIN) {
-      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Admin access required.");
+    if (user.getRole() != UserRole.MANAGER) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Manager access required.");
     }
     return user;
   }

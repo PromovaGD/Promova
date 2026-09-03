@@ -1,4 +1,4 @@
-package br.com.promova.admin;
+package br.com.promova.manager;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -10,6 +10,7 @@ import br.com.promova.auth.AuthService;
 import br.com.promova.auth.AuthTokenResolver;
 import br.com.promova.config.ApiExceptionHandler;
 import br.com.promova.config.WebConfig;
+import br.com.promova.manager.controller.ManagerController;
 import br.com.promova.user.User;
 import br.com.promova.user.UserRepository;
 import br.com.promova.user.UserRole;
@@ -22,9 +23,9 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(br.com.promova.admin.controller.AdminController.class)
+@WebMvcTest(ManagerController.class)
 @Import({WebConfig.class, ApiExceptionHandler.class})
-class AdminControllerSecurityTest {
+class ManagerControllerSecurityTest {
   @Autowired private MockMvc mockMvc;
 
   @MockitoBean private AuthService authService;
@@ -33,37 +34,40 @@ class AdminControllerSecurityTest {
   @MockitoBean private SavedAnalysisService savedAnalysisService;
 
   @Test
-  void rejectsAnonymousAdminRequests() throws Exception {
+  void rejectsAnonymousManagerRequests() throws Exception {
     mockMvc
-        .perform(get("/admin/employees"))
+        .perform(get("/manager/employees"))
         .andExpect(status().isUnauthorized())
-        .andExpect(jsonPath("$.message").value("Token ausente."));
+        .andExpect(jsonPath("$.message").value("Autenticação necessária."));
   }
 
   @Test
-  void rejectsEmployeeFromAdminRequests() throws Exception {
+  void rejectsEmployeeFromManagerRequests() throws Exception {
     User employee = user("Employee", "employee@example.com", UserRole.EMPLOYEE, 2L);
     when(authTokenResolver.resolve("Bearer employee-token")).thenReturn("employee-token");
     when(authService.requireUser("employee-token")).thenReturn(employee);
 
     mockMvc
         .perform(
-            get("/admin/employees")
+            get("/manager/employees")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer employee-token"))
         .andExpect(status().isForbidden())
-        .andExpect(jsonPath("$.message").value("Acesso restrito a administradores."));
+        .andExpect(
+            jsonPath("$.message").value("Você não tem permissão para realizar esta ação."));
   }
 
   @Test
-  void allowsAdminToListOtherUsers() throws Exception {
-    User admin = user("Admin", "admin@example.com", UserRole.ADMIN, 1L);
+  void allowsManagerToListOtherUsers() throws Exception {
+    User manager = user("Manager", "manager@example.com", UserRole.MANAGER, 1L);
     User employee = user("Employee", "employee@example.com", UserRole.EMPLOYEE, 2L);
-    when(authTokenResolver.resolve("Bearer admin-token")).thenReturn("admin-token");
-    when(authService.requireUser("admin-token")).thenReturn(admin);
+    when(authTokenResolver.resolve("Bearer manager-token")).thenReturn("manager-token");
+    when(authService.requireUser("manager-token")).thenReturn(manager);
     when(userRepository.findAllExcept(1L)).thenReturn(java.util.List.of(employee));
 
     mockMvc
-        .perform(get("/admin/employees").header(HttpHeaders.AUTHORIZATION, "Bearer admin-token"))
+        .perform(
+            get("/manager/employees")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer manager-token"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].email").value("employee@example.com"))
         .andExpect(jsonPath("$[0].role").value("EMPLOYEE"));

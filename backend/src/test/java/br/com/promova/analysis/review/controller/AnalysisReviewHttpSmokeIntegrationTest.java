@@ -44,11 +44,11 @@ class AnalysisReviewHttpSmokeIntegrationTest {
     String otherEmployeeToken = registerToken(otherEmployeeEmail);
     User otherEmployee = userRepository.findByEmailIgnoreCase(otherEmployeeEmail).orElseThrow();
 
-    String adminEmail = uniqueEmail("admin");
-    String adminToken = registerToken(adminEmail);
-    User admin = userRepository.findByEmailIgnoreCase(adminEmail).orElseThrow();
-    admin.setRole(UserRole.ADMIN);
-    userRepository.save(admin);
+    String managerEmail = uniqueEmail("manager");
+    String managerToken = registerToken(managerEmail);
+    User manager = userRepository.findByEmailIgnoreCase(managerEmail).orElseThrow();
+    manager.setRole(UserRole.MANAGER);
+    userRepository.save(manager);
 
     SavedAnalysisResponse employeeAnalysis = saveAnalysis(employee, "reviewed-analysis");
     SavedAnalysisResponse otherAnalysis = saveAnalysis(otherEmployee, "other-analysis");
@@ -81,14 +81,14 @@ class AnalysisReviewHttpSmokeIntegrationTest {
             "{\"status\":\"ACCEPTED\",\"reviewerId\":999}");
     assertThat(employeeWrite.statusCode()).isEqualTo(403);
 
-    JsonNode adminInitial =
+    JsonNode managerInitial =
         json(
             request(
                 "GET",
-                adminReviewPath(employee.getId(), analysisId),
-                adminToken,
+                managerReviewPath(employee.getId(), analysisId),
+                managerToken,
                 null));
-    assertThat(adminInitial.path("currentStatus").asText()).isEqualTo("UNREVIEWED");
+    assertThat(managerInitial.path("currentStatus").asText()).isEqualTo("UNREVIEWED");
 
     Instant beforeFirstReview = Instant.now();
     JsonNode accepted =
@@ -96,8 +96,8 @@ class AnalysisReviewHttpSmokeIntegrationTest {
             requireCreated(
                 request(
                     "POST",
-                    adminReviewPath(employee.getId(), analysisId),
-                    adminToken,
+                    managerReviewPath(employee.getId(), analysisId),
+                    managerToken,
                     "{\"status\":\"ACCEPTED\",\"comment\":\"Clear evidence.\","
                         + "\"reviewerId\":999,\"employeeId\":999,"
                         + "\"createdAt\":\"2099-01-01T00:00:00Z\","
@@ -105,9 +105,9 @@ class AnalysisReviewHttpSmokeIntegrationTest {
     assertThat(accepted.path("currentStatus").asText()).isEqualTo("ACCEPTED");
     assertThat(accepted.path("history")).hasSize(1);
     assertThat(accepted.path("history").get(0).path("reviewerId").asLong())
-        .isEqualTo(admin.getId());
+        .isEqualTo(manager.getId());
     assertThat(accepted.path("history").get(0).path("reviewerEmail").asText())
-        .isEqualTo(adminEmail);
+        .isEqualTo(managerEmail);
     Instant firstCreatedAt =
         Instant.parse(accepted.path("history").get(0).path("createdAt").asText());
     assertThat(firstCreatedAt).isAfterOrEqualTo(beforeFirstReview);
@@ -119,8 +119,8 @@ class AnalysisReviewHttpSmokeIntegrationTest {
             requireCreated(
                 request(
                     "POST",
-                    adminReviewPath(employee.getId(), analysisId),
-                    adminToken,
+                    managerReviewPath(employee.getId(), analysisId),
+                    managerToken,
                     "{\"status\":\"NEEDS_CONTEXT\",\"comment\":\"Add outcome metrics.\"}")));
     assertThat(needsContext.path("currentStatus").asText()).isEqualTo("NEEDS_CONTEXT");
     assertThat(needsContext.path("history")).hasSize(2);
@@ -142,24 +142,24 @@ class AnalysisReviewHttpSmokeIntegrationTest {
     HttpResponse<String> unknownStatus =
         request(
             "POST",
-            adminReviewPath(employee.getId(), analysisId),
-            adminToken,
+            managerReviewPath(employee.getId(), analysisId),
+            managerToken,
             "{\"status\":\"UNKNOWN\"}");
     assertThat(unknownStatus.statusCode()).isEqualTo(400);
 
     HttpResponse<String> oversizedComment =
         request(
             "POST",
-            adminReviewPath(employee.getId(), analysisId),
-            adminToken,
+            managerReviewPath(employee.getId(), analysisId),
+            managerToken,
             "{\"status\":\"ACCEPTED\",\"comment\":\"" + "x".repeat(2001) + "\"}");
     assertThat(oversizedComment.statusCode()).isEqualTo(400);
 
     HttpResponse<String> wrongOwnerReviewRead =
         request(
             "GET",
-            adminReviewPath(employee.getId(), otherAnalysisId),
-            adminToken,
+            managerReviewPath(employee.getId(), otherAnalysisId),
+            managerToken,
             null);
     assertThat(wrongOwnerReviewRead.statusCode()).isEqualTo(404);
 
@@ -232,8 +232,8 @@ class AnalysisReviewHttpSmokeIntegrationTest {
     return "/analyses/" + analysisId + "/reviews";
   }
 
-  private String adminReviewPath(Long employeeId, Long analysisId) {
-    return "/admin/employees/" + employeeId + "/analyses/" + analysisId + "/reviews";
+  private String managerReviewPath(Long employeeId, Long analysisId) {
+    return "/manager/employees/" + employeeId + "/analyses/" + analysisId + "/reviews";
   }
 
   private String applicationBaseUrl() {

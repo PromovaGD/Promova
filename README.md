@@ -67,6 +67,36 @@ Você pode trocar o modelo com:
 $env:OPENROUTER_MODEL="qwen/qwen3-next-80b-a3b-instruct:free"
 ```
 
+## Fluxo da Análise com IA
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant UI as Frontend
+    participant API as Promova Backend
+    participant DB as Database
+    participant AI as OpenRouter / AI Provider
+
+    User->>UI: Open evidence for analysis
+    UI->>API: POST /evidences/{id}/analysis
+
+    API->>DB: Load evidence and career profile
+    DB-->>API: Evidence + current/target levels
+
+    API->>API: Load career framework and build prompt
+
+    API->>AI: POST /chat/completions<br/>Evidence + levels + framework
+    AI-->>API: JSON analysis<br/>Level, confidence, reasoning and suggestions
+
+    API->>API: Validate AI response
+    API->>DB: Save analysis and mark evidence ANALYZED
+
+    API-->>UI: Return saved analysis
+    UI-->>User: Display evidence review
+```
+
+O request ao AI provider acontece quando `PROMOVA_ANALYSIS_ENGINE=openrouter`. Caso contrário, o backend usa o engine mock local. O diagrama também está disponível em [`docs/evidence-ai-analysis-flow.md`](docs/evidence-ai-analysis-flow.md).
+
 ## Editar o Career Framework
 
 O framework atual fica em:
@@ -178,7 +208,8 @@ O backend usa perfis Spring explícitos:
 As migrations versionadas ficam em `backend/src/main/resources/db/migration`:
 
 - `V1__create_core_schema.sql` cria usuários, sessões, perfis, evidências, configurações do GitHub e análises salvas.
-- `V2__create_saved_analysis_reviews.sql` cria o histórico de revisões administrativas.
+- `V2__create_saved_analysis_reviews.sql` cria o histórico de revisões gerenciais.
+- `V3__migrate_admin_role_to_manager.sql` converte contas privilegiadas legadas para `MANAGER` e restringe os papéis persistidos a `EMPLOYEE` e `MANAGER`.
 
 Um banco novo é criado integralmente pelas migrations e validado pelo Hibernate. O banco de protótipo anterior ao Flyway não é apagado nem atualizado por `ddl-auto`. No perfil `dev`, um banco H2 existente sem `flyway_schema_history` é explicitamente baselineado na versão `2`, correspondente ao schema aceito da Task 7; faça backup e confirme o schema antes de usar essa compatibilidade. O perfil `prod` mantém o baseline automático desligado: uma base PostgreSQL legada deve ser baselineada por um procedimento de deploy aprovado somente depois de verificada, ou migrada manualmente se houver divergências.
 

@@ -83,6 +83,6 @@ class AuthControllerSecurityTest {
     mockMvc
         .perform(get("/auth/me"))
         .andExpect(status().isUnauthorized())
-        .andExpect(jsonPath("$.message").value("Token ausente."));
+        .andExpect(jsonPath("$.message").value("Autenticação necessária."));
   }
 }

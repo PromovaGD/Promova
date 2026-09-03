@@ -60,7 +60,7 @@ class ProfileControllerSecurityTest {
     mockMvc
         .perform(get("/profile"))
         .andExpect(status().isUnauthorized())
-        .andExpect(jsonPath("$.message").value("Token ausente."));
+        .andExpect(jsonPath("$.message").value("Autenticação necessária."));
   }
 
   @Test

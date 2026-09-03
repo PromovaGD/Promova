@@ -62,11 +62,16 @@ export function landingPage() {
           <div class="hero-grid">
             <div class="hero-copy">
               <span class="eyebrow">Promoções justas baseadas em evidências reais</span>
-              <h1>Promova sua carreira com evidências</h1>
+              <h1>Promova sua carreira com <span class="hero-accent">evidências</span></h1>
               <p>Registre suas evidências, acompanhe seu impacto e simplifique conversas de carreira com uma experiência clara e direta.</p>
               <div class="hero-actions">
                 <button class="button primary" type="button" data-action="open-auth">Começar agora</button>
                 <a class="button secondary" href="#how-it-works">Ver como funciona</a>
+              </div>
+              <div class="hero-signal-row" aria-label="Benefícios principais">
+                <span>Progresso visível</span>
+                <span>Critérios claros</span>
+                <span>Decisões com contexto</span>
               </div>
             </div>
             <div class="preview-shell">

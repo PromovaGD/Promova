@@ -67,6 +67,36 @@ Você pode trocar o modelo com:
 $env:OPENROUTER_MODEL="qwen/qwen3-next-80b-a3b-instruct:free"
 ```
 
+## Fluxo da Análise com IA
+
+```mermaid
+sequenceDiagram
+    actor User
+    participant UI as Frontend
+    participant API as Promova Backend
+    participant DB as Database
+    participant AI as OpenRouter / AI Provider
+
+    User->>UI: Open evidence for analysis
+    UI->>API: POST /evidences/{id}/analysis
+
+    API->>DB: Load evidence and career profile
+    DB-->>API: Evidence + current/target levels
+
+    API->>API: Load career framework and build prompt
+
+    API->>AI: POST /chat/completions<br/>Evidence + levels + framework
+    AI-->>API: JSON analysis<br/>Level, confidence, reasoning and suggestions
+
+    API->>API: Validate AI response
+    API->>DB: Save analysis and mark evidence ANALYZED
+
+    API-->>UI: Return saved analysis
+    UI-->>User: Display evidence review
+```
+
+O request ao AI provider acontece quando `PROMOVA_ANALYSIS_ENGINE=openrouter`. Caso contrário, o backend usa o engine mock local. O diagrama também está disponível em [`docs/evidence-ai-analysis-flow.md`](docs/evidence-ai-analysis-flow.md).
+
 ## Editar o Career Framework
 
 O framework atual fica em:

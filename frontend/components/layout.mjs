@@ -4,7 +4,7 @@ import { roleLabel } from "../utils/format.mjs";
 const BRAND_SYMBOL_SRC = "./frontend/assets/promova-symbol.png";
 const BRAND_WORDMARK_SRC = "./frontend/assets/promova-wordmark.png";
 
-export function siteHeader(mode, user = null) {
+export function siteHeader(mode, user = null, terminology = null) {
   const landingLinks = [
     ["#product", "Produto"],
     ["#how-it-works", "Como funciona"],
@@ -48,7 +48,7 @@ export function siteHeader(mode, user = null) {
       </a>
       <nav class="site-nav" aria-label="Principal">${nav}</nav>
       <div class="header-actions">
-        ${user ? userBadge(user) : ""}
+        ${user ? userBadge(user, terminology) : ""}
         <button class="button primary button-cta" type="button" data-action="${ctaAction}">${escapeHtml(ctaLabel)}</button>
         ${user ? `<button class="button ghost button-logout" type="button" data-action="logout">Sair</button>` : ""}
       </div>
@@ -56,7 +56,7 @@ export function siteHeader(mode, user = null) {
   `;
 }
 
-function userBadge(user) {
+function userBadge(user, terminology) {
   const initials = user.name
     .split(" ")
     .slice(0, 2)
@@ -68,7 +68,7 @@ function userBadge(user) {
       <span class="user-badge-avatar">${escapeHtml(initials)}</span>
       <span class="user-badge-copy">
         <strong>${escapeHtml(user.name)}</strong>
-        <span>${escapeHtml(roleLabel(user.role))}</span>
+        <span>${escapeHtml(roleLabel(user.role, terminology))}</span>
       </span>
     </div>
   `;
@@ -110,7 +110,7 @@ export function appPage(content, options = {}) {
     <div class="site-page">
       <section class="surface-light section">
         <div class="container">
-          ${siteHeader(mode, user)}
+          ${siteHeader(mode, user, options.terminology)}
           ${content}
         </div>
       </section>

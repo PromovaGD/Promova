@@ -42,12 +42,12 @@ export function evidenceLoadingPage(state) {
       </aside>
     </div>
   `,
-    { user: state.user, mode: "app" },
+    pageOptions(state),
   );
 }
 
 export function evidenceResultPage(state) {
-  return appPage(renderAnalysisDetail(state.result, state), { user: state.user, mode: "app" });
+  return appPage(renderAnalysisDetail(state.result, state), pageOptions(state));
 }
 
 export function evidenceEmptyPage(state) {
@@ -66,7 +66,7 @@ export function evidenceEmptyPage(state) {
       </div>
     </div>
   `,
-    { user: state.user, mode: "app" },
+    pageOptions(state),
   );
 }
 
@@ -81,17 +81,25 @@ export function evidenceDetailPage(state) {
         <button class="button primary" type="button" data-action="back-dashboard">Voltar ao painel</button>
       </div>
     `,
-      { user: state.user, mode: "app" },
+      pageOptions(state),
     );
   }
 
   return appPage(renderAnalysisDetail(evidence, state, { fromDashboard: true }), {
-    user: state.user,
-    mode: "app",
+    ...pageOptions(state),
   });
 }
 
+function pageOptions(state) {
+  return {
+    user: state.user,
+    mode: "app",
+    terminology: state.careerConfiguration?.labels,
+  };
+}
+
 function renderAnalysisDetail(result, state, options = {}) {
+  const levelLabel = state.careerConfiguration?.labels?.level || "Nível";
   const source = {
     source: result.source || "Integração",
     sourceMeta: result.sourceMeta || "Sinal capturado automaticamente",
@@ -115,7 +123,7 @@ function renderAnalysisDetail(result, state, options = {}) {
       </div>
 
       <div class="analysis-card emphasis">
-        <span class="score-label">Nível de impacto</span>
+        <span class="score-label">${escapeHtml(levelLabel)} de impacto</span>
         <strong class="score-value">${escapeHtml(result.impactLevel)}</strong>
         <p class="score-note">${escapeHtml(result.readiness)}</p>
         <p class="subtle">Confiança: ${escapeHtml(confidenceLabel(result.confidence))}</p>
@@ -138,8 +146,8 @@ function renderAnalysisDetail(result, state, options = {}) {
 
       <div class="analysis-card">
         <h3>Resumo da evidência</h3>
-        <p class="subtle">Nível atual: <strong>${escapeHtml(result.currentLevel)}</strong></p>
-        <p class="subtle">Nível alvo: <strong>${escapeHtml(result.targetLevel)}</strong></p>
+        <p class="subtle">${escapeHtml(levelLabel)} atual: <strong>${escapeHtml(result.currentLevel)}</strong></p>
+        <p class="subtle">${escapeHtml(levelLabel)} alvo: <strong>${escapeHtml(result.targetLevel)}</strong></p>
         <div class="evidence-preview">${escapeHtml(result.evidence)}</div>
       </div>
 
@@ -277,7 +285,7 @@ export function evidenceErrorPage(state, errorMessage) {
       <button class="button secondary" type="button" data-action="back-dashboard">Voltar ao painel</button>
     </div>
   `,
-    { user: state.user, mode: "app" },
+    pageOptions(state),
   );
 }
 

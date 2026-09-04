@@ -40,6 +40,7 @@ public class WebConfig implements WebMvcConfigurer {
             "/api/github/**",
             "/profile",
             "/profile/**",
+            "/career-configuration",
             "/manager",
             "/manager/**");
   }

@@ -2,6 +2,7 @@ package br.com.promova.config;
 
 import br.com.promova.github.support.GithubApiException;
 import br.com.promova.github.support.GithubPayloadException;
+import br.com.promova.organization.JobRoleInUseException;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -60,5 +61,14 @@ public class ApiExceptionHandler {
   public ResponseEntity<Map<String, String>> handleGithubPayload(GithubPayloadException exception) {
     return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
         .body(Map.of("message", "GitHub returned an invalid response."));
+  }
+
+  @ExceptionHandler(JobRoleInUseException.class)
+  public ResponseEntity<Map<String, Object>> handleJobRoleInUse(JobRoleInUseException exception) {
+    return ResponseEntity.status(HttpStatus.CONFLICT)
+        .body(
+            Map.of(
+                "message", exception.getMessage(),
+                "affectedCount", exception.affectedCount()));
   }
 }

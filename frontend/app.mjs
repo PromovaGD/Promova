@@ -50,6 +50,15 @@ import {
   testGithubSettings,
 } from "./services/github-api.mjs";
 import { fetchProfile, updateProfile } from "./services/profile-api.mjs";
+import {
+  archiveJobRole,
+  createJobRole,
+  fetchCareerConfiguration,
+  fetchJobRoles,
+  fetchManagerSettings,
+  updateJobRole,
+  updateTerminology,
+} from "./services/manager-settings-api.mjs";
 import { managerPage, permissionPage } from "./views/manager-view.mjs";
 import { authPage } from "./views/auth-view.mjs";
 import { dashboardPage } from "./views/dashboard-view.mjs";
@@ -90,6 +99,14 @@ const state = {
   employees: [],
   selectedEmployeeId: null,
   adminEvidences: [],
+  managerSection: "people",
+  managerSettings: null,
+  managerSettingsStatus: "idle",
+  managerSettingsSaving: false,
+  managerSettingsError: null,
+  managerSettingsNotice: null,
+  jobRoles: [],
+  careerConfiguration: null,
   selectedEvidenceId: null,
   selectedAnalysisId: null,
   review: null,
@@ -242,12 +259,24 @@ function handleKeydown(event) {
 }
 
 async function handleSubmit(event) {
-  const form = event.target.closest("[data-auth-form], [data-profile-form], [data-review-form]");
+  const form = event.target.closest(
+    "[data-auth-form], [data-profile-form], [data-review-form], [data-terminology-form], [data-job-role-form]",
+  );
   if (!form) {
     return;
   }
 
   event.preventDefault();
+
+  if (form.matches("[data-terminology-form]")) {
+    await submitTerminology(form);
+    return;
+  }
+
+  if (form.matches("[data-job-role-form]")) {
+    await submitJobRole(form);
+    return;
+  }
 
   if (form.matches("[data-review-form]")) {
     await submitAnalysisReview(form, event.submitter);
@@ -334,6 +363,14 @@ async function handleClick(event) {
     state.pendingEvidences = [];
     state.employees = [];
     state.adminEvidences = [];
+    state.managerSection = "people";
+    state.managerSettings = null;
+    state.managerSettingsStatus = "idle";
+    state.managerSettingsSaving = false;
+    state.managerSettingsError = null;
+    state.managerSettingsNotice = null;
+    state.jobRoles = [];
+    state.careerConfiguration = null;
     state.selectedEmployeeId = null;
     state.selectedEvidenceId = null;
     state.selectedAnalysisId = null;
@@ -400,6 +437,24 @@ async function handleClick(event) {
     state.selectedEmployeeId = Number(trigger.dataset.employeeId);
     await refreshEmployeeAnalyses();
     render();
+    return;
+  }
+
+  if (action === "switch-manager-section") {
+    state.managerSection = trigger.dataset.managerSection === "settings" ? "settings" : "people";
+    state.managerSettingsError = null;
+    state.managerSettingsNotice = null;
+    render();
+    return;
+  }
+
+  if (action === "archive-job-role") {
+    const card = trigger.closest("[data-job-role-card]");
+    const replacementRoleId = card?.querySelector("[data-replacement-role]")?.value || null;
+    if (!window.confirm("Arquivar este cargo? Usuários atribuídos exigem um cargo alternativo.")) {
+      return;
+    }
+    await archiveManagerJobRole(trigger.dataset.jobRoleId, replacementRoleId);
     return;
   }
 
@@ -647,6 +702,99 @@ async function submitProfile(form) {
   }
 }
 
+async function submitTerminology(form) {
+  if (!form.checkValidity()) {
+    form.reportValidity();
+    return;
+  }
+  const values = new FormData(form);
+  state.managerSettingsSaving = true;
+  state.managerSettingsError = null;
+  state.managerSettingsNotice = null;
+  render();
+
+  try {
+    const labels = await updateTerminology({
+      manager: String(values.get("manager") || "").trim(),
+      employee: String(values.get("employee") || "").trim(),
+      jobRole: String(values.get("jobRole") || "").trim(),
+      level: String(values.get("level") || "").trim(),
+      characteristics: String(values.get("characteristics") || "").trim(),
+      objective: String(values.get("objective") || "").trim(),
+    });
+    state.managerSettings = { ...state.managerSettings, labels };
+    state.managerSettingsNotice = "Terminologia atualizada.";
+  } catch (error) {
+    state.managerSettingsError = error.message || "Não foi possível salvar a terminologia.";
+  } finally {
+    state.managerSettingsSaving = false;
+    render();
+  }
+}
+
+async function submitJobRole(form) {
+  if (!form.checkValidity()) {
+    form.reportValidity();
+    return;
+  }
+  const values = new FormData(form);
+  const allowedLevelIds = values.getAll("allowedLevelIds").map(String);
+  if (!allowedLevelIds.length) {
+    state.managerSettingsError = "Selecione ao menos um nível permitido.";
+    render();
+    return;
+  }
+
+  state.managerSettingsSaving = true;
+  state.managerSettingsError = null;
+  state.managerSettingsNotice = null;
+  render();
+  try {
+    const payload = {
+      name: String(values.get("name") || "").trim(),
+      description: String(values.get("description") || "").trim(),
+      allowedLevelIds,
+    };
+    if (form.dataset.jobRoleId) {
+      await updateJobRole(form.dataset.jobRoleId, payload);
+      state.managerSettingsNotice = "Cargo atualizado.";
+    } else {
+      await createJobRole(payload);
+      state.managerSettingsNotice = "Cargo criado.";
+    }
+    await refreshManagerSettings();
+  } catch (error) {
+    state.managerSettingsError = error.message || "Não foi possível salvar o cargo.";
+  } finally {
+    state.managerSettingsSaving = false;
+    render();
+  }
+}
+
+async function archiveManagerJobRole(roleId, replacementRoleId) {
+  state.managerSettingsSaving = true;
+  state.managerSettingsError = null;
+  state.managerSettingsNotice = null;
+  render();
+  try {
+    await archiveJobRole(roleId, replacementRoleId);
+    await refreshManagerSettings();
+    state.managerSettingsNotice = "Cargo arquivado.";
+  } catch (error) {
+    state.managerSettingsError = error.message || "Não foi possível arquivar o cargo.";
+  } finally {
+    state.managerSettingsSaving = false;
+    render();
+  }
+}
+
+async function refreshManagerSettings() {
+  const [settings, jobRoles] = await Promise.all([fetchManagerSettings(), fetchJobRoles()]);
+  state.managerSettings = settings;
+  state.jobRoles = jobRoles;
+  state.managerSettingsStatus = "ready";
+}
+
 async function openDashboard() {
   state.view = "dashboard";
   state.viewingAsAdmin = false;
@@ -667,17 +815,29 @@ async function openManager() {
   render();
 
   try {
-    state.employees = await fetchEmployees();
+    state.managerSettingsStatus = "loading";
+    const [employees, settings, jobRoles] = await Promise.all([
+      fetchEmployees(),
+      fetchManagerSettings(),
+      fetchJobRoles(),
+    ]);
+    state.employees = employees;
+    state.managerSettings = settings;
+    state.jobRoles = jobRoles;
+    state.managerSettingsStatus = "ready";
     state.selectedEmployeeId = state.selectedEmployeeId || state.employees[0]?.id || null;
     await refreshEmployeeAnalyses();
   } catch (error) {
     state.error = error;
+    state.managerSettingsStatus = "error";
+    state.managerSettingsError = error.message || "Não foi possível carregar as configurações.";
   }
 
   render();
 }
 
 async function loadEmployeeWorkspace() {
+  state.careerConfiguration = await fetchCareerConfiguration();
   await refreshProfile();
   await refreshUserAnalyses();
   await refreshInsights();

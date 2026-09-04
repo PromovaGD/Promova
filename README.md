@@ -166,6 +166,21 @@ corpo de requisicao. O servidor carrega a Evidence PENDING pertencente ao usuari
 o perfil e o career framework, executa o engine e persiste o resultado. A evidencia, os niveis e a
 classificacao nao sao enviados nem definidos pelo navegador.
 
+Configuração de carreira e terminologia:
+
+```text
+GET  /career-configuration
+GET  /manager/settings
+PUT  /manager/settings/terminology
+GET  /manager/settings/job-roles?includeArchived=true
+POST /manager/settings/job-roles
+PUT  /manager/settings/job-roles/{roleId}
+POST /manager/settings/job-roles/{roleId}/archive
+```
+
+Somente gestores alteram o catálogo. Os níveis permitidos de cada cargo são validados contra
+`career-framework.json`; cargos em uso exigem um cargo alternativo antes do arquivamento.
+
 Endpoints da integração com GitHub:
 
 ```text

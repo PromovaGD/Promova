@@ -14,7 +14,7 @@ export function profilePage(state) {
     )}
     ${state.profileLoading && !profile ? profileLoading() : profileForm(profile, draft, state)}
   `,
-    { user: state.user, mode: "app" },
+    { user: state.user, mode: "app", terminology: state.careerConfiguration?.labels },
   );
 }
 
@@ -40,6 +40,7 @@ function profileForm(profile, draft, state) {
   }
 
   const levels = Array.isArray(profile.levels) ? profile.levels : [];
+  const levelLabel = state.careerConfiguration?.labels?.level || "Nível";
   const currentLevel = draft?.currentLevel || profile.currentLevel;
   const targetLevel = draft?.targetLevel || profile.targetLevel;
 
@@ -53,13 +54,13 @@ function profileForm(profile, draft, state) {
         </div>
         <form class="profile-form" data-profile-form>
           <label class="field">
-            <span>Nível atual</span>
+            <span>${escapeHtml(levelLabel)} atual</span>
             <select name="currentLevel" data-profile-field="currentLevel" required>
               ${levelOptions(levels, currentLevel)}
             </select>
           </label>
           <label class="field">
-            <span>Próximo nível desejado</span>
+            <span>Próximo ${escapeHtml(levelLabel.toLowerCase())} desejado</span>
             <select name="targetLevel" data-profile-field="targetLevel" required>
               ${levelOptions(levels, targetLevel)}
             </select>

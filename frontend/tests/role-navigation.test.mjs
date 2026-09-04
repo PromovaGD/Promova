@@ -38,6 +38,41 @@ test("employee navigation keeps dashboard, profile, and evidence actions", () =>
   assert.equal(roleLabel(employee.role), "Funcionário");
 });
 
+test("manager settings render configured terminology and framework roles", () => {
+  const page = managerPage({
+    user: manager,
+    managerSection: "settings",
+    managerSettingsStatus: "ready",
+    managerSettingsSaving: false,
+    managerSettings: {
+      labels: {
+        manager: "Líder",
+        employee: "Talento",
+        jobRole: "Trilha",
+        level: "Estágio",
+        characteristics: "Forças",
+        objective: "Meta",
+      },
+      frameworkLevels: [{ key: "L3", title: "Engineer I" }],
+    },
+    jobRoles: [
+      {
+        id: 7,
+        name: "Engenharia",
+        description: "Produto digital",
+        status: "ACTIVE",
+        allowedLevelIds: ["L3"],
+      },
+    ],
+  });
+
+  assert.match(page, /Talentos/);
+  assert.match(page, /trilhas disponíveis/);
+  assert.match(page, /Estágios permitidos/);
+  assert.match(page, /Engenharia/);
+  assert.match(page, /data-terminology-form/);
+});
+
 test("permission errors preserve role-appropriate navigation destinations", () => {
   const managerHtml = permissionPage({ user: manager, permissionError: "Acesso negado." });
   const employeeHtml = permissionPage({ user: employee, permissionError: "Acesso negado." });

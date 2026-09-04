@@ -35,7 +35,13 @@ test("manager session lands in the console without loading employee workspace AP
   const urls = [];
   globalThis.fetch = async (url) => {
     urls.push(String(url));
-    const body = String(url).endsWith("/auth/me") ? manager : [];
+    const path = new URL(String(url)).pathname;
+    const body =
+      path === "/auth/me"
+        ? manager
+        : path === "/manager/settings"
+          ? { labels: {}, activeRoles: [], frameworkLevels: [] }
+          : [];
     return new Response(JSON.stringify(body), {
       status: 200,
       headers: { "content-type": "application/json" },
@@ -47,7 +53,7 @@ test("manager session lands in the console without loading employee workspace AP
 
   assert.deepEqual(
     urls.map((url) => new URL(url).pathname),
-    ["/auth/me", "/manager/employees"],
+    ["/auth/me", "/manager/employees", "/manager/settings", "/manager/settings/job-roles"],
   );
   assert.match(root.innerHTML, /Manager Console/);
   assert.doesNotMatch(root.innerHTML, /data-action="open-dashboard"/);

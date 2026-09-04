@@ -1,9 +1,7 @@
 package br.com.promova.profile.controller;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -23,11 +21,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.server.ResponseStatusException;
 
 @WebMvcTest(ProfileController.class)
 @Import({WebConfig.class, ApiExceptionHandler.class})
@@ -77,42 +72,13 @@ class ProfileControllerSecurityTest {
   }
 
   @Test
-  void updatesAuthenticatedUsersProfileWithoutAcceptingAUserIdOrRole() throws Exception {
-    when(profileService.updateProfile(any(), any())).thenReturn(response);
-
+  void refusesEmployeeCareerPlanMutation() throws Exception {
     mockMvc
         .perform(
-            put("/profile")
+            org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put("/profile")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer employee-token")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    """
-                    {"currentLevel":"L3","targetLevel":"L4"}
-                    """))
-        .andExpect(status().isOk())
-        .andExpect(jsonPath("$.currentLevel").value("L3"));
-  }
-
-  @Test
-  void returnsFrameworkValidationErrorsAsBadRequest() throws Exception {
-    when(profileService.updateProfile(any(), any()))
-        .thenThrow(
-            new ResponseStatusException(
-                HttpStatus.BAD_REQUEST,
-                "targetLevel must be above currentLevel according to the career framework."));
-
-    mockMvc
-        .perform(
-            put("/profile")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer employee-token")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(
-                    """
-                    {"currentLevel":"L4","targetLevel":"L4"}
-                    """))
-        .andExpect(status().isBadRequest())
-        .andExpect(
-            jsonPath("$.message")
-                .value("targetLevel must be above currentLevel according to the career framework."));
+                .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                .content("{\"currentLevel\":\"L3\",\"targetLevel\":\"L4\"}"))
+        .andExpect(status().isMethodNotAllowed());
   }
 }

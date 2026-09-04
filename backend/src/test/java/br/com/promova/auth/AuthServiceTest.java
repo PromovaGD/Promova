@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import br.com.promova.auth.dto.AuthResponse;
 import br.com.promova.auth.dto.RegisterRequest;
+import br.com.promova.profile.ProfileService;
 import br.com.promova.user.User;
 import br.com.promova.user.UserRepository;
 import br.com.promova.user.UserRole;
@@ -25,10 +26,11 @@ import org.springframework.web.server.ResponseStatusException;
 class AuthServiceTest {
   @Mock private UserRepository userRepository;
   @Mock private AuthSessionRepository authSessionRepository;
+  @Mock private ProfileService profileService;
 
   @Test
   void rejectsInvalidOrExpiredSessionsWithUnauthorized() {
-    AuthService authService = new AuthService(userRepository, authSessionRepository);
+    AuthService authService = new AuthService(userRepository, authSessionRepository, profileService);
     when(authSessionRepository.findByTokenAndExpiresAtAfter(anyString(), any(Instant.class)))
         .thenReturn(Optional.empty());
 
@@ -40,7 +42,7 @@ class AuthServiceTest {
 
   @Test
   void registrationCreatesAnEmployeeSession() {
-    AuthService authService = new AuthService(userRepository, authSessionRepository);
+    AuthService authService = new AuthService(userRepository, authSessionRepository, profileService);
     when(userRepository.findByEmailIgnoreCase("employee@example.com")).thenReturn(Optional.empty());
     when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
     when(authSessionRepository.save(any(AuthSession.class)))
@@ -54,5 +56,6 @@ class AuthServiceTest {
     assertThat(response.user().role()).isEqualTo(UserRole.EMPLOYEE);
     verify(authSessionRepository).deleteByExpiresAtBefore(any(Instant.class));
     verify(authSessionRepository).save(any(AuthSession.class));
+    verify(profileService).ensureProfile(any(User.class));
   }
 }

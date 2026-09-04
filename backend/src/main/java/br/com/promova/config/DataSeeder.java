@@ -21,7 +21,9 @@ public class DataSeeder {
       ProfileService profileService) {
     return args -> {
       if (userRepository.count() > 0) {
-        userRepository.findAll().forEach(profileService::ensureProfile);
+        userRepository.findAll().stream()
+            .filter(user -> user.getRole() == UserRole.EMPLOYEE)
+            .forEach(profileService::ensureProfile);
         return;
       }
 
@@ -53,7 +55,9 @@ public class DataSeeder {
               passwordEncoder.encode("senha123"),
               UserRole.EMPLOYEE));
 
-      userRepository.findAll().forEach(profileService::ensureProfile);
+      userRepository.findAll().stream()
+          .filter(user -> user.getRole() == UserRole.EMPLOYEE)
+          .forEach(profileService::ensureProfile);
     };
   }
 

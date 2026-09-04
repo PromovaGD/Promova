@@ -58,7 +58,7 @@ export function managerPage(state) {
       <section class="admin-main">
         ${
           selectedEmployee
-            ? dashboardContent(
+            ? `${managerCareerPlan(state, labels)}${dashboardContent(
                 {
                   ...state,
                   evidences: state.adminEvidences,
@@ -71,7 +71,7 @@ export function managerPage(state) {
                   subtitle: `Painel de análises do ${labels.employee.toLowerCase()}`,
                   copy: "Visualize as evidências analisadas, filtros por data e detalhes completos de cada classificação.",
                 },
-              )
+              )}`
             : `<div class="empty-state dashboard-empty"><p>Nenhum ${escapeHtml(labels.employee.toLowerCase())} cadastrado.</p></div>`
         }
       </section>
@@ -79,6 +79,70 @@ export function managerPage(state) {
   `,
     { user: state.user, mode: "manager", terminology: labels },
   );
+}
+
+export function managerCareerPlan(state, labels) {
+  if (state.careerPlanStatus === "loading") {
+    return `<section class="form-card manager-career-plan" aria-busy="true"><p>Carregando plano de carreira…</p></section>`;
+  }
+  if (state.careerPlanStatus === "error" || !state.selectedCareerPlan) {
+    return `<section class="form-card manager-career-plan" role="alert"><p>${escapeHtml(state.careerPlanError || "Plano de carreira indisponível.")}</p></section>`;
+  }
+
+  const plan = state.selectedCareerPlan;
+  const roles = state.managerSettings?.activeRoles || [];
+  const levels = state.managerSettings?.frameworkLevels || plan.levels || [];
+  const objectives = Array.isArray(plan.objectives) ? plan.objectives : [];
+  const feedback = state.careerPlanError
+    ? `<p class="profile-status error" role="alert">${escapeHtml(state.careerPlanError)}</p>`
+    : state.careerPlanNotice
+      ? `<p class="profile-status success" role="status">${escapeHtml(state.careerPlanNotice)}</p>`
+      : "";
+
+  return `
+    <section class="form-card manager-career-plan" aria-labelledby="career-plan-title">
+      <div><span class="eyebrow">Plano de carreira</span><h2 id="career-plan-title">Contexto de ${escapeHtml(labels.employee.toLowerCase())}</h2></div>
+      ${feedback}
+      <form class="career-plan-form" data-career-plan-form novalidate>
+        <label class="field"><span>${escapeHtml(labels.jobRole)}</span>
+          <select name="jobRoleId" required>${roles.map((role) => `<option value="${escapeHtml(role.id)}" ${role.id === plan.jobRole?.id ? "selected" : ""}>${escapeHtml(role.name)}</option>`).join("")}</select>
+        </label>
+        <div class="career-plan-levels">
+          <label class="field"><span>${escapeHtml(labels.level)} atual</span><select name="currentLevel" required>${careerLevelOptions(levels, plan.currentLevel)}</select></label>
+          <label class="field"><span>${escapeHtml(labels.level)} alvo</span><select name="targetLevel" required>${careerLevelOptions(levels, plan.targetLevel)}</select></label>
+        </div>
+        <label class="field"><span>${escapeHtml(labels.characteristics)}</span><textarea name="characteristics" maxlength="1200" placeholder="Separe por vírgulas ou linhas">${escapeHtml((plan.characteristics || []).join(", "))}</textarea></label>
+        <button class="button primary" type="submit" ${state.careerPlanSaving ? "disabled" : ""}>${state.careerPlanSaving ? "Salvando…" : "Salvar plano"}</button>
+      </form>
+
+      <div class="career-objectives">
+        <h3>${escapeHtml(labels.objective)}s</h3>
+        ${objectives.map((objective) => objectiveForm(objective, state.careerPlanSaving)).join("")}
+        ${objectiveForm(null, state.careerPlanSaving)}
+      </div>
+    </section>`;
+}
+
+function careerLevelOptions(levels, selected) {
+  return levels
+    .map(
+      (level) =>
+        `<option value="${escapeHtml(level.key)}" ${level.key === selected ? "selected" : ""}>${escapeHtml(level.key)} · ${escapeHtml(level.title)}</option>`,
+    )
+    .join("");
+}
+
+function objectiveForm(objective, saving) {
+  const isNew = !objective;
+  return `
+    <form class="objective-form" data-objective-form ${isNew ? "" : `data-objective-id="${escapeHtml(objective.id)}"`}>
+      <label class="field"><span>${isNew ? "Novo objetivo" : "Objetivo"}</span><input name="text" value="${escapeHtml(objective?.text || "")}" maxlength="1000" required /></label>
+      <label class="field"><span>Status</span><select name="status">
+        ${["ACTIVE", "COMPLETED", "ARCHIVED"].map((status) => `<option value="${status}" ${status === (objective?.status || "ACTIVE") ? "selected" : ""}>${status}</option>`).join("")}
+      </select></label>
+      <label class="field"><span>Data alvo</span><input type="date" name="targetDate" value="${escapeHtml(objective?.targetDate || "")}" /></label>
+      <button class="button secondary" type="submit" ${saving ? "disabled" : ""}>${isNew ? "Adicionar" : "Atualizar"}</button>
+    </form>`;
 }
 
 function managerSettings(state, labels) {

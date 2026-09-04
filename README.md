@@ -181,6 +181,19 @@ POST /manager/settings/job-roles/{roleId}/archive
 Somente gestores alteram o catálogo. Os níveis permitidos de cada cargo são validados contra
 `career-framework.json`; cargos em uso exigem um cargo alternativo antes do arquivamento.
 
+Planos de carreira por funcionário:
+
+```text
+GET  /profile
+GET  /manager/employees/{employeeId}/career-plan
+PUT  /manager/employees/{employeeId}/career-plan
+POST /manager/employees/{employeeId}/career-plan/objectives
+PUT  /manager/employees/{employeeId}/career-plan/objectives/{objectiveId}
+```
+
+O perfil do funcionário é somente leitura. Cargo, níveis, características e objetivos são
+alterados apenas pelo gestor, e os níveis persistidos no plano são o contexto usado pela análise.
+
 Endpoints da integração com GitHub:
 
 ```text

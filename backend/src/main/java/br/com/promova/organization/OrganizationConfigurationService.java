@@ -146,10 +146,12 @@ public class OrganizationConfigurationService {
     CareerFramework framework = frameworkProvider.load();
     Set<String> unique = new LinkedHashSet<>();
     requestedLevels.stream().map(String::trim).forEach(unique::add);
-    if (unique.size() != requestedLevels.size()
+    if (unique.size() < 2
+        || unique.size() != requestedLevels.size()
         || unique.stream().anyMatch(level -> !framework.containsLevel(level))) {
       throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Todos os níveis do cargo devem existir no framework.");
+          HttpStatus.BAD_REQUEST,
+          "O cargo deve permitir ao menos dois níveis únicos existentes no framework.");
     }
     return framework.levelKeys().stream().filter(unique::contains).toList();
   }

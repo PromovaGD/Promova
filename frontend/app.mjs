@@ -49,7 +49,13 @@ import {
   syncGithub,
   testGithubSettings,
 } from "./services/github-api.mjs";
-import { fetchProfile, updateProfile } from "./services/profile-api.mjs";
+import { fetchProfile } from "./services/profile-api.mjs";
+import {
+  createEmployeeObjective,
+  fetchEmployeeCareerPlan,
+  updateEmployeeCareerPlan,
+  updateEmployeeObjective,
+} from "./services/career-plan-api.mjs";
 import {
   archiveJobRole,
   createJobRole,
@@ -86,9 +92,7 @@ const state = {
   insightsError: null,
   user: loadAuthUser(),
   profile: null,
-  profileDraft: null,
   profileLoading: false,
-  profileSaving: false,
   profileError: null,
   authMode: "login",
   authLoading: false,
@@ -107,6 +111,11 @@ const state = {
   managerSettingsNotice: null,
   jobRoles: [],
   careerConfiguration: null,
+  selectedCareerPlan: null,
+  careerPlanStatus: "idle",
+  careerPlanSaving: false,
+  careerPlanError: null,
+  careerPlanNotice: null,
   selectedEvidenceId: null,
   selectedAnalysisId: null,
   review: null,
@@ -174,9 +183,7 @@ function expireSession() {
   clearAuthSession();
   state.user = null;
   state.profile = null;
-  state.profileDraft = null;
   state.profileLoading = false;
-  state.profileSaving = false;
   state.profileError = null;
   state.evidences = [];
   state.insights = null;
@@ -194,6 +201,11 @@ function expireSession() {
   state.pendingEvidence = null;
   state.pendingEvidences = [];
   state.pendingStatus = "idle";
+  state.selectedCareerPlan = null;
+  state.careerPlanStatus = "idle";
+  state.careerPlanSaving = false;
+  state.careerPlanError = null;
+  state.careerPlanNotice = null;
   state.result = null;
   state.githubImport = createGithubImportState();
   state.dashboardTab = "dashboard";
@@ -220,13 +232,6 @@ function handleInput(event) {
     filters[key] = filterField.value;
   }
 
-  const profileField = event.target.closest("[data-profile-field]");
-  if (profileField) {
-    state.profileDraft = {
-      ...(state.profileDraft || state.profile || {}),
-      [profileField.dataset.profileField]: profileField.value,
-    };
-  }
 }
 
 function handleKeydown(event) {
@@ -260,13 +265,23 @@ function handleKeydown(event) {
 
 async function handleSubmit(event) {
   const form = event.target.closest(
-    "[data-auth-form], [data-profile-form], [data-review-form], [data-terminology-form], [data-job-role-form]",
+    "[data-auth-form], [data-review-form], [data-terminology-form], [data-job-role-form], [data-career-plan-form], [data-objective-form]",
   );
   if (!form) {
     return;
   }
 
   event.preventDefault();
+
+  if (form.matches("[data-career-plan-form]")) {
+    await submitCareerPlan(form);
+    return;
+  }
+
+  if (form.matches("[data-objective-form]")) {
+    await submitCareerObjective(form);
+    return;
+  }
 
   if (form.matches("[data-terminology-form]")) {
     await submitTerminology(form);
@@ -283,10 +298,6 @@ async function handleSubmit(event) {
     return;
   }
 
-  if (form.matches("[data-profile-form]")) {
-    await submitProfile(form);
-    return;
-  }
 
   const formData = new FormData(form);
   const payload = {
@@ -351,9 +362,7 @@ async function handleClick(event) {
     clearAuthSession();
     state.user = null;
     state.profile = null;
-    state.profileDraft = null;
     state.profileLoading = false;
-    state.profileSaving = false;
     state.profileError = null;
     state.evidences = [];
     state.insights = null;
@@ -371,6 +380,11 @@ async function handleClick(event) {
     state.managerSettingsNotice = null;
     state.jobRoles = [];
     state.careerConfiguration = null;
+    state.selectedCareerPlan = null;
+    state.careerPlanStatus = "idle";
+    state.careerPlanSaving = false;
+    state.careerPlanError = null;
+    state.careerPlanNotice = null;
     state.selectedEmployeeId = null;
     state.selectedEvidenceId = null;
     state.selectedAnalysisId = null;
@@ -435,7 +449,9 @@ async function handleClick(event) {
 
   if (action === "select-employee") {
     state.selectedEmployeeId = Number(trigger.dataset.employeeId);
-    await refreshEmployeeAnalyses();
+    state.careerPlanNotice = null;
+    state.careerPlanError = null;
+    await Promise.all([refreshEmployeeAnalyses(), refreshSelectedCareerPlan()]);
     render();
     return;
   }
@@ -655,7 +671,6 @@ async function openProfile() {
 async function refreshProfile() {
   if (!state.user) {
     state.profile = null;
-    state.profileDraft = null;
     return null;
   }
 
@@ -663,42 +678,10 @@ async function refreshProfile() {
   try {
     const profile = await fetchProfile();
     state.profile = profile;
-    state.profileDraft = {
-      currentLevel: profile.currentLevel,
-      targetLevel: profile.targetLevel,
-    };
     state.profileError = null;
     return profile;
   } finally {
     state.profileLoading = false;
-  }
-}
-
-async function submitProfile(form) {
-  const formData = new FormData(form);
-  state.profileSaving = true;
-  state.profileError = null;
-  render();
-
-  try {
-    const profile = await updateProfile({
-      currentLevel: String(formData.get("currentLevel") || ""),
-      targetLevel: String(formData.get("targetLevel") || ""),
-    });
-    state.profile = profile;
-    state.profileDraft = {
-      currentLevel: profile.currentLevel,
-      targetLevel: profile.targetLevel,
-    };
-  } catch (error) {
-    if (!error.isUnauthorized && error.status !== 401) {
-      state.profileError = error.message || "Não foi possível salvar o perfil.";
-    }
-  } finally {
-    state.profileSaving = false;
-    if (state.user) {
-      render();
-    }
   }
 }
 
@@ -795,6 +778,92 @@ async function refreshManagerSettings() {
   state.managerSettingsStatus = "ready";
 }
 
+async function refreshSelectedCareerPlan() {
+  if (!state.selectedEmployeeId) {
+    state.selectedCareerPlan = null;
+    state.careerPlanStatus = "idle";
+    return;
+  }
+  state.careerPlanStatus = "loading";
+  state.careerPlanError = null;
+  try {
+    state.selectedCareerPlan = await fetchEmployeeCareerPlan(state.selectedEmployeeId);
+    state.careerPlanStatus = "ready";
+  } catch (error) {
+    if (error.isUnauthorized || error.status === 401) {
+      return;
+    }
+    state.selectedCareerPlan = null;
+    state.careerPlanStatus = "error";
+    state.careerPlanError = error.message || "Não foi possível carregar o plano de carreira.";
+  }
+}
+
+async function submitCareerPlan(form) {
+  if (!form.checkValidity()) {
+    form.reportValidity();
+    return;
+  }
+  const values = new FormData(form);
+  state.careerPlanSaving = true;
+  state.careerPlanError = null;
+  state.careerPlanNotice = null;
+  render();
+  try {
+    state.selectedCareerPlan = await updateEmployeeCareerPlan(state.selectedEmployeeId, {
+      jobRoleId: Number(values.get("jobRoleId")),
+      currentLevel: String(values.get("currentLevel") || ""),
+      targetLevel: String(values.get("targetLevel") || ""),
+      characteristics: String(values.get("characteristics") || "")
+        .split(/[,\n]/)
+        .map((item) => item.trim())
+        .filter(Boolean),
+    });
+    state.careerPlanNotice = "Plano de carreira atualizado.";
+  } catch (error) {
+    state.careerPlanError = error.message || "Não foi possível salvar o plano de carreira.";
+  } finally {
+    state.careerPlanSaving = false;
+    render();
+  }
+}
+
+async function submitCareerObjective(form) {
+  if (!form.checkValidity()) {
+    form.reportValidity();
+    return;
+  }
+  const values = new FormData(form);
+  const payload = {
+    text: String(values.get("text") || "").trim(),
+    status: String(values.get("status") || "ACTIVE"),
+    targetDate: String(values.get("targetDate") || "") || null,
+  };
+  state.careerPlanSaving = true;
+  state.careerPlanError = null;
+  state.careerPlanNotice = null;
+  render();
+  try {
+    if (form.dataset.objectiveId) {
+      await updateEmployeeObjective(
+        state.selectedEmployeeId,
+        form.dataset.objectiveId,
+        payload,
+      );
+      state.careerPlanNotice = "Objetivo atualizado.";
+    } else {
+      await createEmployeeObjective(state.selectedEmployeeId, payload);
+      state.careerPlanNotice = "Objetivo criado.";
+    }
+    await refreshSelectedCareerPlan();
+  } catch (error) {
+    state.careerPlanError = error.message || "Não foi possível salvar o objetivo.";
+  } finally {
+    state.careerPlanSaving = false;
+    render();
+  }
+}
+
 async function openDashboard() {
   state.view = "dashboard";
   state.viewingAsAdmin = false;
@@ -826,7 +895,7 @@ async function openManager() {
     state.jobRoles = jobRoles;
     state.managerSettingsStatus = "ready";
     state.selectedEmployeeId = state.selectedEmployeeId || state.employees[0]?.id || null;
-    await refreshEmployeeAnalyses();
+    await Promise.all([refreshEmployeeAnalyses(), refreshSelectedCareerPlan()]);
   } catch (error) {
     state.error = error;
     state.managerSettingsStatus = "error";

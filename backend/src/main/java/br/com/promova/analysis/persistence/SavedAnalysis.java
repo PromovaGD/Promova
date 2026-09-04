@@ -125,7 +125,7 @@ public class SavedAnalysis {
         evidence.getUser(),
         evidence.getSource(),
         evidence.getSourceMeta(),
-        evidence.getEvidence(),
+        evidence.getContent(),
         currentLevel,
         targetLevel,
         impactLevel,

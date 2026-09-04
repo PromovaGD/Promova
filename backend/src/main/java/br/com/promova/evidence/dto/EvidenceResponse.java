@@ -9,19 +9,44 @@ public record EvidenceResponse(
     String source,
     String externalId,
     String sourceMeta,
-    String evidence,
+    String content,
     String sourceUrl,
+    Instant occurredAt,
     Instant capturedAt,
     Instant updatedAt,
     EvidenceStatus status) {
+  public EvidenceResponse(
+      Long id,
+      String source,
+      String externalId,
+      String sourceMeta,
+      String content,
+      String sourceUrl,
+      Instant capturedAt,
+      Instant updatedAt,
+      EvidenceStatus status) {
+    this(
+        id,
+        source,
+        externalId,
+        sourceMeta,
+        content,
+        sourceUrl,
+        capturedAt,
+        capturedAt,
+        updatedAt,
+        status);
+  }
+
   public static EvidenceResponse from(Evidence evidence) {
     return new EvidenceResponse(
         evidence.getId(),
         evidence.getSource(),
         evidence.getExternalId(),
         evidence.getSourceMeta(),
-        evidence.getEvidence(),
+        evidence.getContent(),
         evidence.getSourceUrl(),
+        evidence.getOccurredAt(),
         evidence.getCapturedAt(),
         evidence.getUpdatedAt(),
         evidence.getStatus());

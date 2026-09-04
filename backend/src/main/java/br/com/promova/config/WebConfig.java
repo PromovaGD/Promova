@@ -36,7 +36,6 @@ public class WebConfig implements WebMvcConfigurer {
             "/analyses",
             "/analyses/**",
             "/insights",
-            "/analyze",
             "/evidences/**",
             "/api/github/**",
             "/profile",

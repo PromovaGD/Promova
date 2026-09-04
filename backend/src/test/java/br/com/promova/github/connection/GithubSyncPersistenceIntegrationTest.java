@@ -92,10 +92,10 @@ class GithubSyncPersistenceIntegrationTest {
             evidence -> {
               assertThat(evidence.getSource()).isEqualTo("GitHub");
               assertThat(evidence.getSourceMeta()).contains("acme/project");
-              assertThat(evidence.getEvidence()).contains("PR #");
+              assertThat(evidence.getContent()).contains("PR #");
               assertThat(evidence.getSourceUrl()).startsWith("https://github.com/");
               assertThat(evidence.getSourceMeta()).doesNotContain(SERVER_SECRET);
-              assertThat(evidence.getEvidence()).doesNotContain(SERVER_SECRET);
+              assertThat(evidence.getContent()).doesNotContain(SERVER_SECRET);
               assertThat(evidence.getSourceUrl()).doesNotContain(SERVER_SECRET);
             });
     assertThat(first.toString()).doesNotContain(SERVER_SECRET);

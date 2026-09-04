@@ -1,13 +1,5 @@
 export const LEVELS = ["L1", "L2", "L3", "L4", "L5"];
 
-export function createId() {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    return crypto.randomUUID();
-  }
-
-  return `evidence-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
-
 export function levelIndex(level) {
   return LEVELS.indexOf(level);
 }

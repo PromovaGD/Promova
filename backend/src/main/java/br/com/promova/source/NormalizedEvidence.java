@@ -17,7 +17,7 @@ public record NormalizedEvidence(
     String source,
     String externalId,
     String sourceMeta,
-    String evidence,
+    String content,
     String sourceUrl,
     String author,
     Instant occurredAt,
@@ -26,7 +26,7 @@ public record NormalizedEvidence(
     source = SourceDataSanitizer.required(source, "source", 100);
     externalId = SourceDataSanitizer.required(externalId, "externalId", 500);
     sourceMeta = SourceDataSanitizer.required(sourceMeta, "sourceMeta", 1_000);
-    evidence = SourceDataSanitizer.required(evidence, "evidence", 10_000);
+    content = SourceDataSanitizer.required(content, "content", 10_000);
     sourceUrl = SourceDataSanitizer.url(sourceUrl, 2_048);
     author = SourceDataSanitizer.nullable(author, 200);
     occurredAt = Objects.requireNonNull(occurredAt, "occurredAt is required");
@@ -35,12 +35,12 @@ public record NormalizedEvidence(
 
   /** Alias that makes the text role explicit at adapter call sites. */
   public String evidenceText() {
-    return evidence;
+    return content;
   }
 
   /** Alias for providers whose native item is called a body/message. */
   public String body() {
-    return evidence;
+    return content;
   }
 
   /** Alias for generic source integrations. */

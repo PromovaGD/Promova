@@ -7,7 +7,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import br.com.promova.analysis.service.SavedAnalysisService;
 import br.com.promova.profile.ProfileService;
 import br.com.promova.user.User;
 import br.com.promova.user.UserRepository;
@@ -23,14 +22,13 @@ class DataSeederTest {
   void backfillsProfilesForUsersAlreadyPresentOnRestart() throws Exception {
     User existingUser = new User("Employee", "employee@example.com", "hash", UserRole.EMPLOYEE);
     UserRepository userRepository = mock(UserRepository.class);
-    SavedAnalysisService savedAnalysisService = mock(SavedAnalysisService.class);
     PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
     ProfileService profileService = mock(ProfileService.class);
     when(userRepository.count()).thenReturn(1L);
     when(userRepository.findAll()).thenReturn(List.of(existingUser));
 
     CommandLineRunner runner =
-        new DataSeeder().seedUsers(userRepository, savedAnalysisService, passwordEncoder, profileService);
+        new DataSeeder().seedUsers(userRepository, passwordEncoder, profileService);
 
     runner.run();
 
@@ -40,7 +38,6 @@ class DataSeederTest {
   @Test
   void createsProfilesForAllDemoSeedUsers() throws Exception {
     UserRepository userRepository = mock(UserRepository.class);
-    SavedAnalysisService savedAnalysisService = mock(SavedAnalysisService.class);
     PasswordEncoder passwordEncoder = mock(PasswordEncoder.class);
     ProfileService profileService = mock(ProfileService.class);
     List<User> savedUsers = new ArrayList<>();
@@ -56,7 +53,7 @@ class DataSeederTest {
     when(userRepository.findAll()).thenAnswer(invocation -> savedUsers);
 
     CommandLineRunner runner =
-        new DataSeeder().seedUsers(userRepository, savedAnalysisService, passwordEncoder, profileService);
+        new DataSeeder().seedUsers(userRepository, passwordEncoder, profileService);
 
     runner.run();
 

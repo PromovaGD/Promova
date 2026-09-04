@@ -573,8 +573,8 @@ function pendingInboxItem(item) {
           <span class="confidence-pill">Aguardando an&aacute;lise</span>
         </div>
         <strong class="feed-title">${escapeHtml(item.sourceMeta)}</strong>
-        <p class="feed-sub">${escapeHtml(item.evidence)}</p>
-        <p class="feed-detail">Capturada em ${escapeHtml(formatTimestamp(item.capturedAt))}</p>
+        <p class="feed-sub">${escapeHtml(item.content)}</p>
+        <p class="feed-detail">Ocorrida em ${escapeHtml(formatTimestamp(item.occurredAt))}</p>
       </div>
       <div class="feed-actions">
         <button class="button primary compact" type="button" data-action="open-pending-evidence" data-evidence-id="${escapeHtml(item.id)}">Revisar</button>

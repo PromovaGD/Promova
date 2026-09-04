@@ -90,7 +90,7 @@ public class EvidenceAnalysisService {
 
     EvidenceAnalysisRequest request =
         new EvidenceAnalysisRequest(
-            evidence.getEvidence(), profile.getCurrentLevel(), profile.getTargetLevel());
+            evidence.getContent(), profile.getCurrentLevel(), profile.getTargetLevel());
     EvidenceAnalysisResponse engineResult = analysisEngine.analyze(request, careerFramework);
     validateEngineResult(engineResult, careerFramework, profile);
 

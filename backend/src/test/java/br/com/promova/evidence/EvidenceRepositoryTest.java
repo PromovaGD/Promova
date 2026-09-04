@@ -34,6 +34,7 @@ class EvidenceRepositoryTest {
                 "PR #7 - acme/project",
                 "Improved coverage",
                 "https://github.com/acme/project/pull/7",
+                Instant.parse("2026-05-10T09:00:00Z"),
                 Instant.parse("2026-05-12T10:00:00Z")));
 
     assertThat(evidence.getStatus()).isEqualTo(EvidenceStatus.PENDING);
@@ -44,6 +45,8 @@ class EvidenceRepositoryTest {
     assertThat(reloaded.getUser().getId()).isEqualTo(owner.getId());
     assertThat(reloaded.getExternalId()).isEqualTo("github:acme/project#7");
     assertThat(reloaded.getSourceUrl()).isEqualTo("https://github.com/acme/project/pull/7");
+    assertThat(reloaded.getContent()).isEqualTo("Improved coverage");
+    assertThat(reloaded.getOccurredAt()).isEqualTo(Instant.parse("2026-05-10T09:00:00Z"));
     assertThat(reloaded.getCapturedAt()).isEqualTo(Instant.parse("2026-05-12T10:00:00Z"));
     assertThat(reloaded.getUpdatedAt()).isEqualTo(reloaded.getCapturedAt());
   }
@@ -69,7 +72,15 @@ class EvidenceRepositoryTest {
     User owner = user("owner@example.com");
     User other = user("other@example.com");
     Evidence pendingInRange =
-        evidence(owner, "GitHub", "github:acme/project#7", "2026-05-12T10:00:00Z");
+        new Evidence(
+            owner,
+            "GitHub",
+            "github:acme/project#7",
+            "source metadata",
+            "some evidence",
+            null,
+            Instant.parse("2026-05-12T10:00:00Z"),
+            Instant.parse("2026-06-10T10:00:00Z"));
     Evidence dismissedInRange =
         evidence(owner, "Slack", "slack:thread-2", "2026-05-13T10:00:00Z");
     dismissedInRange.dismiss();

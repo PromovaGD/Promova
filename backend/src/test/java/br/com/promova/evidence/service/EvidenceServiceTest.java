@@ -78,7 +78,7 @@ class EvidenceServiceTest {
             null);
 
     assertThat(response.status()).isEqualTo(EvidenceStatus.PENDING);
-    assertThat(response.evidence()).isEqualTo("Improved coverage");
+    assertThat(response.content()).isEqualTo("Improved coverage");
     assertThat(response.sourceUrl()).isNull();
     verify(evidenceRepository).save(any(Evidence.class));
   }
@@ -86,7 +86,7 @@ class EvidenceServiceTest {
   @Test
   void dismissesOnlyPendingOwnedEvidenceAndRejectsInvalidTransitions() {
     Evidence pending = evidence(owner, 41L, EvidenceStatus.PENDING);
-    when(evidenceRepository.findByIdAndUserId(41L, 7L)).thenReturn(Optional.of(pending));
+    when(evidenceRepository.findByIdAndUserIdForUpdate(41L, 7L)).thenReturn(Optional.of(pending));
     when(evidenceRepository.save(pending)).thenReturn(pending);
 
     assertThat(evidenceService.dismiss(owner, 41L).status()).isEqualTo(EvidenceStatus.DISMISSED);
@@ -100,6 +100,7 @@ class EvidenceServiceTest {
   @Test
   void hidesAnotherUsersEvidenceForFetchAndDismiss() {
     when(evidenceRepository.findByIdAndUserId(41L, 8L)).thenReturn(Optional.empty());
+    when(evidenceRepository.findByIdAndUserIdForUpdate(41L, 8L)).thenReturn(Optional.empty());
 
     assertThatThrownBy(() -> evidenceService.getForUser(other, 41L))
         .isInstanceOf(ResponseStatusException.class)

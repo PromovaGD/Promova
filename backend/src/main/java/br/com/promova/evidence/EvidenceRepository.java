@@ -18,9 +18,9 @@ public interface EvidenceRepository extends JpaRepository<Evidence, Long> {
       SELECT e FROM Evidence e
       WHERE e.user.id = :userId
         AND (:status IS NULL OR e.status = :status)
-        AND (:from IS NULL OR e.capturedAt >= :from)
-        AND (:to IS NULL OR e.capturedAt <= :to)
-      ORDER BY e.capturedAt DESC, e.id DESC
+        AND (:from IS NULL OR e.occurredAt >= :from)
+        AND (:to IS NULL OR e.occurredAt <= :to)
+      ORDER BY e.occurredAt DESC, e.id DESC
       """)
   List<Evidence> findForUser(
       @Param("userId") Long userId,

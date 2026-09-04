@@ -28,7 +28,8 @@ public class SourceEvidenceCaptureService {
         normalizedEvidence.source(),
         normalizedEvidence.externalId(),
         normalizedEvidence.sourceMeta(),
-        normalizedEvidence.evidenceText(),
-        normalizedEvidence.sourceUrl());
+        normalizedEvidence.content(),
+        normalizedEvidence.sourceUrl(),
+        normalizedEvidence.occurredAt());
   }
 }

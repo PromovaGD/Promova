@@ -119,7 +119,7 @@ function githubPendingItem(item) {
     <article class="github-pr-item github-pending-item">
       <div>
         <strong>${escapeHtml(item.sourceMeta || "Evidência GitHub")}</strong>
-        <p>${escapeHtml(truncate(item.evidence, 180))}</p>
+        <p>${escapeHtml(truncate(item.content, 180))}</p>
       </div>
       <div class="github-pending-actions">
         <button class="button primary compact" type="button" data-action="open-pending-evidence" data-evidence-id="${escapeHtml(item.id)}">Revisar</button>

@@ -1,0 +1,164 @@
+{"kind":"layout","layoutId":"/ppt/slideMasters/slideMaster1.xml","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout1.xml","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/y90nupkv","slide":1,"title":"PROMOVA  /  TCC 2026","textShapes":12}
+{"kind":"shape","id":"sh/ipovexwn","slide":1,"bbox":[-160,-170,560,560]}
+{"kind":"shape","id":"sh/547294r6","slide":1,"bbox":[385,520,250,250]}
+{"kind":"textbox","id":"sh/k3yl0zql","slide":1,"text":"PROMOVA  /  TCC 2026","textPreview":"PROMOVA  /  TCC 2026","textChars":20,"textLines":1,"bbox":[72,64,360,22]}
+{"kind":"textbox","id":"sh/7qp4be9c","slide":1,"text":"PITCH ACADÊMICO + STARTUP","textPreview":"PITCH ACADÊMICO + STARTUP","textChars":25,"textLines":1,"bbox":[980,58,228,32]}
+{"kind":"textbox","id":"sh/65g3298r","slide":1,"text":"PROMOVA","textPreview":"PROMOVA","textChars":7,"textLines":1,"bbox":[72,150,570,84]}
+{"kind":"textbox","id":"sh/ts7md4r2","slide":1,"text":"Gestão de equipes orientada por evidências","textPreview":"Gestão de equipes orientada por evidências","textChars":42,"textLines":1,"bbox":[72,258,520,58]}
+{"kind":"textbox","id":"sh/sryl4zqx","slide":1,"text":"AVALIAÇÕES SUBJETIVAS","textPreview":"AVALIAÇÕES SUBJETIVAS","textChars":21,"textLines":1,"bbox":[72,370,250,34]}
+{"kind":"textbox","id":"sh/fu94fe98","slide":1,"text":"INFORMAÇÕES ESPALHADAS","textPreview":"INFORMAÇÕES ESPALHADAS","textChars":22,"textLines":1,"bbox":[334,370,250,34]}
+{"kind":"shape","id":"sh/utg3698n","slide":1,"bbox":[72,524,220,5]}
+{"kind":"textbox","id":"sh/wn6dc7eh","slide":1,"text":"Decisões de promoção mais justas, transparentes e baseadas no trabalho real.","textPreview":"Decisões de promoção mais justas, transparentes e baseadas no trabalho real.","textChars":76,"textLines":1,"bbox":[72,546,560,62]}
+{"kind":"shape","id":"sh/hofulsf2","slide":1,"bbox":[708,102,470,532]}
+{"kind":"textbox","id":"sh/vmdcj2xw","slide":1,"text":"EVIDÊNCIA, NÃO INTUIÇÃO","textPreview":"EVIDÊNCIA, NÃO INTUIÇÃO","textChars":23,"textLines":1,"bbox":[744,565,240,16]}
+{"kind":"textbox","id":"sh/4r6dg7et","slide":1,"text":"O trabalho real vira contexto para decisões melhores.","textPreview":"O trabalho real vira contexto para decisões melhores.","textChars":53,"textLines":1,"bbox":[744,589,360,22]}
+{"kind":"textbox","id":"sh/5sfepcfe","slide":1,"text":"IA apoia a análise. A decisão final permanece humana.","textPreview":"IA apoia a análise. A decisão final permanece humana.","textChars":53,"textLines":1,"bbox":[744,615,390,16]}
+{"kind":"textbox","id":"sh/sfqdkrep","slide":1,"name":"problem-criteria","text":"CRITÉRIOS POUCO CLAROS","textPreview":"CRITÉRIOS POUCO CLAROS","textChars":22,"textLines":1,"bbox":[72,416,250,34]}
+{"kind":"textbox","id":"sh/dgzetcfa","slide":1,"name":"problem-bias","text":"RISCO DE VIESES","textPreview":"RISCO DE VIESES","textChars":15,"textLines":1,"bbox":[334,416,250,34]}
+{"kind":"image","id":"im/wn6xcnut","slide":1,"name":"","bbox":[744,151.95,398,384.1]}
+{"kind":"notes","id":"nt/y90nupkv","slide":1,"text":"Abrir com a tensão: avaliações importantes dependem de memória, percepção e evidências dispersas.\nReforçar que o Promova não automatiza a decisão de promoção.\n[Sources]\n- User-provided Promova TCC pitch brief, current conversation.\n- User-provided Promova visual identity guide and embedded logo asset."}
+{"kind":"slide","id":"sl/hwbqtkby","slide":2,"title":"PROMOVA  /  PITCH TCC","textShapes":28}
+{"kind":"textbox","id":"sh/9o7ulg3y","slide":2,"text":"PROMOVA  /  PITCH TCC","textPreview":"PROMOVA  /  PITCH TCC","textChars":21,"textLines":1,"bbox":[72,40,320,22]}
+{"kind":"textbox","id":"sh/9072xkry","slide":2,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[1158,40,50,22]}
+{"kind":"shape","id":"sh/ozy1ofad","slide":2,"bbox":[72,688,1136,0]}
+{"kind":"textbox","id":"sh/b29kza94","slide":2,"text":"TCC / STARTUP","textPreview":"TCC / STARTUP","textChars":13,"textLines":1,"bbox":[72,697,220,14]}
+{"kind":"textbox","id":"sh/a10jqpsj","slide":2,"text":"PROMOVA","textPreview":"PROMOVA","textChars":7,"textLines":1,"bbox":[982,697,226,14]}
+{"kind":"textbox","id":"sh/x4r21kru","slide":2,"text":"Como o Promova funciona","textPreview":"Como o Promova funciona","textChars":23,"textLines":1,"bbox":[72,82,1040,54]}
+{"kind":"textbox","id":"sh/w3i1sfa9","slide":2,"text":"O trabalho real vira evidência estruturada — e prepara a demonstração do MVP.","textPreview":"O trabalho real vira evidência estruturada — e prepara a demonstração do MVP.","textChars":77,"textLines":1,"bbox":[72,145,980,30]}
+{"kind":"shape","id":"sh/r65knqtk","slide":2,"bbox":[72,222,480,388]}
+{"kind":"shape","id":"sh/cnupgny5","slide":2,"bbox":[600,222,608,388]}
+{"kind":"textbox","id":"sh/a9gvulkj","slide":2,"name":"flow-label","text":"FLUXO DE EVIDÊNCIAS","textPreview":"FLUXO DE EVIDÊNCIAS","textChars":19,"textLines":1,"bbox":[100,250,260,18]}
+{"kind":"shape","id":"sh/ba9cn6l4","slide":2,"name":"flow-spine","bbox":[119,288,0,236]}
+{"kind":"textbox","id":"sh/wbidwb29","slide":2,"name":"flow-node-1","text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[100,274,38,38]}
+{"kind":"textbox","id":"sh/xcrupg3u","slide":2,"name":"flow-step-1","text":"Trabalho real","textPreview":"Trabalho real","textChars":13,"textLines":1,"bbox":[158,277,330,32]}
+{"kind":"textbox","id":"sh/id0vylkf","slide":2,"name":"flow-node-2","text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[100,332,38,38]}
+{"kind":"textbox","id":"sh/je9crql0","slide":2,"name":"flow-step-2","text":"Coleta de evidências","textPreview":"Coleta de evidências","textChars":20,"textLines":1,"bbox":[158,335,330,32]}
+{"kind":"textbox","id":"sh/ru5cbqd4","slide":2,"name":"github-source","text":"GITHUB","textPreview":"GITHUB","textChars":6,"textLines":1,"bbox":[416,337,92,26]}
+{"kind":"textbox","id":"sh/69wbilcj","slide":2,"name":"flow-node-3","text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[100,390,38,38]}
+{"kind":"textbox","id":"sh/tw7ud0va","slide":2,"name":"flow-step-3","text":"Análise + IA","textPreview":"Análise + IA","textChars":12,"textLines":1,"bbox":[158,393,330,32]}
+{"kind":"textbox","id":"sh/svedkvup","slide":2,"name":"flow-node-4","text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[100,448,38,38]}
+{"kind":"textbox","id":"sh/fypcfqdg","slide":2,"name":"flow-step-4","text":"Gestão da equipe","textPreview":"Gestão da equipe","textChars":16,"textLines":1,"bbox":[158,451,330,32]}
+{"kind":"textbox","id":"sh/exgvmlcv","slide":2,"name":"flow-node-5","text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[100,506,38,38]}
+{"kind":"textbox","id":"sh/107uh0v6","slide":2,"name":"flow-step-5","text":"Promoção","textPreview":"Promoção","textChars":8,"textLines":1,"bbox":[158,509,330,32]}
+{"kind":"textbox","id":"sh/gzydovul","slide":2,"name":"mvp-label","text":"MVP PRONTO PARA DEMO","textPreview":"MVP PRONTO PARA DEMO","textChars":20,"textLines":1,"bbox":[630,250,250,18]}
+{"kind":"textbox","id":"sh/v2lc36dw","slide":2,"name":"mvp-heading","text":"O ciclo principal já funciona","textPreview":"O ciclo principal já funciona","textChars":29,"textLines":1,"bbox":[630,282,500,34]}
+{"kind":"textbox","id":"sh/a1cba1wb","slide":2,"name":"mvp-caption","text":"Integração inicial: GitHub","textPreview":"Integração inicial: GitHub","textChars":26,"textLines":1,"bbox":[630,322,260,22]}
+{"kind":"shape","id":"sh/0vq1o36x","slide":2,"name":"mvp-dashboard-dot","bbox":[630,375,12,12]}
+{"kind":"textbox","id":"sh/1wzix87i","slide":2,"name":"mvp-dashboard-text","text":"Dashboard","textPreview":"Dashboard","textChars":9,"textLines":1,"bbox":[654,368,196,28]}
+{"kind":"shape","id":"sh/et8zmto7","slide":2,"name":"mvp-evidence-dot","bbox":[630,419,12,12]}
+{"kind":"textbox","id":"sh/zuh0vypc","slide":2,"name":"mvp-evidence-text","text":"Evidências","textPreview":"Evidências","textChars":10,"textLines":1,"bbox":[654,412,196,28]}
+{"kind":"shape","id":"sh/c76hk361","slide":2,"name":"mvp-skills-dot","bbox":[630,463,12,12]}
+{"kind":"textbox","id":"sh/d8zit87m","slide":2,"name":"mvp-skills-text","text":"Competências","textPreview":"Competências","textChars":12,"textLines":1,"bbox":[654,456,196,28]}
+{"kind":"shape","id":"sh/q5ozitov","slide":2,"name":"mvp-growth-dot","bbox":[900,375,12,12]}
+{"kind":"textbox","id":"sh/r6x0rypg","slide":2,"name":"mvp-growth-text","text":"Evolução","textPreview":"Evolução","textChars":8,"textLines":1,"bbox":[924,368,196,28]}
+{"kind":"shape","id":"sh/w3a1wn65","slide":2,"name":"mvp-analysis-dot","bbox":[900,419,12,12]}
+{"kind":"textbox","id":"sh/xoji5s7q","slide":2,"name":"mvp-analysis-text","text":"Análise","textPreview":"Análise","textChars":7,"textLines":1,"bbox":[924,412,196,28]}
+{"kind":"textbox","id":"sh/5kfipszu","slide":2,"name":"mvp-human-note","text":"IA interpreta evidências; a decisão continua humana.","textPreview":"IA interpreta evidências; a decisão continua humana.","textChars":52,"textLines":1,"bbox":[630,502,510,26]}
+{"kind":"textbox","id":"sh/kj6hgny9","slide":2,"name":"mvp-demo","text":"AGORA: DEMONSTRAÇÃO DO MVP","textPreview":"AGORA: DEMONSTRAÇÃO DO MVP","textChars":26,"textLines":1,"bbox":[630,548,280,38]}
+{"kind":"notes","id":"nt/hwbqtkby","slide":2,"text":"Percorrer o fluxo em menos de um minuto e iniciar a demonstração ao vivo do site.\nO MVP também possui backend Spring Boot, endpoints de análise e motor simulado preparado para IA real.\n[Sources]\n- User-provided Promova TCC pitch brief, current conversation.\n- User-provided Promova visual identity guide."}
+{"kind":"slide","id":"sl/ofy9wn61","slide":3,"title":"PROMOVA  /  PITCH TCC","textShapes":22}
+{"kind":"textbox","id":"sh/y14jehgj","slide":3,"text":"PROMOVA  /  PITCH TCC","textPreview":"PROMOVA  /  PITCH TCC","textChars":21,"textLines":1,"bbox":[72,40,320,22]}
+{"kind":"textbox","id":"sh/cza94vmx","slide":3,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[1158,40,50,22]}
+{"kind":"shape","id":"sh/d0jax03i","slide":3,"bbox":[72,688,1136,0]}
+{"kind":"textbox","id":"sh/298ryl4v","slide":3,"text":"TCC / STARTUP","textPreview":"TCC / STARTUP","textChars":13,"textLines":1,"bbox":[72,697,220,14]}
+{"kind":"textbox","id":"sh/3ah8rqlg","slide":3,"text":"PROMOVA","textPreview":"PROMOVA","textChars":7,"textLines":1,"bbox":[982,697,226,14]}
+{"kind":"textbox","id":"sh/obq90bml","slide":3,"text":"Para quem criamos valor","textPreview":"Para quem criamos valor","textChars":23,"textLines":1,"bbox":[72,82,1040,54]}
+{"kind":"textbox","id":"sh/pcjqtg36","slide":3,"text":"Começamos por equipes de tecnologia e ampliamos o contexto da decisão.","textPreview":"Começamos por equipes de tecnologia e ampliamos o contexto da decisão.","textChars":70,"textLines":1,"bbox":[72,145,980,30]}
+{"kind":"shape","id":"sh/m5cra54z","slide":3,"bbox":[72,222,480,388]}
+{"kind":"shape","id":"sh/ja54na9g","slide":3,"bbox":[600,222,608,388]}
+{"kind":"textbox","id":"sh/x0vi5czy","slide":3,"name":"audience-label","text":"PÚBLICO","textPreview":"PÚBLICO","textChars":7,"textLines":1,"bbox":[100,250,160,18]}
+{"kind":"textbox","id":"sh/czmhc7id","slide":3,"name":"audience-heading","text":"Equipes de tecnologia","textPreview":"Equipes de tecnologia","textChars":21,"textLines":1,"bbox":[100,286,380,46]}
+{"kind":"textbox","id":"sh/byd032h8","slide":3,"name":"audience-kicker-1","text":"PÚBLICO INICIAL","textPreview":"PÚBLICO INICIAL","textChars":15,"textLines":1,"bbox":[100,360,180,16]}
+{"kind":"textbox","id":"sh/ax4zax0n","slide":3,"name":"audience-value-1","text":"Empresas com equipes de tecnologia","textPreview":"Empresas com equipes de tecnologia","textChars":34,"textLines":1,"bbox":[100,382,390,28]}
+{"kind":"shape","id":"sh/hwzihwzi","slide":3,"name":"audience-divider-1","bbox":[100,418,380,0]}
+{"kind":"textbox","id":"sh/wv61obyx","slide":3,"name":"audience-kicker-2","text":"USUÁRIO PRINCIPAL","textPreview":"USUÁRIO PRINCIPAL","textChars":17,"textLines":1,"bbox":[100,432,180,16]}
+{"kind":"textbox","id":"sh/4nuhs7uh","slide":3,"name":"audience-value-2","text":"Gestores e líderes de equipe","textPreview":"Gestores e líderes de equipe","textChars":28,"textLines":1,"bbox":[100,454,390,28]}
+{"kind":"shape","id":"sh/po3ilcvm","slide":3,"name":"audience-divider-2","bbox":[100,490,380,0]}
+{"kind":"textbox","id":"sh/21szqxcb","slide":3,"name":"audience-kicker-3","text":"BENEFICIÁRIOS","textPreview":"BENEFICIÁRIOS","textChars":13,"textLines":1,"bbox":[100,504,180,16]}
+{"kind":"textbox","id":"sh/32l0j2dw","slide":3,"name":"audience-value-3","text":"Colaboradores e RH","textPreview":"Colaboradores e RH","textChars":18,"textLines":1,"bbox":[100,526,390,28]}
+{"kind":"textbox","id":"sh/cruhwrud","slide":3,"name":"value-label","text":"PROPOSTA DE VALOR","textPreview":"PROPOSTA DE VALOR","textChars":17,"textLines":1,"bbox":[630,250,220,18]}
+{"kind":"textbox","id":"sh/ds3ipcvy","slide":3,"name":"value-statement","text":"Transformar o trabalho diário em evidências para uma gestão mais objetiva.","textPreview":"Transformar o trabalho diário em evidências para uma gestão mais objetiva.","textChars":74,"textLines":1,"bbox":[630,286,510,92]}
+{"kind":"shape","id":"sh/qpczuhc7","slide":3,"name":"value-divider","bbox":[630,397,500,0]}
+{"kind":"textbox","id":"sh/rql0nmds","slide":3,"name":"benefit-1-marker","text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[630,424,30,30]}
+{"kind":"textbox","id":"sh/0ve10ru9","slide":3,"name":"benefit-1-label","text":"Mais contexto para o gestor","textPreview":"Mais contexto para o gestor","textChars":27,"textLines":1,"bbox":[676,426,454,28]}
+{"kind":"textbox","id":"sh/1wnitwvu","slide":3,"name":"benefit-2-marker","text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[630,480,30,30]}
+{"kind":"textbox","id":"sh/v29cfu18","slide":3,"name":"benefit-2-label","text":"Mais transparência para o colaborador","textPreview":"Mais transparência para o colaborador","textChars":37,"textLines":1,"bbox":[676,482,454,28]}
+{"kind":"textbox","id":"sh/a10b6p03","slide":3,"name":"benefit-3-marker","text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[630,536,30,30]}
+{"kind":"textbox","id":"sh/xoruhkje","slide":3,"name":"benefit-3-label","text":"Mais consistência para a empresa","textPreview":"Mais consistência para a empresa","textChars":32,"textLines":1,"bbox":[676,538,454,28]}
+{"kind":"notes","id":"nt/ofy9wn61","slide":3,"text":"Apresentar o recorte inicial sem limitar a expansão futura do produto.\nNão repetir a arquitetura; concentrar a fala no valor para cada participante.\n[Sources]\n- User-provided Promova TCC pitch brief, current conversation.\n- User-provided Promova visual identity guide."}
+{"kind":"slide","id":"sl/jyx0ra1s","slide":4,"title":"PROMOVA  /  PITCH TCC","textShapes":26}
+{"kind":"textbox","id":"sh/5ony1oj6","slide":4,"text":"PROMOVA  /  PITCH TCC","textPreview":"PROMOVA  /  PITCH TCC","textChars":21,"textLines":1,"bbox":[72,40,320,22]}
+{"kind":"textbox","id":"sh/1cj2d8b6","slide":4,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[1158,40,50,22]}
+{"kind":"shape","id":"sh/0ba143al","slide":4,"bbox":[72,688,1136,0]}
+{"kind":"textbox","id":"sh/rm1k7yt4","slide":4,"text":"TCC / STARTUP","textPreview":"TCC / STARTUP","textChars":13,"textLines":1,"bbox":[72,697,220,14]}
+{"kind":"textbox","id":"sh/ql8jytsj","slide":4,"text":"PROMOVA","textPreview":"PROMOVA","textChars":7,"textLines":1,"bbox":[982,697,226,14]}
+{"kind":"textbox","id":"sh/doj29oba","slide":4,"text":"Como chegamos e sustentamos a adoção","textPreview":"Como chegamos e sustentamos a adoção","textChars":36,"textLines":1,"bbox":[72,82,1040,54]}
+{"kind":"textbox","id":"sh/sna103ap","slide":4,"text":"Aquisição B2B com pilotos próximos das equipes e apoio à implantação.","textPreview":"Aquisição B2B com pilotos próximos das equipes e apoio à implantação.","textChars":69,"textLines":1,"bbox":[72,145,980,30]}
+{"kind":"shape","id":"sh/3ihk3et8","slide":4,"bbox":[72,222,480,388]}
+{"kind":"shape","id":"sh/g36tgryd","slide":4,"bbox":[600,222,608,388]}
+{"kind":"textbox","id":"sh/axcf29kj","slide":4,"name":"channels-label","text":"CANAIS","textPreview":"CANAIS","textChars":6,"textLines":1,"bbox":[100,250,160,18]}
+{"kind":"textbox","id":"sh/vy5gbe14","slide":4,"name":"channels-heading","text":"Venda consultiva com demonstração","textPreview":"Venda consultiva com demonstração","textChars":33,"textLines":1,"bbox":[100,286,400,58]}
+{"kind":"textbox","id":"sh/wzex4z2p","slide":4,"name":"channel-1-marker","text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[100,366,30,30]}
+{"kind":"textbox","id":"sh/xknyx4ja","slide":4,"name":"channel-1-label","text":"Prospecção de empresas","textPreview":"Prospecção de empresas","textChars":22,"textLines":1,"bbox":[146,368,354,28]}
+{"kind":"textbox","id":"sh/mtcfypkn","slide":4,"name":"channel-2-marker","text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[100,416,30,30]}
+{"kind":"textbox","id":"sh/nulw7u18","slide":4,"name":"channel-2-label","text":"Pilotos com squads de tecnologia","textPreview":"Pilotos com squads de tecnologia","textChars":32,"textLines":1,"bbox":[146,418,354,28]}
+{"kind":"textbox","id":"sh/fm5c3q54","slide":4,"name":"channel-3-marker","text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[100,466,30,30]}
+{"kind":"textbox","id":"sh/elwba54j","slide":4,"name":"channel-3-label","text":"Demonstrações do produto","textPreview":"Demonstrações do produto","textChars":24,"textLines":1,"bbox":[146,468,354,28]}
+{"kind":"textbox","id":"sh/18nu50nu","slide":4,"name":"channel-4-marker","text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[100,516,30,30]}
+{"kind":"textbox","id":"sh/0netcvm9","slide":4,"name":"channel-4-label","text":"Parcerias com RH / People","textPreview":"Parcerias com RH / People","textChars":25,"textLines":1,"bbox":[146,518,354,28]}
+{"kind":"textbox","id":"sh/rilczq5s","slide":4,"name":"support-label","text":"APOIO À ADOÇÃO","textPreview":"APOIO À ADOÇÃO","textChars":14,"textLines":1,"bbox":[630,250,220,18]}
+{"kind":"textbox","id":"sh/qhcb6l47","slide":4,"name":"support-heading","text":"Responsabilidade compartilhada","textPreview":"Responsabilidade compartilhada","textChars":30,"textLines":1,"bbox":[630,286,500,40]}
+{"kind":"shape","id":"sh/dknu10ny","slide":4,"name":"support-column-divider","bbox":[904,360,0,190]}
+{"kind":"textbox","id":"sh/sjut8vmd","slide":4,"name":"support-company-label","text":"DENTRO DA EMPRESA","textPreview":"DENTRO DA EMPRESA","textChars":17,"textLines":1,"bbox":[630,356,220,18]}
+{"kind":"shape","id":"sh/3elcv65w","slide":4,"name":"company-manager-dot","bbox":[630,409,12,12]}
+{"kind":"textbox","id":"sh/idcb2lob","slide":4,"name":"company-manager-text","text":"Gestores","textPreview":"Gestores","textChars":8,"textLines":1,"bbox":[654,402,196,28]}
+{"kind":"shape","id":"sh/8jq9c72t","slide":4,"name":"company-hr-dot","bbox":[630,457,12,12]}
+{"kind":"textbox","id":"sh/tkjq5c3e","slide":4,"name":"company-hr-text","text":"RH","textPreview":"RH","textChars":2,"textLines":1,"bbox":[654,450,196,28]}
+{"kind":"shape","id":"sh/6x8rahk3","slide":4,"name":"company-leadership-dot","bbox":[630,505,12,12]}
+{"kind":"textbox","id":"sh/7ih83mlo","slide":4,"name":"company-leadership-text","text":"Liderança","textPreview":"Liderança","textChars":9,"textLines":1,"bbox":[654,498,196,28]}
+{"kind":"textbox","id":"sh/gna9gr25","slide":4,"name":"support-promova-label","text":"DO LADO DO PROMOVA","textPreview":"DO LADO DO PROMOVA","textChars":18,"textLines":1,"bbox":[938,356,220,18]}
+{"kind":"shape","id":"sh/hoja9w3q","slide":4,"name":"promova-onboarding-dot","bbox":[938,409,12,12]}
+{"kind":"textbox","id":"sh/ulsrehkz","slide":4,"name":"promova-onboarding-text","text":"Onboarding","textPreview":"Onboarding","textChars":10,"textLines":1,"bbox":[962,402,196,28]}
+{"kind":"shape","id":"sh/vm1s7mlk","slide":4,"name":"promova-support-dot","bbox":[938,457,12,12]}
+{"kind":"textbox","id":"sh/wr694nm1","slide":4,"name":"promova-support-text","text":"Suporte","textPreview":"Suporte","textChars":7,"textLines":1,"bbox":[962,450,196,28]}
+{"kind":"shape","id":"sh/xsfqxs36","slide":4,"name":"promova-docs-dot","bbox":[938,505,12,12]}
+{"kind":"textbox","id":"sh/do761ova","slide":4,"name":"promova-docs-text","text":"Documentação","textPreview":"Documentação","textChars":12,"textLines":1,"bbox":[962,498,196,28]}
+{"kind":"notes","id":"nt/jyx0ra1s","slide":4,"text":"Conectar os canais ao caráter demonstrável do MVP: pilotos e demonstrações são o ponto de entrada.\nDestacar que a adoção depende de gestores, RH e liderança, com suporte do Promova.\n[Sources]\n- User-provided Promova TCC pitch brief, current conversation.\n- User-provided Promova visual identity guide."}
+{"kind":"slide","id":"sl/i107q5of","slide":5,"title":"PROMOVA  /  GTM + NEGÓCIO","textShapes":18}
+{"kind":"shape","id":"sh/e1sjatgz","slide":5,"bbox":[940,-220,520,520]}
+{"kind":"textbox","id":"sh/dgbulwnm","slide":5,"text":"PROMOVA  /  GTM + NEGÓCIO","textPreview":"PROMOVA  /  GTM + NEGÓCIO","textChars":25,"textLines":1,"bbox":[72,54,360,22]}
+{"kind":"textbox","id":"sh/cf2tcr61","slide":5,"text":"Como medimos, expandimos e monetizamos","textPreview":"Como medimos, expandimos e monetizamos","textChars":38,"textLines":1,"bbox":[72,92,960,60]}
+{"kind":"textbox","id":"sh/z2tcnm5s","slide":5,"text":"Começamos em tecnologia, com modelo B2B SaaS por usuário.","textPreview":"Começamos em tecnologia, com modelo B2B SaaS por usuário.","textChars":57,"textLines":1,"bbox":[72,164,830,28]}
+{"kind":"shape","id":"sh/yhkbe1o7","slide":5,"bbox":[72,225,360,290]}
+{"kind":"textbox","id":"sh/l4bupwny","slide":5,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[94,249,42,28]}
+{"kind":"textbox","id":"sh/032tgr6d","slide":5,"text":"Sucesso","textPreview":"Sucesso","textChars":7,"textLines":1,"bbox":[94,299,316,36]}
+{"kind":"textbox","id":"sh/n6dcr65o","slide":5,"text":"• Adesão dos gestores\n• Uso recorrente\n• Evidências analisadas\n• Avaliações realizadas\n• Evolução dos colaboradores\n• Satisfação dos usuários","textPreview":"• Adesão dos gestores | • Uso recorrente | • Evidências analisadas | • Avaliações realizadas | • Evolução dos colaboradores | • Satisfaçã...","textChars":141,"textLines":6,"bbox":[94,346,316,126]}
+{"kind":"shape","id":"sh/m5kbi1oj","slide":5,"bbox":[94,482,316,0]}
+{"kind":"textbox","id":"sh/w32dkbuh","slide":5,"text":"INDICADORES","textPreview":"INDICADORES","textChars":11,"textLines":1,"bbox":[94,492,316,15]}
+{"kind":"shape","id":"sh/x4vedgvm","slide":5,"bbox":[460,225,360,290]}
+{"kind":"textbox","id":"sh/ahkvi1cb","slide":5,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[482,249,42,28]}
+{"kind":"textbox","id":"sh/v2twb6dw","slide":5,"text":"Expansão","textPreview":"Expansão","textChars":8,"textLines":1,"bbox":[482,299,316,36]}
+{"kind":"textbox","id":"sh/k7mxovud","slide":5,"text":"GitHub  →  Jira  →  Slack\n\nDepois: outras equipes e áreas","textPreview":"GitHub  →  Jira  →  Slack |  | Depois: outras equipes e áreas","textChars":57,"textLines":3,"bbox":[482,346,316,126]}
+{"kind":"shape","id":"sh/58vehgvy","slide":5,"bbox":[482,482,316,0]}
+{"kind":"textbox","id":"sh/i54fmlc7","slide":5,"text":"TECNOLOGIA COMO PONTO DE PARTIDA","textPreview":"TECNOLOGIA COMO PONTO DE PARTIDA","textChars":32,"textLines":1,"bbox":[482,492,316,15]}
+{"kind":"shape","id":"sh/j6dwfqds","slide":5,"bbox":[848,225,360,290]}
+{"kind":"textbox","id":"sh/sb6xsvu9","slide":5,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[870,249,42,28]}
+{"kind":"textbox","id":"sh/tcfel0vu","slide":5,"text":"Modelo de negócio","textPreview":"Modelo de negócio","textChars":17,"textLines":1,"bbox":[870,299,316,36]}
+{"kind":"textbox","id":"sh/hgrmpwj2","slide":5,"text":"B2B SaaS\nBase — R$ 29,99 / usuário / mês\nPremium — R$ 45,36 / usuário / mês\nCenário inicial: 150 usuários","textPreview":"B2B SaaS | Base — R$ 29,99 / usuário / mês | Premium — R$ 45,36 / usuário / mês | Cenário inicial: 150 usuários","textChars":105,"textLines":4,"bbox":[870,346,316,126]}
+{"kind":"shape","id":"sh/gfi5grih","slide":5,"bbox":[870,482,316,0]}
+{"kind":"textbox","id":"sh/fe94nm1w","slide":5,"text":"3 EMPRESAS × 50 PESSOAS","textPreview":"3 EMPRESAS × 50 PESSOAS","textChars":23,"textLines":1,"bbox":[870,492,316,15]}
+{"kind":"shape","id":"sh/ihw3mxg3","slide":5,"bbox":[72,584,1136,0]}
+{"kind":"textbox","id":"sh/ji5kf2ho","slide":5,"text":"Decisão humana apoiada por evidências.","textPreview":"Decisão humana apoiada por evidências.","textChars":38,"textLines":1,"bbox":[72,606,860,28]}
+{"kind":"textbox","id":"sh/kjelony9","slide":5,"text":"TCC / STARTUP / 2026","textPreview":"TCC / STARTUP / 2026","textChars":20,"textLines":1,"bbox":[72,665,480,22]}
+{"kind":"textbox","id":"sh/5kn2hszu","slide":5,"text":"PROMOVA","textPreview":"PROMOVA","textChars":7,"textLines":1,"bbox":[1090,665,118,22]}
+{"kind":"notes","id":"nt/i107q5of","slide":5,"text":"Sucesso: adesão, recorrência, volume de evidências e avaliações, evolução e satisfação.\nPrecificação informada pelo projeto: custo estimado de R$ 16,66 no Base e R$ 25,20 no Premium, com markup de 80% e comparação de mercado.\nCenário inicial: 3 empresas com 50 funcionários cada, total de 150 usuários.\n[Sources]\n- User-provided Promova TCC pitch brief, current conversation.\n- User-provided Promova visual identity guide."}
+{"kind":"slide","id":"sl/x8f69ofe","slide":6,"title":"PROMOVA  /  FECHAMENTO","textShapes":5}
+{"kind":"shape","id":"sh/7698f214","slide":6,"bbox":[940,-220,520,520]}
+{"kind":"textbox","id":"sh/yhg7epsj","slide":6,"text":"PROMOVA  /  FECHAMENTO","textPreview":"PROMOVA  /  FECHAMENTO","textChars":22,"textLines":1,"bbox":[72,54,360,22]}
+{"kind":"textbox","id":"sh/zi98nu94","slide":6,"text":"Promoção não deveria depender\nde quem é mais lembrado.","textPreview":"Promoção não deveria depender | de quem é mais lembrado.","textChars":54,"textLines":2,"bbox":[72,190,980,150]}
+{"kind":"textbox","id":"sh/87ipkzal","slide":6,"text":"Deveria ser apoiada por evidências.","textPreview":"Deveria ser apoiada por evidências.","textChars":35,"textLines":1,"bbox":[72,382,820,58]}
+{"kind":"textbox","id":"sh/hcrqlcj6","slide":6,"text":"PROGRESS YOU CAN PROVE.","textPreview":"PROGRESS YOU CAN PROVE.","textChars":23,"textLines":1,"bbox":[72,665,480,22]}
+{"kind":"textbox","id":"sh/wbipc72l","slide":6,"text":"PROMOVA","textPreview":"PROMOVA","textChars":7,"textLines":1,"bbox":[1090,665,118,22]}
+{"kind":"notes","id":"nt/x8f69ofe","slide":6,"text":"Encerrar sem introduzir novos conceitos. Pausar após a frase secundária.\n[Sources]\n- User-provided Promova TCC pitch brief, current conversation.\n- User-provided Promova visual identity guide."}

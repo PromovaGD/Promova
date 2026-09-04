@@ -1,0 +1,200 @@
+{"kind":"deck","id":"pr/f6k57n","name":"Deck"}
+{"kind":"layout","layoutId":"/ppt/slideMasters/slideMaster1.xml","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"/ppt/slideLayouts/slideLayout1.xml","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/wpij6t","slide":1,"title":"PROMOVA  /  VISUAL IDENTITY 01","textShapes":10}
+{"kind":"shape","id":"sh/cvmhkrud","slide":1,"bbox":[-160,-170,560,560]}
+{"kind":"shape","id":"sh/za9sjehg","slide":1,"bbox":[385,520,250,250]}
+{"kind":"textbox","id":"sh/e90ba90v","slide":1,"text":"PROMOVA  /  VISUAL IDENTITY 01","textPreview":"PROMOVA  /  VISUAL IDENTITY 01","textChars":30,"textLines":1,"bbox":[72,64,360,22]}
+{"kind":"textbox","id":"sh/d8rah4za","slide":1,"text":"FOUNDATION / V0.1","textPreview":"FOUNDATION / V0.1","textChars":17,"textLines":1,"bbox":[1014,58,194,32]}
+{"kind":"textbox","id":"sh/c7it8zi5","slide":1,"text":"Progress\nyou can prove.","textPreview":"Progress | you can prove.","textChars":23,"textLines":2,"bbox":[72,154,570,152]}
+{"kind":"textbox","id":"sh/r69sfehk","slide":1,"text":"A visual system for a product that turns career momentum into visible evidence.","textPreview":"A visual system for a product that turns career momentum into visible evidence.","textChars":79,"textLines":1,"bbox":[72,334,520,74]}
+{"kind":"textbox","id":"sh/q50b690z","slide":1,"text":"PRODUCT","textPreview":"PRODUCT","textChars":7,"textLines":1,"bbox":[72,459,96,32]}
+{"kind":"textbox","id":"sh/p47ad4ze","slide":1,"text":"PITCH","textPreview":"PITCH","textChars":5,"textLines":1,"bbox":[178,459,80,32]}
+{"kind":"shape","id":"sh/4jyt4zit","slide":1,"bbox":[72,646,220,5]}
+{"kind":"textbox","id":"sh/ex4zm1cj","slide":1,"text":"A direction-first identity: optimistic, precise, human.","textPreview":"A direction-first identity: optimistic, precise, human.","textChars":55,"textLines":1,"bbox":[72,665,560,24]}
+{"kind":"shape","id":"sh/zid0v6d4","slide":1,"bbox":[708,102,470,532]}
+{"kind":"textbox","id":"sh/1kvixwva","slide":1,"text":"PRIMARY LOCKUP","textPreview":"PRIMARY LOCKUP","textChars":14,"textLines":1,"bbox":[744,572,190,16]}
+{"kind":"textbox","id":"sh/qtkzihcn","slide":1,"text":"For light surfaces and first-impression moments.","textPreview":"For light surfaces and first-impression moments.","textChars":48,"textLines":1,"bbox":[744,595,350,22]}
+{"kind":"textbox","id":"sh/rut0rmds","slide":1,"text":"supplied reference / keep proportions intact","textPreview":"supplied reference / keep proportions intact","textChars":44,"textLines":1,"bbox":[744,620,390,14]}
+{"kind":"image","id":"im/2587yl0z","slide":1,"name":"","bbox":[744,151.95,398,384.1]}
+{"kind":"notes","id":"nt/wpij6t","slide":1,"text":"Use the supplied logo artwork as the source of truth until transparent SVG and PNG exports are approved.\nThe identity thesis is Progress you can prove: visible direction, measurable movement, credible evidence.\nKeep the cover quiet. The gradient is a signal, not a wallpaper pattern."}
+{"kind":"slide","id":"sl/cwg8u4","slide":2,"title":"PROMOVA  /  VISUAL IDENTITY","textShapes":25}
+{"kind":"textbox","id":"sh/tcnmdsbi","slide":2,"text":"PROMOVA  /  VISUAL IDENTITY","textPreview":"PROMOVA  /  VISUAL IDENTITY","textChars":27,"textLines":1,"bbox":[72,40,320,22]}
+{"kind":"textbox","id":"sh/9gzyhczu","slide":2,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[1158,40,50,22]}
+{"kind":"shape","id":"sh/8fqxo7y9","slide":2,"bbox":[72,688,1136,0]}
+{"kind":"textbox","id":"sh/zaxwb2hc","slide":2,"text":"FOUNDATION / V0.1","textPreview":"FOUNDATION / V0.1","textChars":17,"textLines":1,"bbox":[72,697,220,14]}
+{"kind":"textbox","id":"sh/y9ofix07","slide":2,"text":"PROGRESS YOU CAN PROVE","textPreview":"PROGRESS YOU CAN PROVE","textChars":22,"textLines":1,"bbox":[982,697,226,14]}
+{"kind":"textbox","id":"sh/lcfedczi","slide":2,"text":"Typography and components should feel calm, then decisive","textPreview":"Typography and components should feel calm, then decisive","textChars":57,"textLines":1,"bbox":[72,82,960,54]}
+{"kind":"textbox","id":"sh/0b6xk7ix","slide":2,"text":"Inter gives the product a modern, readable voice; rounded surfaces carry the logo's friendliness.","textPreview":"Inter gives the product a modern, readable voice; rounded surfaces carry the logo's friendliness.","textChars":97,"textLines":1,"bbox":[72,144,900,30]}
+{"kind":"shape","id":"sh/j61gn6hw","slide":2,"bbox":[72,222,480,388]}
+{"kind":"textbox","id":"sh/i5sfe1gb","slide":2,"text":"TYPE SYSTEM","textPreview":"TYPE SYSTEM","textChars":11,"textLines":1,"bbox":[100,250,160,16]}
+{"kind":"textbox","id":"sh/s7a9kz2l","slide":2,"text":"Inter","textPreview":"Inter","textChars":5,"textLines":1,"bbox":[100,282,240,58]}
+{"kind":"textbox","id":"sh/t8jqd436","slide":2,"text":"Make progress visible.","textPreview":"Make progress visible.","textChars":22,"textLines":1,"bbox":[100,350,380,40]}
+{"kind":"textbox","id":"sh/65sripkf","slide":2,"text":"Use sentence case, short lines and clear hierarchy. Let the metrics be loud; let the supporting copy stay quiet.","textPreview":"Use sentence case, short lines and clear hierarchy. Let the metrics be loud; let the supporting copy stay quiet.","textChars":112,"textLines":1,"bbox":[100,405,380,60]}
+{"kind":"shape","id":"sh/7618bul0","slide":2,"bbox":[100,488,380,0]}
+{"kind":"textbox","id":"sh/k3apgz29","slide":2,"text":"DISPLAY  44 / 52","textPreview":"DISPLAY  44 / 52","textChars":16,"textLines":1,"bbox":[100,510,175,20]}
+{"kind":"textbox","id":"sh/54jq9k3u","slide":2,"text":"HEADING  32 / 38","textPreview":"HEADING  32 / 38","textChars":16,"textLines":1,"bbox":[300,510,175,20]}
+{"kind":"textbox","id":"sh/i187epkj","slide":2,"text":"UI  16 / 24","textPreview":"UI  16 / 24","textChars":11,"textLines":1,"bbox":[100,545,175,20]}
+{"kind":"textbox","id":"sh/j2187ul4","slide":2,"text":"CAPTION  12 / 16","textPreview":"CAPTION  12 / 16","textChars":16,"textLines":1,"bbox":[300,545,175,20]}
+{"kind":"shape","id":"sh/wzqpcf2d","slide":2,"bbox":[600,222,608,388]}
+{"kind":"textbox","id":"sh/x0zq5k3y","slide":2,"text":"WEBSITE COMPONENTS","textPreview":"WEBSITE COMPONENTS","textChars":18,"textLines":1,"bbox":[630,250,220,16]}
+{"kind":"textbox","id":"sh/dwr69gvm","slide":2,"text":"Progress is the interface language","textPreview":"Progress is the interface language","textChars":34,"textLines":1,"bbox":[630,282,390,28]}
+{"kind":"textbox","id":"sh/cvi5gbe1","slide":2,"text":"Start tracking","textPreview":"Start tracking","textChars":14,"textLines":1,"bbox":[1050,274,126,34]}
+{"kind":"shape","id":"sh/bu9o76dg","slide":2,"bbox":[630,338,548,134]}
+{"kind":"textbox","id":"sh/qt0ne1wb","slide":2,"text":"WEEKLY MOMENTUM","textPreview":"WEEKLY MOMENTUM","textChars":15,"textLines":1,"bbox":[654,362,200,16]}
+{"kind":"textbox","id":"sh/psr65wvq","slide":2,"text":"+18%","textPreview":"+18%","textChars":4,"textLines":1,"bbox":[654,389,150,38]}
+{"kind":"textbox","id":"sh/o7i5cre5","slide":2,"text":"ON TRACK","textPreview":"ON TRACK","textChars":8,"textLines":1,"bbox":[1012,360,138,30]}
+{"kind":"shape","id":"sh/36po3mdk","slide":2,"bbox":[654,441,476,9]}
+{"kind":"shape","id":"sh/25gna1wz","slide":2,"bbox":[654,441,342,9]}
+{"kind":"textbox","id":"sh/9ob6h0vu","slide":2,"text":"A single focused action","textPreview":"A single focused action","textChars":23,"textLines":1,"bbox":[630,506,170,18]}
+{"kind":"textbox","id":"sh/8n2povu9","slide":2,"text":"12 px radius","textPreview":"12 px radius","textChars":12,"textLines":1,"bbox":[820,497,108,30]}
+{"kind":"textbox","id":"sh/69w3ixcr","slide":2,"text":"8 px grid","textPreview":"8 px grid","textChars":9,"textLines":1,"bbox":[938,497,90,30]}
+{"kind":"textbox","id":"sh/ra5kb2tc","slide":2,"text":"1 px border","textPreview":"1 px border","textChars":11,"textLines":1,"bbox":[1038,497,112,30]}
+{"kind":"textbox","id":"sh/sbelknux","slide":2,"text":"Rule of thumb: one energetic element per surface.","textPreview":"Rule of thumb: one energetic element per surface.","textChars":49,"textLines":1,"bbox":[630,564,480,20]}
+{"kind":"notes","id":"nt/cwg8u4","slide":2,"text":"Recommended typeface: Inter, with 700 for display and headings, 500 for labels and 400 for body copy.\nUse rounded corners between 12 and 24px, an 8px spacing base unit and quiet 1px borders in #E5E0F5.\nEvery component should have a clear action or a clear proof point. Avoid decorative purple panels with no job to do."}
+{"kind":"slide","id":"sl/wopopc","slide":3,"title":"PROMOVA  /  VISUAL IDENTITY","textShapes":25}
+{"kind":"textbox","id":"sh/z61orm5w","slide":3,"text":"PROMOVA  /  VISUAL IDENTITY","textPreview":"PROMOVA  /  VISUAL IDENTITY","textChars":27,"textLines":1,"bbox":[72,40,320,22]}
+{"kind":"textbox","id":"sh/f6ho3ehs","slide":3,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[1158,40,50,22]}
+{"kind":"shape","id":"sh/e587u9g7","slide":3,"bbox":[72,688,1136,0]}
+{"kind":"textbox","id":"sh/tkz614zm","slide":3,"text":"FOUNDATION / V0.1","textPreview":"FOUNDATION / V0.1","textChars":17,"textLines":1,"bbox":[72,697,220,14]}
+{"kind":"textbox","id":"sh/sjq5szy1","slide":3,"text":"PROGRESS YOU CAN PROVE","textPreview":"PROGRESS YOU CAN PROVE","textChars":22,"textLines":1,"bbox":[982,697,226,14]}
+{"kind":"textbox","id":"sh/rihozehg","slide":3,"text":"Typography and components should feel calm, then decisive","textPreview":"Typography and components should feel calm, then decisive","textChars":57,"textLines":1,"bbox":[72,82,960,54]}
+{"kind":"textbox","id":"sh/6h8nq9gb","slide":3,"text":"Inter gives the product a modern, readable voice; rounded surfaces carry the logo's friendliness.","textPreview":"Inter gives the product a modern, readable voice; rounded surfaces carry the logo's friendliness.","textChars":97,"textLines":1,"bbox":[72,144,900,30]}
+{"kind":"shape","id":"sh/5gf6x4zq","slide":3,"bbox":[72,222,480,388]}
+{"kind":"textbox","id":"sh/4f65ozy5","slide":3,"text":"TYPE SYSTEM","textPreview":"TYPE SYSTEM","textChars":11,"textLines":1,"bbox":[100,250,160,16]}
+{"kind":"textbox","id":"sh/yhkbyt87","slide":3,"text":"Inter","textPreview":"Inter","textChars":5,"textLines":1,"bbox":[100,282,240,58]}
+{"kind":"textbox","id":"sh/zitcreps","slide":3,"text":"Make progress visible.","textPreview":"Make progress visible.","textChars":22,"textLines":1,"bbox":[100,350,380,40]}
+{"kind":"textbox","id":"sh/0j2d0jqd","slide":3,"text":"Use sentence case, short lines and clear hierarchy. Let the metrics be loud; let the supporting copy stay quiet.","textPreview":"Use sentence case, short lines and clear hierarchy. Let the metrics be loud; let the supporting copy stay quiet.","textChars":112,"textLines":1,"bbox":[100,405,380,60]}
+{"kind":"shape","id":"sh/lkbuto7y","slide":3,"bbox":[100,488,380,0]}
+{"kind":"textbox","id":"sh/qt0bu98b","slide":3,"text":"DISPLAY  44 / 52","textPreview":"DISPLAY  44 / 52","textChars":16,"textLines":1,"bbox":[100,510,175,20]}
+{"kind":"textbox","id":"sh/butcnepw","slide":3,"text":"HEADING  32 / 38","textPreview":"HEADING  32 / 38","textChars":16,"textLines":1,"bbox":[300,510,175,20]}
+{"kind":"textbox","id":"sh/cf2twjqh","slide":3,"text":"UI  16 / 24","textPreview":"UI  16 / 24","textChars":11,"textLines":1,"bbox":[100,545,175,20]}
+{"kind":"textbox","id":"sh/dgbupo72","slide":3,"text":"CAPTION  12 / 16","textPreview":"CAPTION  12 / 16","textChars":16,"textLines":1,"bbox":[300,545,175,20]}
+{"kind":"shape","id":"sh/2p0bqp8f","slide":3,"bbox":[600,222,608,388]}
+{"kind":"textbox","id":"sh/3q9cju9k","slide":3,"text":"WEBSITE COMPONENTS","textPreview":"WEBSITE COMPONENTS","textChars":18,"textLines":1,"bbox":[630,250,220,16]}
+{"kind":"textbox","id":"sh/7u58rq5c","slide":3,"text":"Progress is the interface language","textPreview":"Progress is the interface language","textChars":34,"textLines":1,"bbox":[630,282,390,28]}
+{"kind":"textbox","id":"sh/6twry5o7","slide":3,"text":"Start tracking","textPreview":"Start tracking","textChars":14,"textLines":1,"bbox":[1050,274,126,34]}
+{"kind":"shape","id":"sh/tw7at0ni","slide":3,"bbox":[630,338,548,134]}
+{"kind":"textbox","id":"sh/svy90v6x","slide":3,"text":"WEEKLY MOMENTUM","textPreview":"WEEKLY MOMENTUM","textChars":15,"textLines":1,"bbox":[654,362,200,16]}
+{"kind":"textbox","id":"sh/fypsva5o","slide":3,"text":"+18%","textPreview":"+18%","textChars":4,"textLines":1,"bbox":[654,389,150,38]}
+{"kind":"textbox","id":"sh/uxgr25o3","slide":3,"text":"ON TRACK","textPreview":"ON TRACK","textChars":8,"textLines":1,"bbox":[1012,360,138,30]}
+{"kind":"shape","id":"sh/h07axknu","slide":3,"bbox":[654,441,476,9]}
+{"kind":"shape","id":"sh/gzy94f69","slide":3,"bbox":[654,441,342,9]}
+{"kind":"textbox","id":"sh/v2l8j6p4","slide":3,"text":"A single focused action","textPreview":"A single focused action","textChars":23,"textLines":1,"bbox":[630,506,170,18]}
+{"kind":"textbox","id":"sh/a1crqloz","slide":3,"text":"12 px radius","textPreview":"12 px radius","textChars":12,"textLines":1,"bbox":[820,497,108,30]}
+{"kind":"textbox","id":"sh/07a507mh","slide":3,"text":"8 px grid","textPreview":"8 px grid","textChars":9,"textLines":1,"bbox":[938,497,90,30]}
+{"kind":"textbox","id":"sh/l8j6tcn2","slide":3,"text":"1 px border","textPreview":"1 px border","textChars":11,"textLines":1,"bbox":[1038,497,112,30]}
+{"kind":"textbox","id":"sh/y5snyh4r","slide":3,"text":"Rule of thumb: one energetic element per surface.","textPreview":"Rule of thumb: one energetic element per surface.","textChars":49,"textLines":1,"bbox":[630,564,480,20]}
+{"kind":"notes","id":"nt/wopopc","slide":3,"text":"Recommended typeface: Inter, with 700 for display and headings, 500 for labels and 400 for body copy.\nUse rounded corners between 12 and 24px, an 8px spacing base unit and quiet 1px borders in #E5E0F5.\nEvery component should have a clear action or a clear proof point. Avoid decorative purple panels with no job to do."}
+{"kind":"slide","id":"sl/d9d9as","slide":4,"title":"PROMOVA  /  VISUAL IDENTITY","textShapes":25}
+{"kind":"textbox","id":"sh/p8rylsvy","slide":4,"text":"PROMOVA  /  VISUAL IDENTITY","textPreview":"PROMOVA  /  VISUAL IDENTITY","textChars":27,"textLines":1,"bbox":[72,40,320,22]}
+{"kind":"textbox","id":"sh/xsjetoju","slide":4,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[1158,40,50,22]}
+{"kind":"shape","id":"sh/crqx0jip","slide":4,"bbox":[72,688,1136,0]}
+{"kind":"textbox","id":"sh/ze1gvyh0","slide":4,"text":"FOUNDATION / V0.1","textPreview":"FOUNDATION / V0.1","textChars":17,"textLines":1,"bbox":[72,697,220,14]}
+{"kind":"textbox","id":"sh/ydsf2t0f","slide":4,"text":"PROGRESS YOU CAN PROVE","textPreview":"PROGRESS YOU CAN PROVE","textChars":22,"textLines":1,"bbox":[982,697,226,14]}
+{"kind":"textbox","id":"sh/lgjyx8z6","slide":4,"text":"Typography and components should feel calm, then decisive","textPreview":"Typography and components should feel calm, then decisive","textChars":57,"textLines":1,"bbox":[72,82,960,54]}
+{"kind":"textbox","id":"sh/kfax43il","slide":4,"text":"Inter gives the product a modern, readable voice; rounded surfaces carry the logo's friendliness.","textPreview":"Inter gives the product a modern, readable voice; rounded surfaces carry the logo's friendliness.","textChars":97,"textLines":1,"bbox":[72,144,900,30]}
+{"kind":"shape","id":"sh/7i1gzihc","slide":4,"bbox":[72,222,480,388]}
+{"kind":"textbox","id":"sh/mhsf6d0r","slide":4,"text":"TYPE SYSTEM","textPreview":"TYPE SYSTEM","textChars":11,"textLines":1,"bbox":[100,250,160,16]}
+{"kind":"textbox","id":"sh/ov69cbah","slide":4,"text":"Inter","textPreview":"Inter","textChars":5,"textLines":1,"bbox":[100,282,240,58]}
+{"kind":"textbox","id":"sh/pwfalgr2","slide":4,"text":"Make progress visible.","textPreview":"Make progress visible.","textChars":22,"textLines":1,"bbox":[100,350,380,40]}
+{"kind":"textbox","id":"sh/2toralsb","slide":4,"text":"Use sentence case, short lines and clear hierarchy. Let the metrics be loud; let the supporting copy stay quiet.","textPreview":"Use sentence case, short lines and clear hierarchy. Let the metrics be loud; let the supporting copy stay quiet.","textChars":112,"textLines":1,"bbox":[100,405,380,60]}
+{"kind":"shape","id":"sh/3uxsjq9w","slide":4,"bbox":[100,488,380,0]}
+{"kind":"textbox","id":"sh/czq9gvqt","slide":4,"text":"DISPLAY  44 / 52","textPreview":"DISPLAY  44 / 52","textChars":16,"textLines":1,"bbox":[100,510,175,20]}
+{"kind":"textbox","id":"sh/d0zap0ry","slide":4,"text":"HEADING  32 / 38","textPreview":"HEADING  32 / 38","textChars":16,"textLines":1,"bbox":[300,510,175,20]}
+{"kind":"textbox","id":"sh/qx8rel8n","slide":4,"text":"UI  16 / 24","textPreview":"UI  16 / 24","textChars":11,"textLines":1,"bbox":[100,545,175,20]}
+{"kind":"textbox","id":"sh/byhsnq98","slide":4,"text":"CAPTION  12 / 16","textPreview":"CAPTION  12 / 16","textChars":16,"textLines":1,"bbox":[300,545,175,20]}
+{"kind":"shape","id":"sh/03q9kvqp","slide":4,"bbox":[600,222,608,388]}
+{"kind":"textbox","id":"sh/lozat0ra","slide":4,"text":"WEBSITE COMPONENTS","textPreview":"WEBSITE COMPONENTS","textChars":18,"textLines":1,"bbox":[630,250,220,16]}
+{"kind":"textbox","id":"sh/9kfax0je","slide":4,"text":"Progress is the interface language","textPreview":"Progress is the interface language","textChars":34,"textLines":1,"bbox":[630,282,390,28]}
+{"kind":"textbox","id":"sh/8jm94vit","slide":4,"text":"Start tracking","textPreview":"Start tracking","textChars":14,"textLines":1,"bbox":[1050,274,126,34]}
+{"kind":"shape","id":"sh/7idsvq18","slide":4,"bbox":[630,338,548,134]}
+{"kind":"textbox","id":"sh/mh4r2l0n","slide":4,"text":"WEEKLY MOMENTUM","textPreview":"WEEKLY MOMENTUM","textChars":15,"textLines":1,"bbox":[654,362,200,16]}
+{"kind":"textbox","id":"sh/h8fa1kja","slide":4,"text":"+18%","textPreview":"+18%","textChars":4,"textLines":1,"bbox":[654,389,150,38]}
+{"kind":"textbox","id":"sh/wn698fi5","slide":4,"text":"ON TRACK","textPreview":"ON TRACK","textChars":8,"textLines":1,"bbox":[1012,360,138,30]}
+{"kind":"shape","id":"sh/vmxsza1k","slide":4,"bbox":[654,441,476,9]}
+{"kind":"shape","id":"sh/ulor650z","slide":4,"bbox":[654,441,342,9]}
+{"kind":"textbox","id":"sh/xcvqpgj6","slide":4,"text":"A single focused action","textPreview":"A single focused action","textChars":23,"textLines":1,"bbox":[630,506,170,18]}
+{"kind":"textbox","id":"sh/cr29wbil","slide":4,"text":"12 px radius","textPreview":"12 px radius","textChars":12,"textLines":1,"bbox":[820,497,108,30]}
+{"kind":"textbox","id":"sh/2lgfaxc7","slide":4,"text":"8 px grid","textPreview":"8 px grid","textChars":9,"textLines":1,"bbox":[938,497,90,30]}
+{"kind":"textbox","id":"sh/3mpgjids","slide":4,"text":"1 px border","textPreview":"1 px border","textChars":11,"textLines":1,"bbox":[1038,497,112,30]}
+{"kind":"textbox","id":"sh/47ixcnud","slide":4,"text":"Rule of thumb: one energetic element per surface.","textPreview":"Rule of thumb: one energetic element per surface.","textChars":49,"textLines":1,"bbox":[630,564,480,20]}
+{"kind":"notes","id":"nt/d9d9as","slide":4,"text":"Recommended typeface: Inter, with 700 for display and headings, 500 for labels and 400 for body copy.\nUse rounded corners between 12 and 24px, an 8px spacing base unit and quiet 1px borders in #E5E0F5.\nEvery component should have a clear action or a clear proof point. Avoid decorative purple panels with no job to do."}
+{"kind":"slide","id":"sl/z90mcm","slide":5,"title":"PROMOVA  /  VISUAL IDENTITY 05","textShapes":27}
+{"kind":"shape","id":"sh/obylsnmx","slide":5,"bbox":[940,-220,520,520]}
+{"kind":"textbox","id":"sh/r6lsb21w","slide":5,"text":"PROMOVA  /  VISUAL IDENTITY 05","textPreview":"PROMOVA  /  VISUAL IDENTITY 05","textChars":30,"textLines":1,"bbox":[72,54,360,22]}
+{"kind":"textbox","id":"sh/65cbixkb","slide":5,"text":"Start with the foundation, then scale the system","textPreview":"Start with the foundation, then scale the system","textChars":48,"textLines":1,"bbox":[72,92,960,60]}
+{"kind":"textbox","id":"sh/1wnahcjy","slide":5,"text":"One system across the product, the website and the story we tell in the room.","textPreview":"One system across the product, the website and the story we tell in the room.","textChars":77,"textLines":1,"bbox":[72,164,830,28]}
+{"kind":"shape","id":"sh/0vuto72d","slide":5,"bbox":[72,225,252,250]}
+{"kind":"textbox","id":"sh/fulsf21s","slide":5,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[94,249,42,28]}
+{"kind":"textbox","id":"sh/etcbmhk7","slide":5,"text":"Foundation","textPreview":"Foundation","textChars":10,"textLines":1,"bbox":[94,299,200,30]}
+{"kind":"textbox","id":"sh/h0jalsje","slide":5,"text":"Lock the transparent assets, color tokens, type scale and usage rules.","textPreview":"Lock the transparent assets, color tokens, type scale and usage rules.","textChars":70,"textLines":1,"bbox":[94,343,200,76]}
+{"kind":"shape","id":"sh/wza9cn29","slide":5,"bbox":[94,445,208,0]}
+{"kind":"textbox","id":"sh/ytk7218z","slide":5,"text":"DELIVERABLE","textPreview":"DELIVERABLE","textChars":11,"textLines":1,"bbox":[94,454,200,15]}
+{"kind":"shape","id":"sh/jut8v6pk","slide":5,"bbox":[344,225,252,250]}
+{"kind":"textbox","id":"sh/kv2p4bq5","slide":5,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[366,249,42,28]}
+{"kind":"textbox","id":"sh/lwbqxw7q","slide":5,"text":"Product","textPreview":"Product","textChars":7,"textLines":1,"bbox":[366,299,200,30]}
+{"kind":"textbox","id":"sh/6xk7618b","slide":5,"text":"Apply the system to navigation, mobile header, buttons, states and progress views.","textPreview":"Apply the system to navigation, mobile header, buttons, states and progress views.","textChars":82,"textLines":1,"bbox":[366,343,200,76]}
+{"kind":"shape","id":"sh/7yt8z6pg","slide":5,"bbox":[366,445,208,0]}
+{"kind":"textbox","id":"sh/8zmp8bq1","slide":5,"text":"DELIVERABLE","textPreview":"DELIVERABLE","textChars":11,"textLines":1,"bbox":[366,454,200,15]}
+{"kind":"shape","id":"sh/t0vq1g7m","slide":5,"bbox":[616,225,252,250]}
+{"kind":"textbox","id":"sh/u147al87","slide":5,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[638,249,42,28]}
+{"kind":"textbox","id":"sh/vmd83qps","slide":5,"text":"Website","textPreview":"Website","textChars":7,"textLines":1,"bbox":[638,299,200,30]}
+{"kind":"textbox","id":"sh/rqdorq50","slide":5,"text":"Rework hero, navigation, proof modules and conversion moments around visible progress.","textPreview":"Rework hero, navigation, proof modules and conversion moments around visible progress.","textChars":86,"textLines":1,"bbox":[638,343,200,76]}
+{"kind":"shape","id":"sh/qp47ylof","slide":5,"bbox":[638,445,208,0]}
+{"kind":"textbox","id":"sh/dsf6t0nq","slide":5,"text":"DELIVERABLE","textPreview":"DELIVERABLE","textChars":11,"textLines":1,"bbox":[638,454,200,15]}
+{"kind":"shape","id":"sh/sr6p0v6l","slide":5,"bbox":[888,225,252,250]}
+{"kind":"textbox","id":"sh/32don65o","slide":5,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[910,249,42,28]}
+{"kind":"textbox","id":"sh/i147u1o3","slide":5,"text":"Pitch","textPreview":"Pitch","textChars":5,"textLines":1,"bbox":[910,299,200,30]}
+{"kind":"textbox","id":"sh/5ov6pgnu","slide":5,"text":"Create title, metrics, chapter divider and closing templates with the same rhythm.","textPreview":"Create title, metrics, chapter divider and closing templates with the same rhythm.","textChars":82,"textLines":1,"bbox":[910,343,200,76]}
+{"kind":"shape","id":"sh/43mpwb69","slide":5,"bbox":[910,445,208,0]}
+{"kind":"textbox","id":"sh/vytoj65s","slide":5,"text":"DELIVERABLE","textPreview":"DELIVERABLE","textChars":11,"textLines":1,"bbox":[910,454,200,15]}
+{"kind":"textbox","id":"sh/uxknq1o7","slide":5,"text":"GUARDRAILS FOR EVERY SURFACE","textPreview":"GUARDRAILS FOR EVERY SURFACE","textChars":28,"textLines":1,"bbox":[72,510,300,18]}
+{"kind":"textbox","id":"sh/k3il07m5","slide":5,"text":"KEEP  proportions intact","textPreview":"KEEP  proportions intact","textChars":24,"textLines":1,"bbox":[72,540,260,20]}
+{"kind":"textbox","id":"sh/l4rmtc3a","slide":5,"text":"PAIR  violet with ink","textPreview":"PAIR  violet with ink","textChars":21,"textLines":1,"bbox":[344,540,240,20]}
+{"kind":"textbox","id":"sh/y103yx4z","slide":5,"text":"SIGNAL  gradient = movement","textPreview":"SIGNAL  gradient = movement","textChars":27,"textLines":1,"bbox":[616,540,250,20]}
+{"kind":"textbox","id":"sh/j294r2lk","slide":5,"text":"PROVE  evidence before decoration","textPreview":"PROVE  evidence before decoration","textChars":33,"textLines":1,"bbox":[888,540,300,20]}
+{"kind":"shape","id":"sh/872l47m1","slide":5,"bbox":[72,584,1136,0]}
+{"kind":"textbox","id":"sh/t8bmxc3m","slide":5,"text":"Next review point: after the first implementation PR, validate the logo at mobile, desktop, dark-surface and export sizes.","textPreview":"Next review point: after the first implementation PR, validate the logo at mobile, desktop, dark-surface and export sizes.","textChars":122,"textLines":1,"bbox":[72,606,860,28]}
+{"kind":"textbox","id":"sh/65032h4v","slide":5,"text":"ONE SYSTEM. MANY MOMENTS. SAME FEELING.","textPreview":"ONE SYSTEM. MANY MOMENTS. SAME FEELING.","textChars":39,"textLines":1,"bbox":[72,665,480,22]}
+{"kind":"textbox","id":"sh/7694v2lg","slide":5,"text":"PROMOVA","textPreview":"PROMOVA","textChars":7,"textLines":1,"bbox":[1090,665,118,22]}
+{"kind":"notes","id":"nt/z90mcm","slide":5,"text":"This is the recommended implementation sequence for the website and pitch deck.\nThe first PR should focus on the exact logo and token foundation; broader visual identity changes can follow as separate, reviewable slices.\nAcceptance check: logo alignment on mobile, clear contrast, correct asset proportions, consistent token usage and no accidental gradient overuse."}
+{"kind":"slide","id":"sl/qsfgki","slide":6,"title":"PROMOVA  /  VISUAL IDENTITY 05","textShapes":27}
+{"kind":"shape","id":"sh/dsb2ts3m","slide":6,"bbox":[940,-220,520,520]}
+{"kind":"textbox","id":"sh/gjehovq5","slide":6,"text":"PROMOVA  /  VISUAL IDENTITY 05","textPreview":"PROMOVA  /  VISUAL IDENTITY 05","textChars":30,"textLines":1,"bbox":[72,54,360,22]}
+{"kind":"textbox","id":"sh/hknix07q","slide":6,"text":"Start with the foundation, then scale the system","textPreview":"Start with the foundation, then scale the system","textChars":48,"textLines":1,"bbox":[72,92,960,60]}
+{"kind":"textbox","id":"sh/2lwzq58v","slide":6,"text":"One system across the product, the website and the story we tell in the room.","textPreview":"One system across the product, the website and the story we tell in the room.","textChars":77,"textLines":1,"bbox":[72,164,830,28]}
+{"kind":"shape","id":"sh/3m50zapg","slide":6,"bbox":[72,225,252,250]}
+{"kind":"textbox","id":"sh/4nehsfq1","slide":6,"text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[94,249,42,28]}
+{"kind":"textbox","id":"sh/poni107m","slide":6,"text":"Foundation","textPreview":"Foundation","textChars":10,"textLines":1,"bbox":[94,299,200,30]}
+{"kind":"textbox","id":"sh/qpgzu5o7","slide":6,"text":"Lock the transparent assets, color tokens, type scale and usage rules.","textPreview":"Lock the transparent assets, color tokens, type scale and usage rules.","textChars":70,"textLines":1,"bbox":[94,343,200,76]}
+{"kind":"shape","id":"sh/rap03aps","slide":6,"bbox":[94,445,208,0]}
+{"kind":"textbox","id":"sh/vyl4nqd8","slide":6,"text":"DELIVERABLE","textPreview":"DELIVERABLE","textChars":11,"textLines":1,"bbox":[94,454,200,15]}
+{"kind":"shape","id":"sh/axcnelwn","slide":6,"bbox":[344,225,252,250]}
+{"kind":"textbox","id":"sh/x03mpgvy","slide":6,"text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[366,249,42,28]}
+{"kind":"textbox","id":"sh/wzu5gved","slide":6,"text":"Product","textPreview":"Product","textChars":7,"textLines":1,"bbox":[366,299,200,30]}
+{"kind":"textbox","id":"sh/nu14j6dw","slide":6,"text":"Apply the system to navigation, mobile header, buttons, states and progress views.","textPreview":"Apply the system to navigation, mobile header, buttons, states and progress views.","textChars":82,"textLines":1,"bbox":[366,343,200,76]}
+{"kind":"shape","id":"sh/m9sna1wb","slide":6,"bbox":[366,445,208,0]}
+{"kind":"textbox","id":"sh/9wjmlgv2","slide":6,"text":"DELIVERABLE","textPreview":"DELIVERABLE","textChars":11,"textLines":1,"bbox":[366,454,200,15]}
+{"kind":"shape","id":"sh/8va5cbeh","slide":6,"bbox":[616,225,252,250]}
+{"kind":"textbox","id":"sh/7q5ovad0","slide":6,"text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[638,249,42,28]}
+{"kind":"textbox","id":"sh/65wnm5cv","slide":6,"text":"Website","textPreview":"Website","textChars":7,"textLines":1,"bbox":[638,299,200,30]}
+{"kind":"textbox","id":"sh/2lg7e9w3","slide":6,"text":"Rework hero, navigation, proof modules and conversion moments around visible progress.","textPreview":"Rework hero, navigation, proof modules and conversion moments around visible progress.","textChars":86,"textLines":1,"bbox":[638,343,200,76]}
+{"kind":"shape","id":"sh/3mp8nex8","slide":6,"bbox":[638,445,208,0]}
+{"kind":"textbox","id":"sh/4nypgjet","slide":6,"text":"DELIVERABLE","textPreview":"DELIVERABLE","textChars":11,"textLines":1,"bbox":[638,454,200,15]}
+{"kind":"shape","id":"sh/porqp4fe","slide":6,"bbox":[888,225,252,250]}
+{"kind":"textbox","id":"sh/qp0ri9wz","slide":6,"text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[910,249,42,28]}
+{"kind":"textbox","id":"sh/rq98rexk","slide":6,"text":"Pitch","textPreview":"Pitch","textChars":5,"textLines":1,"bbox":[910,299,200,30]}
+{"kind":"textbox","id":"sh/cri9kje5","slide":6,"text":"Create title, metrics, chapter divider and closing templates with the same rhythm.","textPreview":"Create title, metrics, chapter divider and closing templates with the same rhythm.","textChars":82,"textLines":1,"bbox":[910,343,200,76]}
+{"kind":"shape","id":"sh/dsrqtofq","slide":6,"bbox":[910,445,208,0]}
+{"kind":"textbox","id":"sh/6tw76pgv","slide":6,"text":"DELIVERABLE","textPreview":"DELIVERABLE","textChars":11,"textLines":1,"bbox":[910,454,200,15]}
+{"kind":"textbox","id":"sh/7u58fuxg","slide":6,"text":"GUARDRAILS FOR EVERY SURFACE","textPreview":"GUARDRAILS FOR EVERY SURFACE","textChars":28,"textLines":1,"bbox":[72,510,300,18]}
+{"kind":"textbox","id":"sh/90v21c3u","slide":6,"text":"KEEP  proportions intact","textPreview":"KEEP  proportions intact","textChars":24,"textLines":1,"bbox":[72,540,260,20]}
+{"kind":"textbox","id":"sh/8zm1872p","slide":6,"text":"PAIR  violet with ink","textPreview":"PAIR  violet with ink","textChars":21,"textLines":1,"bbox":[344,540,240,20]}
+{"kind":"textbox","id":"sh/7ydkzml4","slide":6,"text":"SIGNAL  gradient = movement","textPreview":"SIGNAL  gradient = movement","textChars":27,"textLines":1,"bbox":[616,540,250,20]}
+{"kind":"textbox","id":"sh/mx4j6hkj","slide":6,"text":"PROVE  evidence before decoration","textPreview":"PROVE  evidence before decoration","textChars":33,"textLines":1,"bbox":[888,540,300,20]}
+{"kind":"shape","id":"sh/hof25w36","slide":6,"bbox":[72,584,1136,0]}
+{"kind":"textbox","id":"sh/wn61cr2l","slide":6,"text":"Next review point: after the first implementation PR, validate the logo at mobile, desktop, dark-surface and export sizes.","textPreview":"Next review point: after the first implementation PR, validate the logo at mobile, desktop, dark-surface and export sizes.","textChars":122,"textLines":1,"bbox":[72,606,860,28]}
+{"kind":"textbox","id":"sh/vmxk3ml0","slide":6,"text":"ONE SYSTEM. MANY MOMENTS. SAME FEELING.","textPreview":"ONE SYSTEM. MANY MOMENTS. SAME FEELING.","textChars":39,"textLines":1,"bbox":[72,665,480,22]}
+{"kind":"textbox","id":"sh/ulojahkf","slide":6,"text":"PROMOVA","textPreview":"PROMOVA","textChars":7,"textLines":1,"bbox":[1090,665,118,22]}
+{"kind":"notes","id":"nt/qsfgki","slide":6,"text":"This is the recommended implementation sequence for the website and pitch deck.\nThe first PR should focus on the exact logo and token foundation; broader visual identity changes can follow as separate, reviewable slices.\nAcceptance check: logo alignment on mobile, clear contrast, correct asset proportions, consistent token usage and no accidental gradient overuse."}

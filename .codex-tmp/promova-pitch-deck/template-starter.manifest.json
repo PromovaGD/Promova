@@ -1,0 +1,78 @@
+{
+  "sourcePptx": "C:\\Users\\João\\.codex\\worktrees\\955c\\Startup\\artifacts\\promova-visual-identity-guide.pptx",
+  "mapPath": "C:\\Users\\João\\Documents\\Projects\\FIAP\\Startup\\.codex-tmp\\promova-pitch-deck\\template-frame-map.json",
+  "output": "C:\\Users\\João\\Documents\\Projects\\FIAP\\Startup\\.codex-tmp\\promova-pitch-deck\\template-starter.pptx",
+  "outputBytes": 378538,
+  "sourceSlideCount": 5,
+  "slideCount": 6,
+  "previewDir": "C:\\Users\\João\\Documents\\Projects\\FIAP\\Startup\\.codex-tmp\\promova-pitch-deck\\template-starter-preview",
+  "layoutDir": "C:\\Users\\João\\Documents\\Projects\\FIAP\\Startup\\.codex-tmp\\promova-pitch-deck\\template-starter-layout",
+  "slides": [
+    {
+      "outputSlide": 1,
+      "sourceSlide": 1,
+      "narrativeRole": "opening thesis and problem",
+      "reuseMode": "duplicate-slide",
+      "editTargetCount": 2,
+      "previewPath": "C:\\Users\\João\\Documents\\Projects\\FIAP\\Startup\\.codex-tmp\\promova-pitch-deck\\template-starter-preview\\starter-slide-01.png",
+      "previewRelativePath": "template-starter-preview/starter-slide-01.png",
+      "layoutPath": "C:\\Users\\João\\Documents\\Projects\\FIAP\\Startup\\.codex-tmp\\promova-pitch-deck\\template-starter-layout\\starter-slide-01.layout.json",
+      "layoutRelativePath": "template-starter-layout/starter-slide-01.layout.json"
+    },
+    {
+      "outputSlide": 2,
+      "sourceSlide": 4,
+      "narrativeRole": "solution flow and MVP proof",
+      "reuseMode": "duplicate-slide",
+      "editTargetCount": 4,
+      "previewPath": "C:\\Users\\João\\Documents\\Projects\\FIAP\\Startup\\.codex-tmp\\promova-pitch-deck\\template-starter-preview\\starter-slide-02.png",
+      "previewRelativePath": "template-starter-preview/starter-slide-02.png",
+      "layoutPath": "C:\\Users\\João\\Documents\\Projects\\FIAP\\Startup\\.codex-tmp\\promova-pitch-deck\\template-starter-layout\\starter-slide-02.layout.json",
+      "layoutRelativePath": "template-starter-layout/starter-slide-02.layout.json"
+    },
+    {
+      "outputSlide": 3,
+      "sourceSlide": 4,
+      "narrativeRole": "audience and value proposition",
+      "reuseMode": "duplicate-slide",
+      "editTargetCount": 4,
+      "previewPath": "C:\\Users\\João\\Documents\\Projects\\FIAP\\Startup\\.codex-tmp\\promova-pitch-deck\\template-starter-preview\\starter-slide-03.png",
+      "previewRelativePath": "template-starter-preview/starter-slide-03.png",
+      "layoutPath": "C:\\Users\\João\\Documents\\Projects\\FIAP\\Startup\\.codex-tmp\\promova-pitch-deck\\template-starter-layout\\starter-slide-03.layout.json",
+      "layoutRelativePath": "template-starter-layout/starter-slide-03.layout.json"
+    },
+    {
+      "outputSlide": 4,
+      "sourceSlide": 4,
+      "narrativeRole": "go-to-market channels and adoption support",
+      "reuseMode": "duplicate-slide",
+      "editTargetCount": 4,
+      "previewPath": "C:\\Users\\João\\Documents\\Projects\\FIAP\\Startup\\.codex-tmp\\promova-pitch-deck\\template-starter-preview\\starter-slide-04.png",
+      "previewRelativePath": "template-starter-preview/starter-slide-04.png",
+      "layoutPath": "C:\\Users\\João\\Documents\\Projects\\FIAP\\Startup\\.codex-tmp\\promova-pitch-deck\\template-starter-layout\\starter-slide-04.layout.json",
+      "layoutRelativePath": "template-starter-layout/starter-slide-04.layout.json"
+    },
+    {
+      "outputSlide": 5,
+      "sourceSlide": 5,
+      "narrativeRole": "success metrics expansion and business model",
+      "reuseMode": "duplicate-slide",
+      "editTargetCount": 2,
+      "previewPath": "C:\\Users\\João\\Documents\\Projects\\FIAP\\Startup\\.codex-tmp\\promova-pitch-deck\\template-starter-preview\\starter-slide-05.png",
+      "previewRelativePath": "template-starter-preview/starter-slide-05.png",
+      "layoutPath": "C:\\Users\\João\\Documents\\Projects\\FIAP\\Startup\\.codex-tmp\\promova-pitch-deck\\template-starter-layout\\starter-slide-05.layout.json",
+      "layoutRelativePath": "template-starter-layout/starter-slide-05.layout.json"
+    },
+    {
+      "outputSlide": 6,
+      "sourceSlide": 5,
+      "narrativeRole": "closing synthesis",
+      "reuseMode": "duplicate-slide",
+      "editTargetCount": 2,
+      "previewPath": "C:\\Users\\João\\Documents\\Projects\\FIAP\\Startup\\.codex-tmp\\promova-pitch-deck\\template-starter-preview\\starter-slide-06.png",
+      "previewRelativePath": "template-starter-preview/starter-slide-06.png",
+      "layoutPath": "C:\\Users\\João\\Documents\\Projects\\FIAP\\Startup\\.codex-tmp\\promova-pitch-deck\\template-starter-layout\\starter-slide-06.layout.json",
+      "layoutRelativePath": "template-starter-layout/starter-slide-06.layout.json"
+    }
+  ]
+}

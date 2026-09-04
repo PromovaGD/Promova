@@ -1,0 +1,26 @@
+Source structure:
+- 5 slides, 1280 x 720, one preserved PowerPoint master named Master, one child layout named Title Slide.
+- The source slides contain no inherited layout/master furniture; the identity is implemented as editable slide-local elements.
+- Typography: Inter throughout; display and headings bold, labels bold, body regular.
+- Core palette: #FBFAFF canvas, #0D102B dark surface, #111744 ink, #FFFFFF white, #F0ECFF lavender, #E5E0F5 border, #7C60F6 violet, #4B1FD1 deep violet, #A896FF soft violet.
+
+Reusable source patterns:
+- Slide 1: dark opening with exact logo card and two-column composition.
+- Slide 4: light two-panel content slide with rounded white surfaces.
+- Slide 5: full-gradient card layout and closing/section treatment.
+
+Brand assets and rules:
+- Keep the supplied logo image and proportions intact.
+- Use violet/gradient as a signal of motion, not generic wallpaper.
+- Maintain calm canvas/ink surfaces and one energetic element per surface.
+- Keep semantic green, attention amber, and blocked red distinct from brand violet.
+
+Insertion contract:
+- Every output slide duplicates a mapped source slide.
+- Existing title, subtitle, chrome, card, and text elements are edited in place when usable.
+- New primitives are allowed only inside the bounded inherited card zones on slides 1-4, because the requested flow/list structures do not exist in the guide deck.
+- No new primitives cover the logo, source card borders, footer lines, page markers, or background motifs.
+
+Known source issue:
+- Source slide 4 has an accidental title/subtitle overlap. Output slides mapped from it reposition the subtitle lower and reduce title copy length; the overlap is not treated as a style rule.
+

@@ -1,0 +1,15 @@
+Communication job: By the end, the TCC evaluation panel should understand that Promova is a viable evidence-oriented team-management product because it structures real work signals without delegating promotion decisions to AI.
+
+Audience: academic TCC panel, potential startup mentors, and product/technology evaluators.
+Purpose: explain the problem and product quickly, enable a live MVP demonstration, and show a concise go-to-market and business model.
+Narrative arc: problem -> solution and MVP -> audience and value -> channels and support -> success, expansion, and business model -> human-centered closing.
+
+Slide 1: PROMOVA + problem. Minimal opening, exact logo, four short problem signals, and the promise of fairer evidence-based decisions.
+Slide 2: How Promova works. Five-step evidence flow, concise MVP capabilities, and a clear transition to the live demo.
+Slide 3: Audience + value proposition. Two balanced areas; avoid repeating product mechanics.
+Slide 4: Channels + support. Two balanced areas showing acquisition and adoption support.
+Slide 5: Success + expansion + business model. Three blocks, prices, initial 150-user scenario, and human-decision footer.
+Slide 6: Closing. Extremely minimal, no new concepts.
+
+Content constraints: no invented features, clients, results, metrics, or claims. All visible copy comes from the user-provided brief or direct arithmetic based on it. Use no more than six short bullets per slide.
+

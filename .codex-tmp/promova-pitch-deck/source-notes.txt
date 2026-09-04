@@ -1,0 +1,13 @@
+Source deck: C:\Users\João\.codex\worktrees\955c\Startup\artifacts\promova-visual-identity-guide.pptx
+Role: user-designated visual identity and structural reference.
+Reusable asset: exact Promova logo image embedded in the source deck.
+
+Content source: user-provided TCC/startup pitch brief in the current conversation.
+No external research or web assets are used.
+
+Pricing arithmetic retained from the brief:
+- 3 companies x 50 employees = 150 initial users.
+- Base price R$ 29,99/user/month; estimated cost R$ 16,66/user/month.
+- Premium price R$ 45,36/user/month; estimated cost R$ 25,20/user/month.
+- Pricing method: cost-based pricing with 80% markup, compared with existing market solutions, as stated by the user.
+

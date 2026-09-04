@@ -1,0 +1,25 @@
+Roteiro-base do pitch Promova - 5 minutos
+
+1. Abertura (0:00-0:30)
+Apresentar o Promova como uma solução para tornar conversas de carreira mais justas, transparentes e baseadas em evidências reais. Começar pela dor: pessoas querem evoluir, mas nem sempre sabem quais evidências comprovam essa evolução.
+
+2. Problema (0:30-1:10)
+Explicar que promoções em tecnologia ainda dependem de coleta manual, memória recente e percepção subjetiva. Evidências ficam espalhadas entre GitHub, tarefas, mensagens e reuniões, o que prejudica clareza para colaboradores e gestores.
+
+3. Oportunidade (1:10-1:45)
+Defender que carreira precisa ser acompanhada continuamente. Quanto mais cedo uma evidência é capturada, menor o risco de a decisão final depender apenas de opinião ou lembrança.
+
+4. Solução (1:45-2:35)
+Mostrar o fluxo do Promova: captura de evidências, análise com IA e framework de carreira, organização em painel e uso como base para conversas de feedback e promoção. Reforçar que a IA apoia, mas a decisão continua humana.
+
+5. Produto/MVP (2:35-3:25)
+Apresentar o MVP: backend em Spring Boot, frontend navegável, análise estruturada, integração com GitHub e possibilidade de análise real via OpenRouter. Usar o exemplo de evidência importada e classificada por impacto.
+
+6. Valor e diferenciais (3:25-4:05)
+Para engenheiros: clareza sobre evolução. Para gestores: menos coleta manual e decisões melhor justificadas. Para empresas: consistência, transparência e redução de vieses. Diferencial: evidência contínua + framework explícito + IA como apoio.
+
+7. Negócio e evolução (4:05-4:40)
+Apresentar a hipótese B2B SaaS para squads e empresas com carreira técnica. Começar por pilotos em times de engenharia e evoluir para persistência, Jira, Slack, dashboards de time e métricas históricas.
+
+8. Fechamento (4:40-5:00)
+Fechar com a mensagem: promoção não deveria depender de quem lembra melhor, e sim de evidências consistentes. Pedir validação com usuários reais e pilotos para evoluir o produto.

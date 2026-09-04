@@ -1,0 +1,156 @@
+{"kind":"deck","id":"pr/vln8mi","name":"Deck"}
+{"kind":"layout","layoutId":"6a6632b6-7c49-454f-a9b9-e66d3e80f1b8","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"3e0fb844-5ba7-4347-99be-c38c4f9ae167","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/l11hfd","slide":1,"title":"Evidência capturada","textShapes":7}
+{"kind":"shape","id":"sh/uxc3ylc7","slide":1,"bbox":[0,0,1280,720]}
+{"kind":"shape","id":"sh/1kre1w7m","slide":1,"bbox":[0,0,1280,18]}
+{"kind":"shape","id":"sh/c3ylc7u5","slide":1,"bbox":[790,104,330,430]}
+{"kind":"shape","id":"sh/j6tovaho","slide":1,"bbox":[835,154,240,54]}
+{"kind":"textbox","id":"sh/ulwval87","slide":1,"text":"Evidência capturada","textPreview":"Evidência capturada","textChars":19,"textLines":1,"bbox":[860,171,190,22]}
+{"kind":"shape","id":"sh/1cfa9w3m","slide":1,"bbox":[835,238,240,88]}
+{"kind":"textbox","id":"sh/crmhk3q5","slide":1,"text":"IA + framework","textPreview":"IA + framework","textChars":14,"textLines":1,"bbox":[860,267,190,26]}
+{"kind":"shape","id":"sh/j2t83itg","slide":1,"bbox":[835,356,240,108]}
+{"kind":"textbox","id":"sh/qh0fepkz","slide":1,"text":"Decisão mais justa","textPreview":"Decisão mais justa","textChars":18,"textLines":1,"bbox":[860,394,190,28]}
+{"kind":"textbox","id":"sh/s36hcrmh","slide":1,"text":"Promova","textPreview":"Promova","textChars":7,"textLines":1,"bbox":[76,132,560,72]}
+{"kind":"textbox","id":"sh/hoza1gvy","slide":1,"text":"Promoções justas baseadas em evidências reais","textPreview":"Promoções justas baseadas em evidências reais","textChars":45,"textLines":1,"bbox":[76,220,650,112]}
+{"kind":"textbox","id":"sh/a1gvy90j","slide":1,"text":"Um pitch de 5 minutos para apresentar o problema, a solução e o caminho de evolução do produto.","textPreview":"Um pitch de 5 minutos para apresentar o problema, a solução e o caminho de evolução do produto.","textChars":95,"textLines":1,"bbox":[76,358,610,64]}
+{"kind":"textbox","id":"sh/zidonyd0","slide":1,"text":"Projeto FIAP · Startup","textPreview":"Projeto FIAP · Startup","textChars":22,"textLines":1,"bbox":[76,548,340,32]}
+{"kind":"notes","id":"nt/l11hfd","slide":1,"text":"Abrir com uma frase direta: o Promova nasceu para tornar conversas de carreira mais justas, transparentes e baseadas em evidências reais.\nEm uma gravação de 5 minutos, não comece explicando tecnologia. Comece pela dor humana: pessoas querem crescer, mas nem sempre sabem quais evidências comprovam esse crescimento.\nTransição: hoje, esse processo ainda depende demais de memória, percepção e coleta manual."}
+{"kind":"slide","id":"sl/ctb81s","slide":2,"title":"PROBLEMA","textShapes":10}
+{"kind":"textbox","id":"sh/5wjudg7a","slide":2,"text":"PROBLEMA","textPreview":"PROBLEMA","textChars":8,"textLines":1,"bbox":[76,58,760,28]}
+{"kind":"textbox","id":"sh/y90je9cv","slide":2,"text":"Promoções ainda dependem de sinais frágeis","textPreview":"Promoções ainda dependem de sinais frágeis","textChars":42,"textLines":1,"bbox":[76,106,900,92]}
+{"kind":"textbox","id":"sh/nuxc3ylc","slide":2,"text":"Em times de tecnologia, o trabalho acontece em várias ferramentas, mas a decisão de carreira costuma acontecer em uma reunião.","textPreview":"Em times de tecnologia, o trabalho acontece em várias ferramentas, mas a decisão de carreira costuma acontecer em uma reunião.","textChars":126,"textLines":1,"bbox":[76,204,900,64]}
+{"kind":"shape","id":"sh/gn29gr2p","slide":2,"bbox":[76,302,350,132]}
+{"kind":"shape","id":"sh/58z25kb6","slide":2,"bbox":[76,302,8,132]}
+{"kind":"textbox","id":"sh/yhgn29gr","slide":2,"text":"Coleta manual","textPreview":"Coleta manual","textChars":13,"textLines":1,"bbox":[102,324,304,32]}
+{"kind":"textbox","id":"sh/n29gr2p8","slide":2,"text":"Gestores gastam tempo procurando exemplos em PRs, tarefas, mensagens e memória recente.","textPreview":"Gestores gastam tempo procurando exemplos em PRs, tarefas, mensagens e memória recente.","textChars":87,"textLines":1,"bbox":[102,364,304,54]}
+{"kind":"shape","id":"sh/czed8v6p","slide":2,"bbox":[465,302,350,132]}
+{"kind":"shape","id":"sh/5kb6xkf6","slide":2,"bbox":[465,302,8,132]}
+{"kind":"textbox","id":"sh/x4nap4r6","slide":2,"text":"Baixa transparência","textPreview":"Baixa transparência","textChars":19,"textLines":1,"bbox":[491,324,304,32]}
+{"kind":"textbox","id":"sh/8jqh0fep","slide":2,"text":"A pessoa não enxerga com clareza o que falta para evoluir de nível.","textPreview":"A pessoa não enxerga com clareza o que falta para evoluir de nível.","textChars":67,"textLines":1,"bbox":[491,364,304,54]}
+{"kind":"shape","id":"sh/fyxobm58","slide":2,"bbox":[854,302,350,132]}
+{"kind":"shape","id":"sh/qd4vmtwr","slide":2,"bbox":[854,302,8,132]}
+{"kind":"textbox","id":"sh/xczed8v6","slide":2,"text":"Risco de viés","textPreview":"Risco de viés","textChars":13,"textLines":1,"bbox":[880,324,304,32]}
+{"kind":"textbox","id":"sh/8v6psfil","slide":2,"text":"Quando faltam evidências, opinião e lembrança recente pesam mais do que impacto acumulado.","textPreview":"Quando faltam evidências, opinião e lembrança recente pesam mais do que impacto acumulado.","textChars":90,"textLines":1,"bbox":[880,364,304,54]}
+{"kind":"textbox","id":"sh/fa9w3m94","slide":2,"text":"Promova · Pitch de 5 minutos · 2/8","textPreview":"Promova · Pitch de 5 minutos · 2/8","textChars":34,"textLines":1,"bbox":[76,675,420,24]}
+{"kind":"notes","id":"nt/ctb81s","slide":2,"text":"Explique o problema com um exemplo: um desenvolvedor pode ter melhorado testes, feito revisões importantes e apoiado colegas, mas essas evidências ficam espalhadas.\nNa hora da avaliação, parte do contexto se perde. Isso prejudica tanto a pessoa avaliada quanto a liderança, que precisa justificar decisões.\nA dor central: falta um sistema contínuo de evidências conectado ao framework de carreira."}
+{"kind":"slide","id":"sl/6619dy","slide":3,"title":"OPORTUNIDADE","textShapes":14}
+{"kind":"textbox","id":"sh/psfil0rq","slide":3,"text":"OPORTUNIDADE","textPreview":"OPORTUNIDADE","textChars":12,"textLines":1,"bbox":[76,58,760,28]}
+{"kind":"textbox","id":"sh/e1w7mp0b","slide":3,"text":"Carreira precisa virar um processo contínuo","textPreview":"Carreira precisa virar um processo contínuo","textChars":43,"textLines":1,"bbox":[76,106,900,92]}
+{"kind":"textbox","id":"sh/7mp0bi9s","slide":3,"text":"A oportunidade está em transformar sinais do trabalho diário em uma base confiável para conversas de evolução.","textPreview":"A oportunidade está em transformar sinais do trabalho diário em uma base confiável para conversas de evolução.","textChars":110,"textLines":1,"bbox":[76,204,900,64]}
+{"kind":"shape","id":"sh/wval87ed","slide":3,"bbox":[76,292,340,150]}
+{"kind":"textbox","id":"sh/pg3ex0nu","slide":3,"text":"PARA PESSOAS","textPreview":"PARA PESSOAS","textChars":12,"textLines":1,"bbox":[102,314,288,24]}
+{"kind":"textbox","id":"sh/epkzupwb","slide":3,"text":"Clareza","textPreview":"Clareza","textChars":7,"textLines":1,"bbox":[102,344,288,46]}
+{"kind":"textbox","id":"sh/7adsji5s","slide":3,"text":"Entender o que já foi demonstrado e o que precisa ser reforçado.","textPreview":"Entender o que já foi demonstrado e o que precisa ser reforçado.","textChars":64,"textLines":1,"bbox":[102,396,288,34]}
+{"kind":"shape","id":"sh/wra5gbq1","slide":3,"bbox":[470,292,340,150]}
+{"kind":"textbox","id":"sh/lc7u54zi","slide":3,"text":"PARA GESTORES","textPreview":"PARA GESTORES","textChars":13,"textLines":1,"bbox":[496,314,288,24]}
+{"kind":"textbox","id":"sh/9w3m94fu","slide":3,"text":"Tempo","textPreview":"Tempo","textChars":5,"textLines":1,"bbox":[496,344,288,46]}
+{"kind":"textbox","id":"sh/kb6xkf6d","slide":3,"text":"Reduzir coleta manual e apoiar decisões com exemplos concretos.","textPreview":"Reduzir coleta manual e apoiar decisões com exemplos concretos.","textChars":63,"textLines":1,"bbox":[496,396,288,34]}
+{"kind":"shape","id":"sh/rqd4vmtw","slide":3,"bbox":[864,292,340,150]}
+{"kind":"textbox","id":"sh/25kb6xkf","slide":3,"text":"PARA EMPRESAS","textPreview":"PARA EMPRESAS","textChars":13,"textLines":1,"bbox":[890,314,288,24]}
+{"kind":"textbox","id":"sh/9knih4by","slide":3,"text":"Consistência","textPreview":"Consistência","textChars":12,"textLines":1,"bbox":[890,344,288,46]}
+{"kind":"textbox","id":"sh/kzupwb2h","slide":3,"text":"Aplicar critérios de carreira com mais padronização entre times.","textPreview":"Aplicar critérios de carreira com mais padronização entre times.","textChars":64,"textLines":1,"bbox":[890,396,288,34]}
+{"kind":"shape","id":"sh/re1w7mp0","slide":3,"bbox":[150,512,980,2]}
+{"kind":"textbox","id":"sh/2t83itgf","slide":3,"text":"Tese: quanto mais cedo a evidência é capturada, menos subjetiva fica a conversa de promoção.","textPreview":"Tese: quanto mais cedo a evidência é capturada, menos subjetiva fica a conversa de promoção.","textChars":92,"textLines":1,"bbox":[214,540,850,42]}
+{"kind":"textbox","id":"sh/9gr2p8nq","slide":3,"text":"Promova · Pitch de 5 minutos · 3/8","textPreview":"Promova · Pitch de 5 minutos · 3/8","textChars":34,"textLines":1,"bbox":[76,675,420,24]}
+{"kind":"notes","id":"nt/6619dy","slide":3,"text":"Aqui vocês mostram que o problema não é só operacional; ele afeta confiança no processo.\nO Promova não tenta substituir a liderança. Ele melhora a qualidade da conversa ao trazer evidências organizadas.\nTransição: a partir dessa oportunidade, nossa solução conecta fontes reais de trabalho a uma análise estruturada."}
+{"kind":"slide","id":"sl/9vrbft","slide":4,"title":"SOLUÇÃO","textShapes":19}
+{"kind":"textbox","id":"sh/hgn29gr2","slide":4,"text":"SOLUÇÃO","textPreview":"SOLUÇÃO","textChars":7,"textLines":1,"bbox":[76,58,760,28]}
+{"kind":"textbox","id":"sh/ap4r65wj","slide":4,"text":"Promova organiza evidências e traduz impacto","textPreview":"Promova organiza evidências e traduz impacto","textChars":44,"textLines":1,"bbox":[76,106,900,92]}
+{"kind":"textbox","id":"sh/za1gvy90","slide":4,"text":"A plataforma captura sinais do trabalho, compara com o framework de carreira e devolve uma leitura revisável.","textPreview":"A plataforma captura sinais do trabalho, compara com o framework de carreira e devolve uma leitura revisável.","textChars":109,"textLines":1,"bbox":[76,204,900,64]}
+{"kind":"shape","id":"sh/s36hcrmh","slide":4,"bbox":[76,305,238,178]}
+{"kind":"shape","id":"sh/hoza1gvy","slide":4,"bbox":[100,329,42,42]}
+{"kind":"textbox","id":"sh/a1gvy90j","slide":4,"text":"1","textPreview":"1","textChars":1,"textLines":1,"bbox":[113,336,18,24]}
+{"kind":"textbox","id":"sh/zidonyd0","slide":4,"text":"Captura","textPreview":"Captura","textChars":7,"textLines":1,"bbox":[100,387,190,30]}
+{"kind":"textbox","id":"sh/s72x4nap","slide":4,"text":"PRs, commits, revisões e evidências registradas","textPreview":"PRs, commits, revisões e evidências registradas","textChars":47,"textLines":1,"bbox":[100,425,188,42]}
+{"kind":"textbox","id":"sh/lszqtcj6","slide":4,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[324,375,34,40]}
+{"kind":"shape","id":"sh/h0fepkzu","slide":4,"bbox":[358,305,238,178]}
+{"kind":"shape","id":"sh/sfil0rqd","slide":4,"bbox":[382,329,42,42]}
+{"kind":"textbox","id":"sh/zupwb2hw","slide":4,"text":"2","textPreview":"2","textChars":1,"textLines":1,"bbox":[395,336,18,24]}
+{"kind":"textbox","id":"sh/a9w3m94f","slide":4,"text":"Análise","textPreview":"Análise","textChars":7,"textLines":1,"bbox":[382,387,190,30]}
+{"kind":"textbox","id":"sh/hcrmhk3q","slide":4,"text":"IA avalia nível, competências e justificativa","textPreview":"IA avalia nível, competências e justificativa","textChars":45,"textLines":1,"bbox":[382,425,188,42]}
+{"kind":"textbox","id":"sh/orytsvu9","slide":4,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[606,375,34,40]}
+{"kind":"shape","id":"sh/z61032ls","slide":4,"bbox":[640,305,238,178]}
+{"kind":"shape","id":"sh/al87ed8b","slide":4,"bbox":[664,329,42,42]}
+{"kind":"textbox","id":"sh/hk3q5o7q","slide":4,"text":"3","textPreview":"3","textChars":1,"textLines":1,"bbox":[677,336,18,24]}
+{"kind":"textbox","id":"sh/oza1gvy9","slide":4,"text":"Painel","textPreview":"Painel","textChars":6,"textLines":1,"bbox":[664,387,190,30]}
+{"kind":"textbox","id":"sh/kf6dcbul","slide":4,"text":"Histórico filtrável de evidências e progresso","textPreview":"Histórico filtrável de evidências e progresso","textChars":45,"textLines":1,"bbox":[664,425,188,42]}
+{"kind":"textbox","id":"sh/d0z61032","slide":4,"text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[888,375,34,40]}
+{"kind":"shape","id":"sh/29gr2p8n","slide":4,"bbox":[922,305,238,178]}
+{"kind":"shape","id":"sh/vu9knih4","slide":4,"bbox":[946,329,42,42]}
+{"kind":"textbox","id":"sh/knih4byh","slide":4,"text":"4","textPreview":"4","textChars":1,"textLines":1,"bbox":[959,336,18,24]}
+{"kind":"textbox","id":"sh/d8bat47y","slide":4,"text":"Conversa","textPreview":"Conversa","textChars":8,"textLines":1,"bbox":[946,387,190,30]}
+{"kind":"textbox","id":"sh/2lszqtcj","slide":4,"text":"Base objetiva para feedback e promoção","textPreview":"Base objetiva para feedback e promoção","textChars":38,"textLines":1,"bbox":[946,425,188,42]}
+{"kind":"textbox","id":"sh/v6psfil0","slide":4,"text":"Promova · Pitch de 5 minutos · 4/8","textPreview":"Promova · Pitch de 5 minutos · 4/8","textChars":34,"textLines":1,"bbox":[76,675,420,24]}
+{"kind":"notes","id":"nt/9vrbft","slide":4,"text":"Explique o fluxo em quatro passos, sem entrar demais em detalhes técnicos.\nO diferencial é que a evidência vem do trabalho real e é lida contra critérios explícitos de carreira, como L3, L4 e L5.\nReforce que o resultado é revisável: a IA apoia, mas a decisão final continua humana."}
+{"kind":"slide","id":"sl/wb41fl","slide":5,"title":"PRODUTO","textShapes":14}
+{"kind":"textbox","id":"sh/m94fu18j","slide":5,"text":"PRODUTO","textPreview":"PRODUTO","textChars":7,"textLines":1,"bbox":[76,58,760,28]}
+{"kind":"textbox","id":"sh/x0nuxc3y","slide":5,"text":"O MVP já demonstra o ciclo completo","textPreview":"O MVP já demonstra o ciclo completo","textChars":35,"textLines":1,"bbox":[76,106,900,92]}
+{"kind":"textbox","id":"sh/4fu18jqh","slide":5,"text":"O protótipo conecta evidências, análise e visualização em painel.","textPreview":"O protótipo conecta evidências, análise e visualização em painel.","textChars":65,"textLines":1,"bbox":[76,204,900,64]}
+{"kind":"shape","id":"sh/fil0rqd4","slide":5,"bbox":[76,258,528,318]}
+{"kind":"textbox","id":"sh/qxs72x4n","slide":5,"text":"Evidência importada do GitHub","textPreview":"Evidência importada do GitHub","textChars":29,"textLines":1,"bbox":[110,290,430,30]}
+{"kind":"textbox","id":"sh/xobm58z2","slide":5,"text":"Refatorou módulo crítico, aumentou cobertura de testes e revisou PRs do time.","textPreview":"Refatorou módulo crítico, aumentou cobertura de testes e revisou PRs do time.","textChars":77,"textLines":1,"bbox":[110,338,420,60]}
+{"kind":"shape","id":"sh/83itgfml","slide":5,"bbox":[110,425,160,52]}
+{"kind":"textbox","id":"sh/fepkzupw","slide":5,"text":"Impacto L4","textPreview":"Impacto L4","textChars":10,"textLines":1,"bbox":[132,440,120,24]}
+{"kind":"shape","id":"sh/mtwra5gb","slide":5,"bbox":[286,425,206,52]}
+{"kind":"textbox","id":"sh/oj2t83it","slide":5,"text":"Confiança média","textPreview":"Confiança média","textChars":15,"textLines":1,"bbox":[312,440,150,24]}
+{"kind":"textbox","id":"sh/d4vmtwra","slide":5,"text":"Sugestão: incluir métrica de resultado e contribuição específica.","textPreview":"Sugestão: incluir métrica de resultado e contribuição específica.","textChars":65,"textLines":1,"bbox":[110,508,430,38]}
+{"kind":"shape","id":"sh/6dcbulwv","slide":5,"bbox":[676,258,528,318]}
+{"kind":"textbox","id":"sh/vy90je9c","slide":5,"text":"Painel de evolução","textPreview":"Painel de evolução","textChars":18,"textLines":1,"bbox":[710,290,380,30]}
+{"kind":"textbox","id":"sh/o7qpg3ex","slide":5,"text":"Code Quality","textPreview":"Code Quality","textChars":12,"textLines":1,"bbox":[710,350,145,24]}
+{"kind":"shape","id":"sh/dsji5sne","slide":5,"bbox":[870,352,286,22]}
+{"kind":"shape","id":"sh/61032lsz","slide":5,"bbox":[870,352,315,22]}
+{"kind":"textbox","id":"sh/vmtwra5g","slide":5,"text":"Ownership","textPreview":"Ownership","textChars":9,"textLines":1,"bbox":[710,412,145,24]}
+{"kind":"shape","id":"sh/ovahoza1","slide":5,"bbox":[870,414,286,22]}
+{"kind":"shape","id":"sh/dg7adsji","slide":5,"bbox":[870,414,245,22]}
+{"kind":"textbox","id":"sh/1kre1w7m","slide":5,"text":"Leadership","textPreview":"Leadership","textChars":10,"textLines":1,"bbox":[710,474,145,24]}
+{"kind":"shape","id":"sh/c3ylc7u5","slide":5,"bbox":[870,476,286,22]}
+{"kind":"shape","id":"sh/ji5snelo","slide":5,"bbox":[870,476,160,22]}
+{"kind":"textbox","id":"sh/uxc3ylc7","slide":5,"text":"Visão por período, fonte e colaborador para apoiar conversas recorrentes.","textPreview":"Visão por período, fonte e colaborador para apoiar conversas recorrentes.","textChars":73,"textLines":1,"bbox":[710,520,420,46]}
+{"kind":"textbox","id":"sh/1cfa9w3m","slide":5,"text":"Promova · Pitch de 5 minutos · 5/8","textPreview":"Promova · Pitch de 5 minutos · 5/8","textChars":34,"textLines":1,"bbox":[76,675,420,24]}
+{"kind":"notes","id":"nt/wb41fl","slide":5,"text":"Este é o slide de demonstração. Mostrem o que o usuário vê: uma evidência capturada, a classificação de impacto, competências identificadas e sugestões.\nCitem que o backend já tem endpoints de análise, integração com GitHub, motor mock e opção de análise real via OpenRouter.\nTransição: depois de mostrar o produto, deixem claro para quem ele gera valor."}
+{"kind":"slide","id":"sl/oz959y","slide":6,"title":"VALOR","textShapes":11}
+{"kind":"textbox","id":"sh/9knih4by","slide":6,"text":"VALOR","textPreview":"VALOR","textChars":5,"textLines":1,"bbox":[76,58,760,28]}
+{"kind":"textbox","id":"sh/2t83itgf","slide":6,"text":"O Promova melhora a conversa para todos os lados","textPreview":"O Promova melhora a conversa para todos os lados","textChars":48,"textLines":1,"bbox":[76,106,900,92]}
+{"kind":"textbox","id":"sh/re1w7mp0","slide":6,"text":"A solução não é apenas um repositório; ela muda a qualidade do processo de evolução.","textPreview":"A solução não é apenas um repositório; ela muda a qualidade do processo de evolução.","textChars":84,"textLines":1,"bbox":[76,204,900,64]}
+{"kind":"shape","id":"sh/kb6xkf6d","slide":6,"bbox":[76,284,350,132]}
+{"kind":"shape","id":"sh/9w3m94fu","slide":6,"bbox":[76,284,8,132]}
+{"kind":"textbox","id":"sh/25kb6xkf","slide":6,"text":"Engenheiros","textPreview":"Engenheiros","textChars":11,"textLines":1,"bbox":[102,306,304,32]}
+{"kind":"textbox","id":"sh/rqd4vmtw","slide":6,"text":"Acompanham evidências, entendem lacunas e chegam mais preparados para feedback.","textPreview":"Acompanham evidências, entendem lacunas e chegam mais preparados para feedback.","textChars":79,"textLines":1,"bbox":[102,346,304,54]}
+{"kind":"shape","id":"sh/kjm1cfa9","slide":6,"bbox":[465,284,350,132]}
+{"kind":"shape","id":"sh/94fu18jq","slide":6,"bbox":[465,284,8,132]}
+{"kind":"textbox","id":"sh/1orytsvu","slide":6,"text":"Gestores","textPreview":"Gestores","textChars":8,"textLines":1,"bbox":[491,306,304,32]}
+{"kind":"textbox","id":"sh/c7u54zid","slide":6,"text":"Reduzem esforço de coleta e defendem decisões com exemplos objetivos.","textPreview":"Reduzem esforço de coleta e defendem decisões com exemplos objetivos.","textChars":69,"textLines":1,"bbox":[491,346,304,54]}
+{"kind":"shape","id":"sh/jm1cfa9w","slide":6,"bbox":[854,284,350,132]}
+{"kind":"shape","id":"sh/u18jqh0f","slide":6,"bbox":[854,284,8,132]}
+{"kind":"textbox","id":"sh/1032lszq","slide":6,"text":"Empresa","textPreview":"Empresa","textChars":7,"textLines":1,"bbox":[880,306,304,32]}
+{"kind":"textbox","id":"sh/cfa9w3m9","slide":6,"text":"Ganha consistência, transparência e menor risco de decisões enviesadas.","textPreview":"Ganha consistência, transparência e menor risco de decisões enviesadas.","textChars":71,"textLines":1,"bbox":[880,346,304,54]}
+{"kind":"textbox","id":"sh/judg7ads","slide":6,"text":"Diferencial: evidência contínua + framework explícito + IA como apoio, não como decisão automática.","textPreview":"Diferencial: evidência contínua + framework explícito + IA como apoio, não como decisão automática.","textChars":99,"textLines":1,"bbox":[158,526,964,44]}
+{"kind":"textbox","id":"sh/u9knih4b","slide":6,"text":"Promova · Pitch de 5 minutos · 6/8","textPreview":"Promova · Pitch de 5 minutos · 6/8","textChars":34,"textLines":1,"bbox":[76,675,420,24]}
+{"kind":"notes","id":"nt/oz959y","slide":6,"text":"Aqui o objetivo é mostrar benefício por stakeholder.\nPara a pessoa desenvolvedora, é clareza. Para o gestor, é economia de tempo e melhor justificativa. Para a empresa, é consistência.\nReforce a frase final como posicionamento: o Promova apoia decisões humanas com evidências mais fortes."}
+{"kind":"slide","id":"sl/3mqs1g","slide":7,"title":"NEGÓCIO E EVOLUÇÃO","textShapes":11}
+{"kind":"textbox","id":"sh/ytsvu9kn","slide":7,"text":"NEGÓCIO E EVOLUÇÃO","textPreview":"NEGÓCIO E EVOLUÇÃO","textChars":18,"textLines":1,"bbox":[76,58,760,28]}
+{"kind":"textbox","id":"sh/5kb6xkf6","slide":7,"text":"Começamos com um nicho claro: times de tecnologia","textPreview":"Começamos com um nicho claro: times de tecnologia","textChars":49,"textLines":1,"bbox":[76,106,900,92]}
+{"kind":"textbox","id":"sh/czed8v6p","slide":7,"text":"A hipótese comercial é B2B SaaS para squads e empresas que precisam padronizar carreira técnica.","textPreview":"A hipótese comercial é B2B SaaS para squads e empresas que precisam padronizar carreira técnica.","textChars":96,"textLines":1,"bbox":[76,204,900,64]}
+{"kind":"shape","id":"sh/nqxs72x4","slide":7,"bbox":[76,250,336,250]}
+{"kind":"textbox","id":"sh/u54zidon","slide":7,"text":"Entrada","textPreview":"Entrada","textChars":7,"textLines":1,"bbox":[110,282,250,30]}
+{"kind":"textbox","id":"sh/5sneloj2","slide":7,"text":"Pilotos com squads de engenharia, começando por GitHub e framework de carreira.","textPreview":"Pilotos com squads de engenharia, começando por GitHub e framework de carreira.","textChars":79,"textLines":1,"bbox":[110,338,260,92]}
+{"kind":"shape","id":"sh/cbulwval","slide":7,"bbox":[472,250,336,250]}
+{"kind":"textbox","id":"sh/nuxc3ylc","slide":7,"text":"Monetização","textPreview":"Monetização","textChars":11,"textLines":1,"bbox":[506,282,250,30]}
+{"kind":"textbox","id":"sh/y90je9cv","slide":7,"text":"Assinatura por usuário ou por time, com planos para liderança, RH e integrações.","textPreview":"Assinatura por usuário ou por time, com planos para liderança, RH e integrações.","textChars":80,"textLines":1,"bbox":[506,338,260,92]}
+{"kind":"shape","id":"sh/oza1gvy9","slide":7,"bbox":[868,250,336,250]}
+{"kind":"textbox","id":"sh/hk3q5o7q","slide":7,"text":"Roadmap","textPreview":"Roadmap","textChars":7,"textLines":1,"bbox":[902,282,250,30]}
+{"kind":"textbox","id":"sh/6xkf6dcb","slide":7,"text":"Persistência, Jira, Slack, dashboards de time e métricas de evolução ao longo do tempo.","textPreview":"Persistência, Jira, Slack, dashboards de time e métricas de evolução ao longo do tempo.","textChars":87,"textLines":1,"bbox":[902,338,260,100]}
+{"kind":"textbox","id":"sh/zed8v6ps","slide":7,"text":"O MVP valida fluxo e valor antes de escalar integrações.","textPreview":"O MVP valida fluxo e valor antes de escalar integrações.","textChars":56,"textLines":1,"bbox":[208,552,864,38]}
+{"kind":"textbox","id":"sh/obm58z25","slide":7,"text":"Promova · Pitch de 5 minutos · 7/8","textPreview":"Promova · Pitch de 5 minutos · 7/8","textChars":34,"textLines":1,"bbox":[76,675,420,24]}
+{"kind":"notes","id":"nt/3mqs1g","slide":7,"text":"Este slide cobre os elementos clássicos de pitch: mercado inicial, modelo e próximos passos.\nComo ainda é um projeto/protótipo, use linguagem de hipótese: a tese é vender para empresas com times de engenharia que já têm framework de carreira.\nFechem dizendo que o MVP reduz risco porque valida o fluxo antes de investir em muitas integrações."}
+{"kind":"slide","id":"sl/nm8vfa","slide":8,"title":"Fechamento","textShapes":5}
+{"kind":"shape","id":"sh/gfmlkjm1","slide":8,"bbox":[0,0,1280,720]}
+{"kind":"shape","id":"sh/rytsvu9k","slide":8,"bbox":[0,0,1280,18]}
+{"kind":"textbox","id":"sh/yd0z6103","slide":8,"text":"Fechamento","textPreview":"Fechamento","textChars":10,"textLines":1,"bbox":[76,104,420,34]}
+{"kind":"textbox","id":"sh/9s36hcrm","slide":8,"text":"Queremos transformar promoção em uma conversa com evidências, não em uma aposta de memória.","textPreview":"Queremos transformar promoção em uma conversa com evidências, não em uma aposta de memória.","textChars":91,"textLines":1,"bbox":[76,164,880,160]}
+{"kind":"textbox","id":"sh/g7adsji5","slide":8,"text":"Próximo passo: validar o piloto com usuários reais, coletar feedback do fluxo e evoluir integrações com ferramentas do dia a dia.","textPreview":"Próximo passo: validar o piloto com usuários reais, coletar feedback do fluxo e evoluir integrações com ferramentas do dia a dia.","textChars":129,"textLines":1,"bbox":[76,376,760,78]}
+{"kind":"shape","id":"sh/rmhk3q5o","slide":8,"bbox":[850,382,250,80]}
+{"kind":"textbox","id":"sh/y1kre1w7","slide":8,"text":"Promova","textPreview":"Promova","textChars":7,"textLines":1,"bbox":[900,404,150,32]}
+{"kind":"textbox","id":"sh/5o7qpg3e","slide":8,"text":"Obrigado","textPreview":"Obrigado","textChars":8,"textLines":1,"bbox":[76,590,220,34]}
+{"kind":"notes","id":"nt/nm8vfa","slide":8,"text":"Finalize com uma frase memorável: promoção não deveria depender de quem lembra melhor, e sim de evidências consistentes.\nReforce o pedido: validar com usuários reais, testar o fluxo em squads e entender quais integrações geram mais valor.\nTermine com segurança e deixe espaço para perguntas."}

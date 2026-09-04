@@ -1,0 +1,328 @@
+{
+  "outputSlides": [
+    {
+      "outputSlide": 1,
+      "sourceSlide": 1,
+      "narrativeRole": "opening thesis and problem",
+      "reuseMode": "duplicate-slide",
+      "editTargets": [
+        {
+          "action": "rewrite-and-reposition",
+          "shapeIds": [
+            "sh/k3yl0zql",
+            "sh/7qp4be9c",
+            "sh/65g3298r",
+            "sh/ts7md4r2",
+            "sh/sryl4zqx",
+            "sh/fu94fe98",
+            "sh/wn6dc7eh",
+            "sh/vmdcj2xw",
+            "sh/4r6dg7et",
+            "sh/5sfepcfe"
+          ]
+        },
+        {
+          "action": "add",
+          "newPrimitiveAllowed": true,
+          "mustNotOverlapInherited": true,
+          "zone": { "left": 72, "top": 420, "width": 560, "height": 150 },
+          "reason": "The source opening has two compact tags; two additional matching tags are required to show the four user-specified problem signals."
+        }
+      ]
+    },
+    {
+      "outputSlide": 2,
+      "sourceSlide": 4,
+      "narrativeRole": "solution flow and MVP proof",
+      "reuseMode": "duplicate-slide",
+      "editTargets": [
+        {
+          "action": "rewrite-and-reposition",
+          "shapeIds": [
+            "sh/5ony1oj6",
+            "sh/1cj2d8b6",
+            "sh/rm1k7yt4",
+            "sh/ql8jytsj",
+            "sh/doj29oba",
+            "sh/sna103ap"
+          ]
+        },
+        {
+          "action": "delete",
+          "shapeIds": [
+            "sh/ih8ju9sn",
+            "sh/kbm987y5",
+            "sh/5cva1cfq",
+            "sh/i94r6xgz",
+            "sh/jadsz2xk",
+            "sh/w72947yt",
+            "sh/x8vaxsfe",
+            "sh/a5kr2xg3",
+            "sh/v6tsv2xo",
+            "sh/h4fa9wfy",
+            "sh/p0batw72",
+            "sh/oz29krqh",
+            "sh/3ytsrmpw",
+            "sh/2xkrih8b",
+            "sh/1wbapc7q",
+            "sh/gv29g7q5",
+            "sh/fu9sn2p0",
+            "sh/et0reh8f",
+            "sh/tsrqlc7u",
+            "sh/sri9s7q9",
+            "sh/ilwf69kv",
+            "sh/jm5gze1g",
+            "sh/knex8j21"
+          ]
+        },
+        {
+          "action": "add",
+          "newPrimitiveAllowed": true,
+          "mustNotOverlapInherited": true,
+          "zone": { "left": 88, "top": 238, "width": 448, "height": 348 },
+          "reason": "A five-step evidence flow is required inside the inherited left card."
+        },
+        {
+          "action": "add",
+          "newPrimitiveAllowed": true,
+          "mustNotOverlapInherited": true,
+          "zone": { "left": 616, "top": 238, "width": 576, "height": 348 },
+          "reason": "A concise MVP capability list and live-demo transition are required inside the inherited right card."
+        }
+      ]
+    },
+    {
+      "outputSlide": 3,
+      "sourceSlide": 4,
+      "narrativeRole": "audience and value proposition",
+      "reuseMode": "duplicate-slide",
+      "editTargets": [
+        {
+          "action": "rewrite-and-reposition",
+          "shapeIds": [
+            "sh/5ony1oj6",
+            "sh/1cj2d8b6",
+            "sh/rm1k7yt4",
+            "sh/ql8jytsj",
+            "sh/doj29oba",
+            "sh/sna103ap"
+          ]
+        },
+        {
+          "action": "delete",
+          "shapeIds": [
+            "sh/ih8ju9sn",
+            "sh/kbm987y5",
+            "sh/5cva1cfq",
+            "sh/i94r6xgz",
+            "sh/jadsz2xk",
+            "sh/w72947yt",
+            "sh/x8vaxsfe",
+            "sh/a5kr2xg3",
+            "sh/v6tsv2xo",
+            "sh/h4fa9wfy",
+            "sh/p0batw72",
+            "sh/oz29krqh",
+            "sh/3ytsrmpw",
+            "sh/2xkrih8b",
+            "sh/1wbapc7q",
+            "sh/gv29g7q5",
+            "sh/fu9sn2p0",
+            "sh/et0reh8f",
+            "sh/tsrqlc7u",
+            "sh/sri9s7q9",
+            "sh/ilwf69kv",
+            "sh/jm5gze1g",
+            "sh/knex8j21"
+          ]
+        },
+        {
+          "action": "add",
+          "newPrimitiveAllowed": true,
+          "mustNotOverlapInherited": true,
+          "zone": { "left": 88, "top": 238, "width": 448, "height": 348 },
+          "reason": "Audience hierarchy must be rebuilt inside the inherited left card."
+        },
+        {
+          "action": "add",
+          "newPrimitiveAllowed": true,
+          "mustNotOverlapInherited": true,
+          "zone": { "left": 616, "top": 238, "width": 576, "height": 348 },
+          "reason": "The requested value statement and three benefits must be rebuilt inside the inherited right card."
+        }
+      ]
+    },
+    {
+      "outputSlide": 4,
+      "sourceSlide": 4,
+      "narrativeRole": "go-to-market channels and adoption support",
+      "reuseMode": "duplicate-slide",
+      "editTargets": [
+        {
+          "action": "rewrite-and-reposition",
+          "shapeIds": [
+            "sh/5ony1oj6",
+            "sh/1cj2d8b6",
+            "sh/rm1k7yt4",
+            "sh/ql8jytsj",
+            "sh/doj29oba",
+            "sh/sna103ap"
+          ]
+        },
+        {
+          "action": "delete",
+          "shapeIds": [
+            "sh/ih8ju9sn",
+            "sh/kbm987y5",
+            "sh/5cva1cfq",
+            "sh/i94r6xgz",
+            "sh/jadsz2xk",
+            "sh/w72947yt",
+            "sh/x8vaxsfe",
+            "sh/a5kr2xg3",
+            "sh/v6tsv2xo",
+            "sh/h4fa9wfy",
+            "sh/p0batw72",
+            "sh/oz29krqh",
+            "sh/3ytsrmpw",
+            "sh/2xkrih8b",
+            "sh/1wbapc7q",
+            "sh/gv29g7q5",
+            "sh/fu9sn2p0",
+            "sh/et0reh8f",
+            "sh/tsrqlc7u",
+            "sh/sri9s7q9",
+            "sh/ilwf69kv",
+            "sh/jm5gze1g",
+            "sh/knex8j21"
+          ]
+        },
+        {
+          "action": "add",
+          "newPrimitiveAllowed": true,
+          "mustNotOverlapInherited": true,
+          "zone": { "left": 88, "top": 238, "width": 448, "height": 348 },
+          "reason": "Four concise channel items must be rebuilt inside the inherited left card."
+        },
+        {
+          "action": "add",
+          "newPrimitiveAllowed": true,
+          "mustNotOverlapInherited": true,
+          "zone": { "left": 616, "top": 238, "width": 576, "height": 348 },
+          "reason": "Internal and Promova-side support groups must be rebuilt inside the inherited right card."
+        }
+      ]
+    },
+    {
+      "outputSlide": 5,
+      "sourceSlide": 5,
+      "narrativeRole": "success metrics expansion and business model",
+      "reuseMode": "duplicate-slide",
+      "editTargets": [
+        {
+          "action": "rewrite-and-reposition",
+          "shapeIds": [
+            "sh/dgbulwnm",
+            "sh/cf2tcr61",
+            "sh/z2tcnm5s",
+            "sh/yhkbe1o7",
+            "sh/l4bupwny",
+            "sh/032tgr6d",
+            "sh/n6dcr65o",
+            "sh/m5kbi1oj",
+            "sh/w32dkbuh",
+            "sh/x4vedgvm",
+            "sh/ahkvi1cb",
+            "sh/v2twb6dw",
+            "sh/k7mxovud",
+            "sh/58vehgvy",
+            "sh/i54fmlc7",
+            "sh/j6dwfqds",
+            "sh/sb6xsvu9",
+            "sh/tcfel0vu",
+            "sh/hgrmpwj2",
+            "sh/gfi5grih",
+            "sh/fe94nm1w",
+            "sh/ji5kf2ho",
+            "sh/kjelony9",
+            "sh/5kn2hszu"
+          ]
+        },
+        {
+          "action": "delete",
+          "shapeIds": [
+            "sh/ud0ne10b",
+            "sh/pkr6tgjy",
+            "sh/4ji5kbid",
+            "sh/3i94r61s",
+            "sh/2h0ni107",
+            "sh/5o7mhcju",
+            "sh/kny587i9",
+            "sh/atcjidg7",
+            "sh/vu5kbihc",
+            "sh/wve1knyx",
+            "sh/xwn2dszi"
+          ]
+        }
+      ]
+    },
+    {
+      "outputSlide": 6,
+      "sourceSlide": 5,
+      "narrativeRole": "closing synthesis",
+      "reuseMode": "duplicate-slide",
+      "editTargets": [
+        {
+          "action": "rewrite-and-reposition",
+          "shapeIds": [
+            "sh/dgbulwnm",
+            "sh/cf2tcr61",
+            "sh/z2tcnm5s",
+            "sh/kjelony9",
+            "sh/5kn2hszu"
+          ]
+        },
+        {
+          "action": "delete",
+          "shapeIds": [
+            "sh/yhkbe1o7",
+            "sh/l4bupwny",
+            "sh/032tgr6d",
+            "sh/n6dcr65o",
+            "sh/m5kbi1oj",
+            "sh/w32dkbuh",
+            "sh/x4vedgvm",
+            "sh/ahkvi1cb",
+            "sh/v2twb6dw",
+            "sh/k7mxovud",
+            "sh/58vehgvy",
+            "sh/i54fmlc7",
+            "sh/j6dwfqds",
+            "sh/sb6xsvu9",
+            "sh/tcfel0vu",
+            "sh/hgrmpwj2",
+            "sh/gfi5grih",
+            "sh/fe94nm1w",
+            "sh/ud0ne10b",
+            "sh/pkr6tgjy",
+            "sh/4ji5kbid",
+            "sh/3i94r61s",
+            "sh/2h0ni107",
+            "sh/5o7mhcju",
+            "sh/kny587i9",
+            "sh/atcjidg7",
+            "sh/vu5kbihc",
+            "sh/wve1knyx",
+            "sh/xwn2dszi",
+            "sh/ihw3mxg3",
+            "sh/ji5kf2ho"
+          ]
+        }
+      ]
+    }
+  ],
+  "omittedSourceSlides": [
+    { "sourceSlide": 2, "reason": "Logo anatomy is reference content, not a pitch-slide structure." },
+    { "sourceSlide": 3, "reason": "Palette documentation is reference content, not a pitch-slide structure." }
+  ]
+}

@@ -1,0 +1,7 @@
+Slide 1: retain source slide 1 composition and exact logo; repurpose the left column for the TCC problem statement and four short problem signals. Add two bounded tags to complete the requested four-item problem set.
+Slide 2: retain source slide 4 two-panel structure; replace example component content with a five-step evidence flow and an MVP readiness panel. New primitives stay inside the two inherited white cards.
+Slide 3: retain source slide 4 two-panel structure; replace example component content with audience and value-proposition content. New primitives stay inside the two inherited white cards.
+Slide 4: retain source slide 4 two-panel structure; replace example component content with channels and support. New primitives stay inside the two inherited white cards.
+Slide 5: retain source slide 5 gradient background; convert four equal cards into three wider cards by editing and repositioning the first three inherited card groups and deleting the fourth.
+Slide 6: retain source slide 5 gradient background and accent circle; delete the card grid and implementation copy to create the requested minimal closing.
+

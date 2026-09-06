@@ -2072,6 +2072,106 @@ a {
   white-space: nowrap;
 }
 
+.manager-people-filters {
+  display: grid;
+  gap: 12px;
+  padding-block: 14px;
+  border-block: 1px solid var(--line);
+}
+
+.manager-filter-actions,
+.manager-detail-tabs,
+.manager-record-footer {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.manager-no-results {
+  margin: 0;
+  padding: 14px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.manager-employee-hero {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.7fr) minmax(360px, 1.3fr);
+  gap: 24px;
+  align-items: start;
+  margin-bottom: 18px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fff;
+}
+
+.manager-employee-hero h1,
+.manager-employee-hero p {
+  margin: 8px 0 0;
+}
+
+.manager-employee-hero p,
+.manager-summary dt,
+.manager-record small {
+  color: var(--muted);
+}
+
+.manager-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+
+.manager-summary div {
+  padding: 14px;
+  border-radius: var(--radius-sm);
+  background: var(--lavender);
+}
+
+.manager-summary dt {
+  margin-bottom: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.manager-summary dd {
+  margin: 0;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.manager-detail-tabs {
+  margin-bottom: 18px;
+}
+
+.manager-record-list {
+  display: grid;
+  gap: 14px;
+}
+
+.manager-record {
+  display: grid;
+  gap: 12px;
+}
+
+.manager-record h3,
+.manager-record p {
+  margin: 6px 0 0;
+}
+
+.manager-record p {
+  color: var(--muted);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.manager-record-footer {
+  justify-content: space-between;
+}
+
 .admin-context-banner {
   margin-bottom: 16px;
   padding: 12px 16px;
@@ -2103,6 +2203,10 @@ a {
 
   .admin-sidebar {
     position: static;
+  }
+
+  .manager-employee-hero {
+    grid-template-columns: 1fr;
   }
 
   .dashboard-metrics,
@@ -2256,6 +2360,10 @@ a {
   .form-card,
   .dashboard-shell {
     padding: 22px;
+  }
+
+  .manager-summary {
+    grid-template-columns: 1fr;
   }
 }
 

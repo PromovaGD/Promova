@@ -82,3 +82,50 @@ test("permission errors preserve role-appropriate navigation destinations", () =
   assert.doesNotMatch(managerHtml, /data-action="open-dashboard"/);
   assert.match(employeeHtml, /data-action="open-dashboard"/);
 });
+
+test("manager console renders people filters, summary, and detail sections", () => {
+  const page = managerPage({
+    user: manager,
+    managerSection: "people",
+    managerPeopleStatus: "ready",
+    managerDetailStatus: "ready",
+    managerDetailSection: "evidence",
+    managerSettings: {
+      labels: {},
+      activeRoles: [{ id: 3, name: "Engenharia" }],
+      frameworkLevels: [{ key: "L3", title: "Engineer I" }],
+    },
+    managerFilters: {},
+    employees: [
+      {
+        ...employee,
+        jobRoleId: 3,
+        jobRoleName: "Engenharia",
+        currentLevel: "L3",
+        targetLevel: "L4",
+        characteristics: ["Mentoria"],
+        activeObjectiveCount: 2,
+      },
+    ],
+    selectedEmployeeId: 2,
+    managerEvidenceRecords: [
+      {
+        id: 8,
+        source: "github",
+        sourceMeta: "PR #42",
+        content: "Entrega importante",
+        status: "PENDING",
+        occurredAt: "2026-09-01T12:00:00Z",
+      },
+    ],
+    adminEvidences: [],
+  });
+
+  assert.match(page, /data-manager-search-form/);
+  assert.match(page, /Engenharia/);
+  assert.match(page, /L3.*L4/s);
+  assert.match(page, /Objetivos ativos/);
+  assert.match(page, /data-manager-detail="career-plan"/);
+  assert.match(page, /data-manager-detail="evidence"/);
+  assert.match(page, /Entrega importante/);
+});

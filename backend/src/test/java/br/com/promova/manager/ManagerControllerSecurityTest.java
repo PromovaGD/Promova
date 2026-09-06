@@ -10,7 +10,10 @@ import br.com.promova.auth.AuthService;
 import br.com.promova.auth.AuthTokenResolver;
 import br.com.promova.config.ApiExceptionHandler;
 import br.com.promova.config.WebConfig;
+import br.com.promova.evidence.service.EvidenceService;
 import br.com.promova.manager.controller.ManagerController;
+import br.com.promova.profile.CareerObjectiveRepository;
+import br.com.promova.profile.CareerProfileRepository;
 import br.com.promova.user.User;
 import br.com.promova.user.UserRepository;
 import br.com.promova.user.UserRole;
@@ -32,6 +35,9 @@ class ManagerControllerSecurityTest {
   @MockitoBean private AuthTokenResolver authTokenResolver;
   @MockitoBean private UserRepository userRepository;
   @MockitoBean private SavedAnalysisService savedAnalysisService;
+  @MockitoBean private CareerProfileRepository careerProfileRepository;
+  @MockitoBean private CareerObjectiveRepository careerObjectiveRepository;
+  @MockitoBean private EvidenceService evidenceService;
 
   @Test
   void rejectsAnonymousManagerRequests() throws Exception {
@@ -62,7 +68,9 @@ class ManagerControllerSecurityTest {
     User employee = user("Employee", "employee@example.com", UserRole.EMPLOYEE, 2L);
     when(authTokenResolver.resolve("Bearer manager-token")).thenReturn("manager-token");
     when(authService.requireUser("manager-token")).thenReturn(manager);
-    when(userRepository.findAllExcept(1L)).thenReturn(java.util.List.of(employee));
+    when(userRepository.findByRoleOrderByNameAsc(UserRole.EMPLOYEE))
+        .thenReturn(java.util.List.of(employee));
+    when(careerProfileRepository.findByUserId(2L)).thenReturn(java.util.Optional.empty());
 
     mockMvc
         .perform(
@@ -70,7 +78,8 @@ class ManagerControllerSecurityTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer manager-token"))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].email").value("employee@example.com"))
-        .andExpect(jsonPath("$[0].role").value("EMPLOYEE"));
+        .andExpect(jsonPath("$[0].role").value("EMPLOYEE"))
+        .andExpect(jsonPath("$[0].activeObjectiveCount").value(0));
   }
 
   private User user(String name, String email, UserRole role, Long id) {

@@ -29,6 +29,7 @@ import { loadInsightsForCurrentUser } from "./services/insights-api.mjs";
 import { analyzeCapturedEvidence } from "./services/analysis-api.mjs";
 import {
   fetchCurrentUser,
+  fetchEmployeeEvidences,
   fetchEmployees,
   loginUser,
   logoutUser,
@@ -100,9 +101,16 @@ const state = {
   dashboardFilters: {},
   dashboardTab: "dashboard",
   adminFilters: {},
+  managerFilters: {},
   employees: [],
   selectedEmployeeId: null,
   adminEvidences: [],
+  managerEvidenceRecords: [],
+  managerDetailSection: "career-plan",
+  managerDetailStatus: "idle",
+  managerDetailError: null,
+  managerPeopleStatus: "idle",
+  managerPeopleError: null,
   managerSection: "people",
   managerSettings: null,
   managerSettingsStatus: "idle",
@@ -190,6 +198,13 @@ function expireSession() {
   state.insightsStatus = "idle";
   state.insightsError = null;
   state.adminEvidences = [];
+  state.managerEvidenceRecords = [];
+  state.managerFilters = {};
+  state.managerDetailSection = "career-plan";
+  state.managerDetailStatus = "idle";
+  state.managerDetailError = null;
+  state.managerPeopleStatus = "idle";
+  state.managerPeopleError = null;
   state.employees = [];
   state.selectedEmployeeId = null;
   state.selectedEvidenceId = null;
@@ -265,13 +280,25 @@ function handleKeydown(event) {
 
 async function handleSubmit(event) {
   const form = event.target.closest(
-    "[data-auth-form], [data-review-form], [data-terminology-form], [data-job-role-form], [data-career-plan-form], [data-objective-form]",
+    "[data-auth-form], [data-review-form], [data-terminology-form], [data-job-role-form], [data-career-plan-form], [data-objective-form], [data-manager-search-form]",
   );
   if (!form) {
     return;
   }
 
   event.preventDefault();
+
+  if (form.matches("[data-manager-search-form]")) {
+    const values = new FormData(form);
+    state.managerFilters = {
+      query: String(values.get("query") || "").trim(),
+      jobRoleId: String(values.get("jobRoleId") || ""),
+      level: String(values.get("level") || ""),
+    };
+    await refreshManagerEmployees();
+    render();
+    return;
+  }
 
   if (form.matches("[data-career-plan-form]")) {
     await submitCareerPlan(form);
@@ -372,6 +399,13 @@ async function handleClick(event) {
     state.pendingEvidences = [];
     state.employees = [];
     state.adminEvidences = [];
+    state.managerEvidenceRecords = [];
+    state.managerFilters = {};
+    state.managerDetailSection = "career-plan";
+    state.managerDetailStatus = "idle";
+    state.managerDetailError = null;
+    state.managerPeopleStatus = "idle";
+    state.managerPeopleError = null;
     state.managerSection = "people";
     state.managerSettings = null;
     state.managerSettingsStatus = "idle";
@@ -449,9 +483,32 @@ async function handleClick(event) {
 
   if (action === "select-employee") {
     state.selectedEmployeeId = Number(trigger.dataset.employeeId);
+    state.managerDetailSection = "career-plan";
     state.careerPlanNotice = null;
     state.careerPlanError = null;
-    await Promise.all([refreshEmployeeAnalyses(), refreshSelectedCareerPlan()]);
+    updateManagerDeepLink();
+    await Promise.all([
+      refreshEmployeeAnalyses(),
+      refreshManagerEvidenceRecords(),
+      refreshSelectedCareerPlan(),
+    ]);
+    render();
+    return;
+  }
+
+  if (action === "switch-manager-detail") {
+    state.managerDetailSection = ["career-plan", "evidence", "analyses"].includes(
+      trigger.dataset.managerDetail,
+    )
+      ? trigger.dataset.managerDetail
+      : "career-plan";
+    render();
+    return;
+  }
+
+  if (action === "clear-manager-filters") {
+    state.managerFilters = {};
+    await refreshManagerEmployees();
     render();
     return;
   }
@@ -881,25 +938,27 @@ async function openManager() {
   state.view = "manager";
   state.viewingAsAdmin = true;
   state.permissionError = null;
+  state.managerPeopleStatus = "loading";
   render();
 
   try {
     state.managerSettingsStatus = "loading";
-    const [employees, settings, jobRoles] = await Promise.all([
-      fetchEmployees(),
+    const [settings, jobRoles] = await Promise.all([
       fetchManagerSettings(),
       fetchJobRoles(),
     ]);
-    state.employees = employees;
     state.managerSettings = settings;
     state.jobRoles = jobRoles;
     state.managerSettingsStatus = "ready";
-    state.selectedEmployeeId = state.selectedEmployeeId || state.employees[0]?.id || null;
-    await Promise.all([refreshEmployeeAnalyses(), refreshSelectedCareerPlan()]);
+    const linkedEmployeeId = managerEmployeeIdFromLocation();
+    if (linkedEmployeeId) state.selectedEmployeeId = linkedEmployeeId;
+    await refreshManagerEmployees({ preserveSelection: true });
   } catch (error) {
     state.error = error;
     state.managerSettingsStatus = "error";
     state.managerSettingsError = error.message || "Não foi possível carregar as configurações.";
+    state.managerPeopleStatus = "error";
+    state.managerPeopleError = error.message || "Não foi possível carregar as pessoas.";
   }
 
   render();
@@ -993,6 +1052,64 @@ async function refreshEmployeeAnalyses() {
   }
 
   state.adminEvidences = await loadAnalysesForEmployee(state.selectedEmployeeId, state.adminFilters);
+}
+
+async function refreshManagerEvidenceRecords() {
+  if (!state.selectedEmployeeId) {
+    state.managerEvidenceRecords = [];
+    return;
+  }
+  state.managerEvidenceRecords = await fetchEmployeeEvidences(state.selectedEmployeeId);
+}
+
+async function refreshManagerEmployees({ preserveSelection = false } = {}) {
+  state.managerPeopleStatus = "loading";
+  state.managerPeopleError = null;
+  try {
+    const filters = {};
+    if (state.managerFilters.query) filters.query = state.managerFilters.query;
+    if (state.managerFilters.jobRoleId) filters.jobRoleId = state.managerFilters.jobRoleId;
+    if (state.managerFilters.level) filters.level = state.managerFilters.level;
+    state.employees = await fetchEmployees(filters);
+    const selectedExists = state.employees.some(
+      (employee) => employee.id === state.selectedEmployeeId,
+    );
+    if (!preserveSelection || !selectedExists) {
+      state.selectedEmployeeId = state.employees[0]?.id || null;
+    }
+    state.managerPeopleStatus = "ready";
+    state.managerDetailStatus = "loading";
+    state.managerDetailError = null;
+    await Promise.all([
+      refreshEmployeeAnalyses(),
+      refreshManagerEvidenceRecords(),
+      refreshSelectedCareerPlan(),
+    ]);
+    state.managerDetailStatus = "ready";
+    updateManagerDeepLink();
+  } catch (error) {
+    if (error.isUnauthorized || error.status === 401) return;
+    state.employees = [];
+    state.selectedEmployeeId = null;
+    state.managerPeopleStatus = "error";
+    state.managerPeopleError = error.message || "Não foi possível carregar as pessoas.";
+    state.managerDetailStatus = "error";
+    state.managerDetailError = state.managerPeopleError;
+  }
+}
+
+function managerEmployeeIdFromLocation() {
+  if (typeof window === "undefined") return null;
+  const match = String(window.location?.hash || "").match(/^#\/manager\/employees\/(\d+)$/);
+  return match ? Number(match[1]) : null;
+}
+
+function updateManagerDeepLink() {
+  if (typeof window === "undefined" || !window.history?.replaceState) return;
+  const hash = state.selectedEmployeeId
+    ? `#/manager/employees/${state.selectedEmployeeId}`
+    : "#/manager";
+  window.history.replaceState(null, "", hash);
 }
 
 async function refreshSelectedAnalysisReview() {

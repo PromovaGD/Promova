@@ -17,7 +17,7 @@ export function dashboardPage(state) {
       subtitle: "Painel de análises",
       copy: "Acompanhe sua caixa de entrada de evidências pendentes e o histórico de análises da sua conta.",
     }),
-    { user: state.user, mode: "app" },
+    { user: state.user, mode: "app", terminology: state.careerConfiguration?.labels },
   );
 }
 

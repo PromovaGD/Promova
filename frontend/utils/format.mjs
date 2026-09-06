@@ -65,6 +65,8 @@ export function confidenceLabel(confidence) {
   return labels[confidence] || "Confiança média";
 }
 
-export function roleLabel(role) {
-  return role === "MANAGER" ? "Gestor" : "Funcionário";
+export function roleLabel(role, terminology = {}) {
+  return role === "MANAGER"
+    ? terminology?.manager || "Gestor"
+    : terminology?.employee || "Funcionário";
 }

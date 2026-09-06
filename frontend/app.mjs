@@ -74,6 +74,7 @@ import {
   evidenceEmptyPage,
   evidenceErrorPage,
   evidenceLoadingPage,
+  evidencePendingPage,
   evidenceResultPage,
 } from "./views/evidence-view.mjs";
 import { landingPage } from "./views/landing-view.mjs";
@@ -84,6 +85,9 @@ const state = {
   pendingEvidence: null,
   pendingEvidences: [],
   pendingStatus: "idle",
+  userObservation: "",
+  analysisSubmitting: false,
+  analysisError: null,
   githubImport: createGithubImportState(),
   result: null,
   error: null,
@@ -216,6 +220,9 @@ function expireSession() {
   state.pendingEvidence = null;
   state.pendingEvidences = [];
   state.pendingStatus = "idle";
+  state.userObservation = "";
+  state.analysisSubmitting = false;
+  state.analysisError = null;
   state.selectedCareerPlan = null;
   state.careerPlanStatus = "idle";
   state.careerPlanSaving = false;
@@ -233,6 +240,14 @@ function expireSession() {
 }
 
 function handleInput(event) {
+  const observation = event.target.closest("[data-user-observation]");
+  if (observation) {
+    state.userObservation = observation.value.slice(0, 2000);
+    const counter = appRoot.querySelector?.("[data-observation-counter]");
+    if (counter) counter.textContent = `${state.userObservation.length}/2000`;
+    return;
+  }
+
   const githubField = event.target.closest("[data-github-import-field]");
   if (githubField) {
     updateGithubImportField(state.githubImport, githubField.dataset.githubImportField, githubField.value);
@@ -397,6 +412,9 @@ async function handleClick(event) {
     state.insightsError = null;
     state.pendingEvidence = null;
     state.pendingEvidences = [];
+    state.userObservation = "";
+    state.analysisSubmitting = false;
+    state.analysisError = null;
     state.employees = [];
     state.adminEvidences = [];
     state.managerEvidenceRecords = [];
@@ -552,6 +570,11 @@ async function handleClick(event) {
 
   if (action === "open-pending-evidence") {
     await openPendingEvidence(trigger.dataset.evidenceId);
+    return;
+  }
+
+  if (action === "analyze-evidence") {
+    await submitPendingEvidenceAnalysis();
     return;
   }
 
@@ -1224,11 +1247,24 @@ async function openCapturedEvidence() {
     return;
   }
 
+  state.analysisError = null;
+  state.analysisSubmitting = false;
+  state.view = "pending-evidence";
+  render();
+}
+
+async function submitPendingEvidenceAnalysis() {
+  if (!state.pendingEvidence || state.analysisSubmitting) return;
+  state.analysisSubmitting = true;
+  state.analysisError = null;
   state.view = "loading-evidence";
   render();
 
   try {
-    const analyzedEvidence = await analyzeCapturedEvidence(state.pendingEvidence.id);
+    const analyzedEvidence = await analyzeCapturedEvidence(
+      state.pendingEvidence.id,
+      state.userObservation,
+    );
     state.pendingEvidence = null;
     state.pendingStatus = "idle";
     state.result = analyzedEvidence;
@@ -1236,6 +1272,7 @@ async function openCapturedEvidence() {
     state.review = { currentStatus: "UNREVIEWED", history: [] };
     state.reviewStatus = "ready";
     state.reviewError = null;
+    state.userObservation = "";
     state.view = "result";
     await refreshUserAnalyses();
     await refreshInsights();
@@ -1244,8 +1281,10 @@ async function openCapturedEvidence() {
     if (error.isUnauthorized || error.status === 401) {
       return;
     }
-    state.error = error;
-    state.view = "error";
+    state.analysisError = error.message || "Não foi possível analisar a evidência. Tente novamente.";
+    state.view = "pending-evidence";
+  } finally {
+    state.analysisSubmitting = false;
   }
 
   if (state.user) {
@@ -1443,6 +1482,8 @@ function render() {
     page = evidenceDetailPage(state);
   } else if (state.view === "loading-evidence") {
     page = evidenceLoadingPage(state);
+  } else if (state.view === "pending-evidence") {
+    page = evidencePendingPage(state);
   } else if (state.view === "empty-evidence") {
     page = evidenceEmptyPage(state);
   } else if (state.view === "error") {

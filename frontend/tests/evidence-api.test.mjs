@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { fetchEvidence, fetchEvidences } from "../services/evidence-api.mjs";
+import { analyzeCapturedEvidence } from "../services/analysis-api.mjs";
 
 test("evidence API consumes canonical durable content without browser storage state", async () => {
   const originalFetch = globalThis.fetch;
@@ -27,6 +28,43 @@ test("evidence API consumes canonical durable content without browser storage st
 
     globalThis.fetch = async () => ({ ok: true, status: 200, json: async () => [payload] });
     assert.deepEqual(await fetchEvidences(), [evidence]);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test("analysis API sends only the optional employee observation", async () => {
+  const originalFetch = globalThis.fetch;
+  let request;
+  globalThis.fetch = async (url, options) => {
+    request = { url: String(url), options };
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({
+        id: "github:acme/app#7",
+        analysisId: 91,
+        source: "GitHub",
+        evidence: "Source",
+        userObservation: "Context",
+        currentLevel: "L3",
+        targetLevel: "L4",
+        impactLevel: "L3",
+        confidence: "medium",
+        justification: "Reason",
+        competencies: [],
+        suggestions: [],
+        readiness: "Developing",
+      }),
+    };
+  };
+
+  try {
+    const response = await analyzeCapturedEvidence(41, "  Context  ");
+    assert.equal(new URL(request.url).pathname, "/evidences/41/analysis");
+    assert.deepEqual(JSON.parse(request.options.body), { userObservation: "Context" });
+    assert.equal(response.userObservation, "Context");
+    assert.equal(response.analysisId, 91);
   } finally {
     globalThis.fetch = originalFetch;
   }

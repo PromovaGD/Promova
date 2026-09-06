@@ -86,6 +86,7 @@ class EvidenceAnalysisServiceTest {
             same(pendingEvidence),
             eq("L3"),
             eq("L4"),
+            eq(null),
             same(engineResult),
             same(framework),
             any(Instant.class)))
@@ -148,7 +149,7 @@ class EvidenceAnalysisServiceTest {
 
     assertThat(pendingEvidence.getStatus()).isEqualTo(EvidenceStatus.PENDING);
     verify(savedAnalysisService, never())
-        .saveEngineResult(any(), any(), any(), any(), any(), any());
+        .saveEngineResult(any(), any(), any(), any(), any(), any(), any());
     verify(evidenceRepository, never()).save(any());
   }
 
@@ -167,7 +168,7 @@ class EvidenceAnalysisServiceTest {
 
     verify(analysisEngine, never()).analyze(any(), any());
     verify(savedAnalysisService, never())
-        .saveEngineResult(any(), any(), any(), any(), any(), any());
+        .saveEngineResult(any(), any(), any(), any(), any(), any(), any());
     assertThat(pendingEvidence.getStatus()).isEqualTo(EvidenceStatus.PENDING);
   }
 

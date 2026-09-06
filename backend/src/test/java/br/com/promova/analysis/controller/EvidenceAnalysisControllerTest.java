@@ -53,4 +53,15 @@ class EvidenceAnalysisControllerTest {
                     """))
         .andExpect(status().isNotFound());
   }
+
+  @Test
+  void rejectsAnOversizedEmployeeObservation() throws Exception {
+    mockMvc
+        .perform(
+            post("/evidences/41/analysis")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer test-token")
+                .contentType("application/json")
+                .content("{\"userObservation\":\"" + "x".repeat(2001) + "\"}"))
+        .andExpect(status().isBadRequest());
+  }
 }

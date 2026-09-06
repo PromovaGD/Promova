@@ -27,8 +27,14 @@ export async function fetchCurrentUser() {
   return apiGet("/auth/me", null, { auth: true });
 }
 
-export async function fetchEmployees() {
-  return apiGet("/manager/employees", null, { auth: true });
+export async function fetchEmployees(params = {}) {
+  return apiGet("/manager/employees", params, { auth: true });
+}
+
+export async function fetchEmployeeEvidences(userId, params = {}) {
+  return apiGet(`/manager/employees/${encodeURIComponent(userId)}/evidences`, params, {
+    auth: true,
+  });
 }
 
 export async function fetchEmployeeAnalyses(userId, params) {

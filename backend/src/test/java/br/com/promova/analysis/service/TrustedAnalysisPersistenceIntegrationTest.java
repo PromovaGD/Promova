@@ -19,6 +19,8 @@ import br.com.promova.evidence.EvidenceRepository;
 import br.com.promova.evidence.EvidenceStatus;
 import br.com.promova.profile.CareerProfile;
 import br.com.promova.profile.CareerProfileRepository;
+import br.com.promova.organization.JobRoleRepository;
+import br.com.promova.organization.JobRoleStatus;
 import br.com.promova.user.User;
 import br.com.promova.user.UserRepository;
 import br.com.promova.user.UserRole;
@@ -44,6 +46,7 @@ class TrustedAnalysisPersistenceIntegrationTest {
   @Autowired private CareerProfileRepository profileRepository;
   @Autowired private EvidenceRepository evidenceRepository;
   @Autowired private SavedAnalysisRepository savedAnalysisRepository;
+  @Autowired private JobRoleRepository jobRoleRepository;
 
   @MockitoBean private AnalysisEngine analysisEngine;
 
@@ -59,7 +62,9 @@ class TrustedAnalysisPersistenceIntegrationTest {
                 "trusted-owner-" + suffix + "@example.com",
                 "hash",
                 UserRole.EMPLOYEE));
-    profileRepository.save(new CareerProfile(owner, "L3", "L4"));
+    var role =
+        jobRoleRepository.findFirstByStatusOrderByNameAsc(JobRoleStatus.ACTIVE).orElseThrow();
+    profileRepository.save(new CareerProfile(owner, role, "L3", "L4", List.of()));
     reset(analysisEngine);
   }
 

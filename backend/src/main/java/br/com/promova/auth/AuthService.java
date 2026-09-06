@@ -4,6 +4,7 @@ import br.com.promova.auth.dto.AuthResponse;
 import br.com.promova.auth.dto.LoginRequest;
 import br.com.promova.auth.dto.RegisterRequest;
 import br.com.promova.auth.dto.UserSummaryResponse;
+import br.com.promova.profile.ProfileService;
 import br.com.promova.user.User;
 import br.com.promova.user.UserRepository;
 import br.com.promova.user.UserRole;
@@ -24,10 +25,15 @@ public class AuthService {
   private final UserRepository userRepository;
   private final AuthSessionRepository authSessionRepository;
   private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+  private final ProfileService profileService;
 
-  public AuthService(UserRepository userRepository, AuthSessionRepository authSessionRepository) {
+  public AuthService(
+      UserRepository userRepository,
+      AuthSessionRepository authSessionRepository,
+      ProfileService profileService) {
     this.userRepository = userRepository;
     this.authSessionRepository = authSessionRepository;
+    this.profileService = profileService;
   }
 
   @Transactional
@@ -43,6 +49,7 @@ public class AuthService {
                 request.email(),
                 passwordEncoder.encode(request.password()),
                 UserRole.EMPLOYEE));
+    profileService.ensureProfile(user);
 
     return createSession(user);
   }

@@ -4,16 +4,15 @@ import br.com.promova.auth.AuthService;
 import br.com.promova.auth.AuthTokenResolver;
 import br.com.promova.profile.ProfileService;
 import br.com.promova.profile.dto.ProfileResponse;
-import br.com.promova.profile.dto.ProfileUpdateRequest;
 import br.com.promova.user.User;
-import jakarta.validation.Valid;
+import br.com.promova.user.UserRole;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("/profile")
@@ -34,15 +33,11 @@ public class ProfileController {
   @GetMapping
   public ProfileResponse getProfile(
       @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
-    return profileService.getProfile(authService.requireUser(requireToken(authorization)));
-  }
-
-  @PutMapping
-  public ProfileResponse updateProfile(
-      @Valid @RequestBody ProfileUpdateRequest request,
-      @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
     User user = authService.requireUser(requireToken(authorization));
-    return profileService.updateProfile(user, request);
+    if (user.getRole() != UserRole.EMPLOYEE) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Perfil disponível apenas ao funcionário.");
+    }
+    return profileService.getProfile(user);
   }
 
   private String requireToken(String authorization) {

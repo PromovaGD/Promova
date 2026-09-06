@@ -76,7 +76,7 @@ class InsightsHttpSmokeIntegrationTest {
         "http-github",
         "GitHub",
         "PR #10",
-        "L10",
+        "L4",
         List.of("Testing"),
         Instant.parse("2026-05-12T10:00:00Z"));
     saveAnalysis(
@@ -84,7 +84,7 @@ class InsightsHttpSmokeIntegrationTest {
         "http-legacy",
         "GitHub",
         "PR #legacy",
-        "L10",
+        "L4",
         List.of("Testing"),
         Instant.parse("2026-05-11T10:00:00Z"));
     saveAnalysis(
@@ -92,7 +92,7 @@ class InsightsHttpSmokeIntegrationTest {
         "http-jira",
         "Jira",
         "PROM-10",
-        "L2",
+        "L3",
         List.of("Unmapped competency"),
         Instant.parse("2026-05-10T10:00:00Z"));
     saveAnalysis(
@@ -100,7 +100,7 @@ class InsightsHttpSmokeIntegrationTest {
         "http-outside-window",
         "Slack",
         "#old",
-        "L10",
+        "L4",
         List.of("Testing"),
         Instant.parse("2026-04-30T10:00:00Z"));
 
@@ -149,8 +149,8 @@ class InsightsHttpSmokeIntegrationTest {
             source,
             sourceMeta,
             "Saved evidence for HTTP smoke",
-            "L2",
-            "L10",
+            "L3",
+            "L4",
             impactLevel,
             "high",
             "Fixed test justification",
@@ -182,8 +182,8 @@ class InsightsHttpSmokeIntegrationTest {
     savedAnalysisRepository.save(
         new SavedAnalysis(
             evidence,
-            "L2",
-            "L10",
+            "L3",
+            "L4",
             impactLevel,
             "high",
             "Fixed test justification",
@@ -242,12 +242,12 @@ class InsightsHttpSmokeIntegrationTest {
           """
           {
             "levels": {
-              "L2": {
+              "L3": {
                 "title": "Engineer I",
                 "description": "Engineer I",
                 "criteria": {}
               },
-              "L10": {
+              "L4": {
                 "title": "Engineer II",
                 "description": "Engineer II",
                 "criteria": {

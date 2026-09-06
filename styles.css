@@ -2334,9 +2334,75 @@ a {
   color: var(--green-deep);
 }
 
+.manager-career-plan {
+  display: grid;
+  gap: 20px;
+  margin-bottom: 22px;
+}
+
+.career-plan-form,
+.career-objectives {
+  display: grid;
+  gap: 14px;
+}
+
+.career-plan-levels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.objective-form {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(130px, 0.3fr) minmax(145px, 0.3fr) auto;
+  gap: 10px;
+  align-items: end;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: #fbfaff;
+}
+
+.career-path {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 18px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--lavender);
+  color: var(--violet-deep);
+  font-size: 1.15rem;
+}
+
+.profile-objectives {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.profile-objectives li {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.profile-objectives span {
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
 @media (max-width: 880px) {
   .manager-settings-grid {
     grid-template-columns: 1fr;
+  }
+
+  .objective-form {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -2351,6 +2417,11 @@ a {
   }
 
   .settings-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .career-plan-levels,
+  .objective-form {
     grid-template-columns: 1fr;
   }
 }

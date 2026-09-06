@@ -26,8 +26,8 @@ class MigrationStartupSmokeTest {
     MigrationInfo current = flyway.info().current();
 
     assertThat(current).isNotNull();
-    assertThat(current.getVersion().getVersion()).isEqualTo("5");
-    assertThat(current.getDescription()).isEqualTo("create organization career configuration");
+    assertThat(current.getVersion().getVersion()).isEqualTo("6");
+    assertThat(current.getDescription()).isEqualTo("expand user career plans");
     assertThat(environment.getProperty("spring.jpa.hibernate.ddl-auto")).isEqualTo("validate");
     assertThat(environment.getProperty("spring.datasource.url"))
         .startsWith("jdbc:h2:mem:")
@@ -53,6 +53,8 @@ class MigrationStartupSmokeTest {
             "terminology_settings",
             "job_roles",
             "job_role_levels",
+            "career_profile_characteristics",
+            "career_objectives",
             "saved_analyses",
             "saved_analysis_reviews");
 

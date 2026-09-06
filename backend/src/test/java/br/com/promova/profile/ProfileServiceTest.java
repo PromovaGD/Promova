@@ -1,21 +1,21 @@
 package br.com.promova.profile;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import br.com.promova.framework.CareerFramework;
 import br.com.promova.framework.CareerLevel;
 import br.com.promova.framework.FrameworkProvider;
+import br.com.promova.organization.JobRole;
+import br.com.promova.organization.JobRoleRepository;
+import br.com.promova.organization.JobRoleStatus;
 import br.com.promova.profile.dto.ProfileResponse;
-import br.com.promova.profile.dto.ProfileUpdateRequest;
 import br.com.promova.user.User;
 import br.com.promova.user.UserRole;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,12 +23,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.server.ResponseStatusException;
 
 @ExtendWith(MockitoExtension.class)
 class ProfileServiceTest {
   @Mock private CareerProfileRepository profileRepository;
   @Mock private FrameworkProvider frameworkProvider;
+  @Mock private JobRoleRepository jobRoleRepository;
+  @Mock private CareerObjectiveRepository objectiveRepository;
 
   private CareerFramework framework;
   private ProfileService profileService;
@@ -40,14 +41,19 @@ class ProfileServiceTest {
     levels.put("L10", new CareerLevel("Engineer II"));
     levels.put("L11", new CareerLevel("Senior Engineer"));
     framework = new CareerFramework(levels);
-    profileService = new ProfileService(profileRepository, frameworkProvider);
+    profileService =
+        new ProfileService(
+            profileRepository, frameworkProvider, jobRoleRepository, objectiveRepository);
     when(frameworkProvider.load()).thenReturn(framework);
   }
 
   @Test
   void createsAndPersistsFrameworkCompatibleDefaultProfile() {
     User employee = user(7L, UserRole.EMPLOYEE);
+    JobRole role = role(3L);
     when(profileRepository.findByUserId(7L)).thenReturn(Optional.empty());
+    when(jobRoleRepository.findFirstByStatusOrderByNameAsc(JobRoleStatus.ACTIVE))
+        .thenReturn(Optional.of(role));
     when(profileRepository.save(any(CareerProfile.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -55,43 +61,33 @@ class ProfileServiceTest {
 
     assertThat(response.currentLevel()).isEqualTo("L2");
     assertThat(response.targetLevel()).isEqualTo("L10");
+    assertThat(response.jobRole().name()).isEqualTo("Engineering");
     assertThat(response.levels()).extracting("key").containsExactly("L2", "L10", "L11");
     verify(profileRepository).save(any(CareerProfile.class));
   }
 
   @Test
-  void updatesOnlyTheAuthenticatedUsersProfileAndLeavesRoleUntouched() {
-    User employee = user(7L, UserRole.MANAGER);
-    CareerProfile profile = new CareerProfile(employee, "L2", "L10");
+  void repairsAPlanThatNoLongerUsesAllowedFrameworkLevels() {
+    User employee = user(7L, UserRole.EMPLOYEE);
+    JobRole role = role(3L);
+    CareerProfile profile =
+        new CareerProfile(employee, role, "L2", "L11", List.of("Mentoria"));
     when(profileRepository.findByUserId(7L)).thenReturn(Optional.of(profile));
+    when(profileRepository.save(profile)).thenReturn(profile);
 
-    ProfileResponse response =
-        profileService.updateProfile(employee, new ProfileUpdateRequest("L10", "L11"));
+    ProfileResponse response = profileService.getProfile(employee);
 
-    assertThat(response.currentLevel()).isEqualTo("L10");
-    assertThat(response.targetLevel()).isEqualTo("L11");
-    assertThat(profile.getUser()).isSameAs(employee);
-    assertThat(employee.getRole()).isEqualTo(UserRole.MANAGER);
-    verify(profileRepository).findByUserId(eq(7L));
-    verify(profileRepository, never()).findByUserId(eq(8L));
+    assertThat(response.currentLevel()).isEqualTo("L2");
+    assertThat(response.targetLevel()).isEqualTo("L10");
+    assertThat(response.characteristics()).containsExactly("Mentoria");
+    verify(profileRepository).save(profile);
   }
 
-  @Test
-  void rejectsUnknownEqualAndReversedLevelsBeforeProfileMutation() {
-    User employee = user(7L, UserRole.EMPLOYEE);
-
-    assertThatThrownBy(
-            () -> profileService.updateProfile(employee, new ProfileUpdateRequest("L2", "L99")))
-        .isInstanceOf(ResponseStatusException.class);
-    assertThatThrownBy(
-            () -> profileService.updateProfile(employee, new ProfileUpdateRequest("L10", "L10")))
-        .isInstanceOf(ResponseStatusException.class);
-    assertThatThrownBy(
-            () -> profileService.updateProfile(employee, new ProfileUpdateRequest("L11", "L2")))
-        .isInstanceOf(ResponseStatusException.class);
-
-    verify(profileRepository, never()).findByUserId(any());
-    verify(profileRepository, never()).save(any(CareerProfile.class));
+  private JobRole role(Long id) {
+    JobRole role =
+        new JobRole("Engineering", "Build products", List.of("L2", "L10"));
+    ReflectionTestUtils.setField(role, "id", id);
+    return role;
   }
 
   private User user(Long id, UserRole role) {

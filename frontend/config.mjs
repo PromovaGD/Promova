@@ -4,8 +4,6 @@ export const API_BASE_URL =
     : "http://localhost:8080";
 
 export const SESSION_KEYS = {
-  cursor: "promova.next-evidence-cursor",
-  evidences: "promova.session-evidences",
   authToken: "promova.auth-token",
   authUser: "promova.auth-user",
 };

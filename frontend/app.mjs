@@ -50,7 +50,6 @@ import {
   testGithubSettings,
 } from "./services/github-api.mjs";
 import { fetchProfile, updateProfile } from "./services/profile-api.mjs";
-import { clearLegacyEvidenceStorage } from "./services/session-store.mjs";
 import { managerPage, permissionPage } from "./views/manager-view.mjs";
 import { authPage } from "./views/auth-view.mjs";
 import { dashboardPage } from "./views/dashboard-view.mjs";
@@ -730,7 +729,6 @@ async function refreshPendingEvidences() {
     status: "PENDING",
     ...buildClearParams(state.dashboardFilters),
   });
-  clearLegacyEvidenceStorage();
 
   if (state.pendingEvidence) {
     state.pendingEvidence =
@@ -884,11 +882,6 @@ async function openCapturedEvidence() {
   render();
 
   try {
-    const profile = state.profile || (await refreshProfile());
-    if (!profile) {
-      throw new Error("Seu perfil de carreira não está disponível.");
-    }
-
     const analyzedEvidence = await analyzeCapturedEvidence(state.pendingEvidence.id);
     state.pendingEvidence = null;
     state.pendingStatus = "idle";

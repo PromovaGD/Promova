@@ -18,7 +18,7 @@ export function evidenceLoadingPage(state) {
         ${evidence ? sourceCard(evidence, "Capturado agora") : ""}
         <div class="evidence-detected-panel">
           <h3>Evidência detectada</h3>
-          <div class="evidence-preview">${escapeHtml(evidence?.evidence || "Carregando evidência capturada...")}</div>
+          <div class="evidence-preview">${escapeHtml(evidence?.content || "Carregando evidência capturada...")}</div>
         </div>
         <div class="loading-strip">
           <span class="loading-dot"></span>

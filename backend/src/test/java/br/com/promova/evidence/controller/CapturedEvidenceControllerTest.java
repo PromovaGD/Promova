@@ -102,6 +102,9 @@ class CapturedEvidenceControllerTest {
                 .param("to", to.toString()))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$[0].id").value(41))
+        .andExpect(jsonPath("$[0].content").value("Changed the checkout service"))
+        .andExpect(jsonPath("$[0].evidence").doesNotExist())
+        .andExpect(jsonPath("$[0].occurredAt").value("2026-05-12T10:00:00Z"))
         .andExpect(jsonPath("$[0].status").value("PENDING"))
         .andExpect(jsonPath("$[0].sourceUrl").value("https://github.com/acme/project/pull/7"));
   }

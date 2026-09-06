@@ -42,13 +42,16 @@ public class Evidence {
   private String sourceMeta;
 
   @Column(nullable = false, length = 10000)
-  private String evidence;
+  private String content;
 
   @Column(name = "source_url", length = 2048)
   private String sourceUrl;
 
   @Column(name = "captured_at", nullable = false)
   private Instant capturedAt;
+
+  @Column(name = "occurred_at", nullable = false)
+  private Instant occurredAt;
 
   @Column(name = "updated_at", nullable = false)
   private Instant updatedAt;
@@ -64,15 +67,28 @@ public class Evidence {
       String source,
       String externalId,
       String sourceMeta,
-      String evidence,
+      String content,
       String sourceUrl,
+      Instant capturedAt) {
+    this(user, source, externalId, sourceMeta, content, sourceUrl, capturedAt, capturedAt);
+  }
+
+  public Evidence(
+      User user,
+      String source,
+      String externalId,
+      String sourceMeta,
+      String content,
+      String sourceUrl,
+      Instant occurredAt,
       Instant capturedAt) {
     this.user = Objects.requireNonNull(user, "user is required");
     this.source = requiredText(source, "source");
     this.externalId = requiredText(externalId, "externalId");
     this.sourceMeta = requiredText(sourceMeta, "sourceMeta");
-    this.evidence = requiredText(evidence, "evidence");
+    this.content = requiredText(content, "content");
     this.sourceUrl = normalizeOptional(sourceUrl);
+    this.occurredAt = Objects.requireNonNull(occurredAt, "occurredAt is required");
     this.capturedAt = Objects.requireNonNull(capturedAt, "capturedAt is required");
     this.updatedAt = capturedAt;
     this.status = EvidenceStatus.PENDING;
@@ -98,8 +114,8 @@ public class Evidence {
     return sourceMeta;
   }
 
-  public String getEvidence() {
-    return evidence;
+  public String getContent() {
+    return content;
   }
 
   public String getSourceUrl() {
@@ -108,6 +124,10 @@ public class Evidence {
 
   public Instant getCapturedAt() {
     return capturedAt;
+  }
+
+  public Instant getOccurredAt() {
+    return occurredAt;
   }
 
   public Instant getUpdatedAt() {

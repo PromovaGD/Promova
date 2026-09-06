@@ -26,8 +26,8 @@ class MigrationStartupSmokeTest {
     MigrationInfo current = flyway.info().current();
 
     assertThat(current).isNotNull();
-    assertThat(current.getVersion().getVersion()).isEqualTo("3");
-    assertThat(current.getDescription()).isEqualTo("migrate admin role to manager");
+    assertThat(current.getVersion().getVersion()).isEqualTo("4");
+    assertThat(current.getDescription()).isEqualTo("establish durable evidence boundary");
     assertThat(environment.getProperty("spring.jpa.hibernate.ddl-auto")).isEqualTo("validate");
     assertThat(environment.getProperty("spring.datasource.url"))
         .startsWith("jdbc:h2:mem:")
@@ -52,5 +52,16 @@ class MigrationStartupSmokeTest {
             "github_connection_settings",
             "saved_analyses",
             "saved_analysis_reviews");
+
+    Set<String> evidenceColumns =
+        jdbcTemplate
+            .queryForList(
+                "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS "
+                    + "WHERE TABLE_SCHEMA = 'PUBLIC' AND TABLE_NAME = 'EVIDENCES'",
+                String.class)
+            .stream()
+            .map(value -> value.toLowerCase(Locale.ROOT))
+            .collect(Collectors.toSet());
+    assertThat(evidenceColumns).contains("content", "occurred_at").doesNotContain("evidence");
   }
 }

@@ -45,7 +45,8 @@ class GithubCapturedEvidenceServiceTest {
             any(String.class),
             any(String.class),
             any(String.class),
-            any(String.class)))
+            any(String.class),
+            any(Instant.class)))
         .thenReturn(existing);
 
     service.fromPullRequest(owner, "acme/project", 7, "octocat");
@@ -61,7 +62,8 @@ class GithubCapturedEvidenceServiceTest {
             eq("github:acme/project#7"),
             eq("PR #7 - acme/project"),
             any(String.class),
-            eq("https://github.com/acme/project/pull/7"));
+            eq("https://github.com/acme/project/pull/7"),
+            eq(Instant.parse("2026-05-10T10:00:00Z")));
   }
 
   private User user(Long id) {

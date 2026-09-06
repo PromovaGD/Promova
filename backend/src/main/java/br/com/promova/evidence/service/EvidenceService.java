@@ -59,9 +59,22 @@ public class EvidenceService {
       String source,
       String externalId,
       String sourceMeta,
-      String evidence,
+      String content,
       String sourceUrl) {
-    return captureResult(user, source, externalId, sourceMeta, evidence, sourceUrl).evidence();
+    return capture(user, source, externalId, sourceMeta, content, sourceUrl, Instant.now());
+  }
+
+  @Transactional
+  public EvidenceResponse capture(
+      User user,
+      String source,
+      String externalId,
+      String sourceMeta,
+      String content,
+      String sourceUrl,
+      Instant occurredAt) {
+    return captureResult(user, source, externalId, sourceMeta, content, sourceUrl, occurredAt)
+        .evidence();
   }
 
   /**
@@ -74,8 +87,20 @@ public class EvidenceService {
       String source,
       String externalId,
       String sourceMeta,
-      String evidence,
+      String content,
       String sourceUrl) {
+    return captureResult(user, source, externalId, sourceMeta, content, sourceUrl, Instant.now());
+  }
+
+  @Transactional
+  public EvidenceCaptureResult captureResult(
+      User user,
+      String source,
+      String externalId,
+      String sourceMeta,
+      String content,
+      String sourceUrl,
+      Instant occurredAt) {
     String normalizedSource = normalizeRequired(source, "source");
     String normalizedExternalId = normalizeRequired(externalId, "externalId");
 
@@ -93,15 +118,16 @@ public class EvidenceService {
                 normalizedSource,
                 normalizedExternalId,
                 sourceMeta,
-                evidence,
+                content,
                 sourceUrl,
+                occurredAt,
                 Instant.now()));
     return new EvidenceCaptureResult(EvidenceResponse.from(created), true);
   }
 
   @Transactional
   public EvidenceResponse dismiss(User user, Long evidenceId) {
-    Evidence evidence = findOwnedEntity(user, evidenceId);
+    Evidence evidence = findOwnedEntityForUpdate(user, evidenceId);
     try {
       evidence.dismiss();
     } catch (IllegalStateException exception) {
@@ -130,6 +156,13 @@ public class EvidenceService {
   private Evidence findOwnedEntity(User user, Long evidenceId) {
     return evidenceRepository
         .findByIdAndUserId(evidenceId, user.getId())
+        .orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evidência não encontrada."));
+  }
+
+  private Evidence findOwnedEntityForUpdate(User user, Long evidenceId) {
+    return evidenceRepository
+        .findByIdAndUserIdForUpdate(evidenceId, user.getId())
         .orElseThrow(
             () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evidência não encontrada."));
   }

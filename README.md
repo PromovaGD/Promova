@@ -142,6 +142,23 @@ Frontend:
 npm run check
 ```
 
+Regressão E2E de sessão (inicia backend e frontend locais, usa Chrome e um banco H2 temporário):
+
+```powershell
+npm install
+npm run test:e2e
+```
+
+No macOS, o teste usa o Google Chrome em `/Applications` por padrão. Em outros ambientes,
+defina `PROMOVA_E2E_CHROME` com o caminho do executável de Chrome/Chromium. As portas padrão
+são `14173` (frontend) e `18080` (backend), configuráveis por `PROMOVA_E2E_FRONTEND_PORT` e
+`PROMOVA_E2E_BACKEND_PORT`. O teste cobre reload de gestor e funcionário, navegação direta ao
+perfil, persistência da sessão após reinício do backend e rejeição de token inválido.
+
+As rotas autenticadas usam URLs como `/dashboard`, `/profile` e `/manager`. O servidor local já
+faz fallback dessas rotas para `index.html`; o servidor estático de produção deve aplicar o mesmo
+fallback de SPA para que a navegação direta funcione.
+
 Backend:
 
 ```powershell

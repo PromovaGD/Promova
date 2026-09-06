@@ -60,3 +60,32 @@ jobs:
       - name: Build service jar
         working-directory: backend
         run: ./gradlew bootJar --no-daemon --no-configuration-cache --stacktrace
+
+  authentication-browser-regression:
+    name: Authentication Browser Regression
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: gradle
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Run session reload E2E test
+        env:
+          PROMOVA_E2E_CHROME: /usr/bin/google-chrome
+        run: npm run test:e2e

@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
-@Profile({"dev", "test"})
+@Profile({"dev", "test", "ci"})
 @ConditionalOnProperty(name = "promova.analysis.engine", havingValue = "mock", matchIfMissing = true)
 public class MockAnalysisEngine implements AnalysisEngine {
   private static final List<String> IMPACT_KEYWORDS =

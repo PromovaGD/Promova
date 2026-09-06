@@ -5,6 +5,9 @@ const root = path.resolve(__dirname, "..");
 const dist = path.join(root, "dist");
 const files = ["index.html", "styles.css", "app.js"];
 const directories = ["frontend"];
+const apiBaseUrl = process.env.PROMOVA_API_BASE_URL || "http://localhost:8080";
+
+validateApiBaseUrl(apiBaseUrl);
 
 fs.rmSync(dist, { recursive: true, force: true });
 fs.mkdirSync(dist, { recursive: true });
@@ -17,7 +20,19 @@ for (const directory of directories) {
   copyDirectory(path.join(root, directory), path.join(dist, directory));
 }
 
+fs.writeFileSync(
+  path.join(dist, "promova-config.js"),
+  `window.PROMOVA_API_BASE_URL = ${JSON.stringify(apiBaseUrl)};\n`,
+);
+
 console.log(`Build complete. Files copied to ${dist}`);
+
+function validateApiBaseUrl(value) {
+  const parsed = new URL(value);
+  if (!["http:", "https:"].includes(parsed.protocol)) {
+    throw new Error("PROMOVA_API_BASE_URL must use HTTP or HTTPS");
+  }
+}
 
 function copyDirectory(source, destination) {
   fs.mkdirSync(destination, { recursive: true });

@@ -167,6 +167,26 @@ cd backend
 .\gradlew.bat bootJar
 ```
 
+### Smoke test de runtime
+
+Em macOS, Linux ou WSL, o mesmo smoke test executado pelo CI pode ser rodado da raiz do projeto:
+
+```sh
+npm ci
+npm run smoke:ci
+```
+
+O script recompila frontend e backend, inicia o JAR com o perfil `ci` e um H2 em memória
+descartável, e serve o frontend compilado. Ele verifica o limite não autenticado, cadastra e
+autentica um usuário exclusivo do teste, consulta o perfil autenticado e confirma que o frontend
+aponta para o backend e que o CORS permite essa origem. Nenhuma chamada ao GitHub ou OpenRouter é
+feita: o perfil usa o engine de análise mock e uma URL GitHub local não roteável.
+
+As portas padrão são `18080` (backend) e `14173` (frontend). Elas precisam estar livres para que
+conflitos falhem explicitamente; para escolher outras portas localmente, defina `BACKEND_PORT` e
+`FRONTEND_PORT`. Logs sanitizados são sempre gravados em `artifacts/smoke`, e os dois processos
+iniciados pelo script são encerrados mesmo quando uma asserção ou timeout falha.
+
 ## API do Backend
 
 Endpoints principais:

@@ -5,11 +5,13 @@
   "description": "Protótipo da Promova para registrar evidências e analisar impacto de carreira.",
   "scripts": {
     "dev": "node scripts/dev-server.js",
+    "serve:dist": "node scripts/dist-server.js",
     "build": "node scripts/build.js",
     "lint": "node scripts/lint.js",
     "test": "node --test frontend/tests/*.test.mjs",
     "test:e2e": "node --test e2e/auth-session-reload.e2e.mjs",
-    "check": "npm run lint && npm test && npm run build"
+    "check": "npm run lint && npm test && npm run build",
+    "smoke:ci": "bash scripts/ci-smoke.sh"
   },
   "devDependencies": {
     "playwright-core": "^1.55.0"

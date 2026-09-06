@@ -116,7 +116,11 @@ function managerEvidenceSection(state) {
   if (state.managerDetailError) return `<section class="form-card" role="alert"><p>${escapeHtml(state.managerDetailError)}</p></section>`;
   const items = state.managerEvidenceRecords || [];
   if (!items.length) return `<section class="empty-state"><h2>Nenhuma evidência</h2><p>Esta pessoa ainda não possui evidências capturadas.</p></section>`;
-  return `<section class="manager-record-list" aria-label="Evidências">${items.map((item) => `<article class="form-card manager-record"><div><span class="status-pill">${escapeHtml(item.status)}</span><h3>${escapeHtml(item.sourceMeta || item.source)}</h3></div><p>${escapeHtml(item.content)}</p><small>${escapeHtml(formatTimestamp(item.occurredAt))}</small></article>`).join("")}</section>`;
+  return `<section class="manager-record-list" aria-label="Evidências">${items.map((item) => {
+    const expanded = String(state.expandedEvidenceId) === String(item.id);
+    const panelId = `manager-evidence-${escapeHtml(item.id)}`;
+    return `<article class="form-card manager-record expandable-evidence"><button class="evidence-expansion-control" type="button" data-action="toggle-evidence" data-evidence-id="${escapeHtml(item.id)}" aria-expanded="${expanded}" aria-controls="${panelId}"><span class="status-pill">${escapeHtml(item.status)}</span><h3>${escapeHtml(item.sourceMeta || item.source)}</h3><small>${escapeHtml(formatTimestamp(item.occurredAt))}</small></button><div class="evidence-expanded-content" id="${panelId}" ${expanded ? "" : "hidden"}><h4>Conteúdo completo</h4><p>${escapeHtml(item.content)}</p><p class="subtle">Visualização gerencial somente leitura.</p></div></article>`;
+  }).join("")}</section>`;
 }
 
 function managerAnalysesSection(state) {

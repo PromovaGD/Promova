@@ -85,10 +85,12 @@ const state = {
   view: "home",
   pendingEvidence: null,
   pendingEvidences: [],
+  dismissedEvidences: [],
   pendingStatus: "idle",
   userObservation: "",
   analysisSubmitting: false,
   analysisError: null,
+  expandedEvidenceId: null,
   githubImport: createGithubImportState(),
   result: null,
   error: null,
@@ -220,6 +222,7 @@ function expireSession() {
   state.reviewError = null;
   state.pendingEvidence = null;
   state.pendingEvidences = [];
+  state.dismissedEvidences = [];
   state.pendingStatus = "idle";
   state.userObservation = "";
   state.analysisSubmitting = false;
@@ -413,6 +416,7 @@ async function handleClick(event) {
     state.insightsError = null;
     state.pendingEvidence = null;
     state.pendingEvidences = [];
+    state.dismissedEvidences = [];
     state.userObservation = "";
     state.analysisSubmitting = false;
     state.analysisError = null;
@@ -571,6 +575,15 @@ async function handleClick(event) {
 
   if (action === "open-pending-evidence") {
     await openPendingEvidence(trigger.dataset.evidenceId);
+    return;
+  }
+
+  if (action === "toggle-evidence") {
+    state.expandedEvidenceId =
+      String(state.expandedEvidenceId) === String(trigger.dataset.evidenceId)
+        ? null
+        : trigger.dataset.evidenceId;
+    render();
     return;
   }
 
@@ -1011,6 +1024,7 @@ async function refreshUserAnalyses() {
   }
 
   state.evidences = await loadAnalysesForCurrentUser(state.dashboardFilters);
+  preserveExpandedEvidence([...state.evidences, ...state.pendingEvidences]);
 }
 
 async function refreshInsights() {
@@ -1044,14 +1058,29 @@ async function refreshPendingEvidences() {
     return;
   }
 
-  state.pendingEvidences = await fetchEvidences({
-    status: "PENDING",
-    ...buildClearParams(state.dashboardFilters),
-  });
+  const dateFilters = buildClearParams(state.dashboardFilters);
+  [state.pendingEvidences, state.dismissedEvidences] = await Promise.all([
+    fetchEvidences({ status: "PENDING", ...dateFilters }),
+    fetchEvidences({ status: "DISMISSED", ...dateFilters }),
+  ]);
+  preserveExpandedEvidence([
+    ...state.evidences,
+    ...state.pendingEvidences,
+    ...state.dismissedEvidences,
+  ]);
 
   if (state.pendingEvidence) {
     state.pendingEvidence =
       state.pendingEvidences.find((item) => String(item.id) === String(state.pendingEvidence.id)) || null;
+  }
+}
+
+function preserveExpandedEvidence(items) {
+  if (
+    state.expandedEvidenceId != null &&
+    !items.some((item) => String(item.id) === String(state.expandedEvidenceId))
+  ) {
+    state.expandedEvidenceId = null;
   }
 }
 

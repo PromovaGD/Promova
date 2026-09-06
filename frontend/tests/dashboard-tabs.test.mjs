@@ -117,3 +117,33 @@ test("dashboard tabs expose accessible roving-tab semantics", () => {
   assert.match(html, /id="dashboard-tab-criteria"[\s\S]*?aria-selected="true"/);
   assert.match(html, /id="dashboard-panel-criteria"[\s\S]*?aria-labelledby="dashboard-tab-criteria"/);
 });
+
+test("evidence cards expose one escaped, accessible expanded item", () => {
+  const state = stateFor("dashboard");
+  state.expandedEvidenceId = "7";
+  state.pendingEvidences = [
+    {
+      id: 7,
+      source: "GitHub",
+      sourceMeta: "PR <script>alert(1)</script>",
+      content: "Full <img src=x onerror=alert(1)> content",
+      sourceUrl: "javascript:alert(1)",
+      occurredAt: "2026-09-01T10:00:00Z",
+    },
+    {
+      id: 8,
+      source: "GitHub",
+      sourceMeta: "PR #8",
+      content: "Second item",
+      occurredAt: "2026-09-02T10:00:00Z",
+    },
+  ];
+
+  const html = dashboardContent(state, hero);
+  assert.equal((html.match(/aria-expanded="true"/g) || []).length, 1);
+  assert.match(html, /aria-controls="pending-evidence-7"/);
+  assert.match(html, /id="pending-evidence-7"/);
+  assert.match(html, /&lt;img src=x onerror=alert\(1\)&gt;/);
+  assert.doesNotMatch(html, /<script>|<img src=x/);
+  assert.doesNotMatch(html, /href="javascript:/);
+});

@@ -2184,6 +2184,65 @@ a {
   text-align: right;
 }
 
+.expandable-evidence {
+  grid-template-columns: 1fr;
+  align-items: stretch;
+  overflow: hidden;
+}
+
+.evidence-expansion-control {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.evidence-expansion-control:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.45);
+  outline-offset: 5px;
+  border-radius: 12px;
+}
+
+.evidence-expanded-content {
+  grid-column: 1 / -1;
+  margin-top: 14px;
+  padding: 18px;
+  border-top: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+
+.evidence-expanded-content[hidden] {
+  display: none;
+}
+
+.integration-url {
+  color: var(--muted);
+  font-family: ui-monospace, monospace;
+  font-size: 0.8rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .expandable-evidence,
+  .evidence-expanded-content {
+    scroll-behavior: auto;
+    transition: none;
+  }
+}
+
+@media (max-width: 620px) {
+  .evidence-expansion-control {
+    grid-template-columns: 1fr;
+  }
+}
+
 .admin-context-banner {
   margin-bottom: 16px;
   padding: 12px 16px;

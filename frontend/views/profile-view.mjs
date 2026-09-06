@@ -1,5 +1,6 @@
 import { appPage, pageHero } from "../components/layout.mjs";
 import { escapeHtml } from "../utils/html.mjs";
+import { githubImportPanel } from "../features/github-import/github-import-panel.mjs";
 
 export function profilePage(state) {
   const labels = {
@@ -17,6 +18,7 @@ export function profilePage(state) {
       "Consulte o contexto de carreira definido pela gestão e usado em cada nova análise.",
     )}
     ${state.profileLoading && !state.profile ? profileLoading() : profileReadModel(state.profile, state, labels)}
+    <div class="profile-github-section">${githubImportPanel(state.githubImport || { pullRequests: [] }, state.pendingEvidences || [])}</div>
   `,
     { user: state.user, mode: "app", terminology: state.careerConfiguration?.labels },
   );

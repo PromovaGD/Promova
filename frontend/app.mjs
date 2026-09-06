@@ -45,6 +45,7 @@ import {
 } from "./services/evidence-api.mjs";
 import {
   fetchGithubSettings,
+  clearGithubSettings,
   findGithubPullRequests,
   saveGithubSettings,
   syncGithub,
@@ -670,6 +671,13 @@ async function handleClick(event) {
 
   if (action === "test-github-settings") {
     await testGithubConnection();
+    return;
+  }
+
+  if (action === "clear-github-settings") {
+    if (window.confirm("Desconectar o GitHub e remover a configuração salva?")) {
+      await clearGithubConnectionSettings();
+    }
     return;
   }
 
@@ -1414,6 +1422,22 @@ async function testGithubConnection() {
   }
 
   if (state.user) {
+    render();
+  }
+}
+
+async function clearGithubConnectionSettings() {
+  setGithubSettingsSaving(state.githubImport, true);
+  render();
+  try {
+    applyGithubSettings(state.githubImport, await clearGithubSettings());
+    state.githubImport.testMessage = "Configuração do GitHub removida.";
+    state.githubImport.testStatus = "success";
+    state.githubImport.syncResult = null;
+  } catch (error) {
+    setGithubSettingsError(state.githubImport, error, "Não foi possível desconectar o GitHub.");
+  } finally {
+    setGithubSettingsSaving(state.githubImport, false);
     render();
   }
 }

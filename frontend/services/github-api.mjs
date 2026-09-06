@@ -1,5 +1,5 @@
 import { parseGithubRepoSlug } from "../utils/github.mjs";
-import { apiGet, apiPost, apiPut } from "./http.mjs";
+import { apiDelete, apiGet, apiPost, apiPut } from "./http.mjs";
 
 const DEFAULT_PAGE_SIZE = 8;
 
@@ -17,6 +17,10 @@ export function saveGithubSettings({ repoSlug, authorLogin }) {
 
 export function testGithubSettings() {
   return apiPost("/api/github/settings/test", {}, { auth: true });
+}
+
+export function clearGithubSettings() {
+  return apiDelete("/api/github/settings", null, { auth: true });
 }
 
 export function syncGithub() {

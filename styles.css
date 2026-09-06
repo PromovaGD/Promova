@@ -2550,6 +2550,10 @@ a {
   margin-top: 8px;
 }
 
+.profile-github-section {
+  margin-top: 24px;
+}
+
 .profile-card {
   display: grid;
   gap: 22px;

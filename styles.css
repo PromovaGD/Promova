@@ -2172,6 +2172,18 @@ a {
   justify-content: space-between;
 }
 
+.evidence-observation-card {
+  display: grid;
+  gap: 18px;
+}
+
+.observation-counter {
+  margin-top: -12px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  text-align: right;
+}
+
 .admin-context-banner {
   margin-bottom: 16px;
   padding: 12px 16px;

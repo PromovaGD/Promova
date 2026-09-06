@@ -32,6 +32,7 @@ public class OpenRouterChatClient implements AiChatClient {
   private final String appName;
   private final int maxTokens;
   private final double temperature;
+  private final int readTimeoutSeconds;
 
   public OpenRouterChatClient(
       ObjectMapper objectMapper,
@@ -42,7 +43,8 @@ public class OpenRouterChatClient implements AiChatClient {
       @Value("${openrouter.app-name:Promova}") String appName,
       @Value("${openrouter.max-tokens:800}") int maxTokens,
       @Value("${openrouter.temperature:0.2}") double temperature,
-      @Value("${openrouter.timeout-seconds:30}") int timeoutSeconds) {
+      @Value("${openrouter.connect-timeout-seconds:10}") int connectTimeoutSeconds,
+      @Value("${openrouter.read-timeout-seconds:30}") int readTimeoutSeconds) {
     this.objectMapper = objectMapper;
     this.apiKey = apiKey;
     this.endpoint = baseUrl + "/chat/completions";
@@ -51,20 +53,28 @@ public class OpenRouterChatClient implements AiChatClient {
     this.appName = appName;
     this.maxTokens = maxTokens;
     this.temperature = temperature;
-    this.httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(timeoutSeconds)).build();
+    this.readTimeoutSeconds = readTimeoutSeconds;
+    if (apiKey == null || apiKey.isBlank()) {
+      throw new IllegalStateException("OPENROUTER_API_KEY must be configured for the OpenRouter engine");
+    }
+    if (model == null || model.isBlank()) {
+      throw new IllegalStateException("OPENROUTER_MODEL must be configured for the OpenRouter engine");
+    }
+    if (connectTimeoutSeconds <= 0 || readTimeoutSeconds <= 0) {
+      throw new IllegalStateException("OpenRouter timeouts must be positive");
+    }
+    this.httpClient =
+        HttpClient.newBuilder()
+            .connectTimeout(Duration.ofSeconds(connectTimeoutSeconds))
+            .build();
   }
 
   @Override
   public String complete(List<AiChatMessage> messages) {
-    if (apiKey == null || apiKey.isBlank()) {
-      throw new ResponseStatusException(
-          HttpStatus.SERVICE_UNAVAILABLE, "OPENROUTER_API_KEY must be configured");
-    }
-
     try {
       HttpRequest request =
           HttpRequest.newBuilder(URI.create(endpoint))
-              .timeout(Duration.ofSeconds(45))
+              .timeout(Duration.ofSeconds(readTimeoutSeconds))
               .headers(HttpHeaders.CONTENT_TYPE, "application/json")
               .headers(HttpHeaders.AUTHORIZATION, "Bearer " + apiKey.trim())
               .headers("HTTP-Referer", siteUrl)

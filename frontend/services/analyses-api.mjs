@@ -44,6 +44,7 @@ function normalizeSavedAnalysis(item) {
     source: item.source,
     sourceMeta: item.sourceMeta,
     evidence: item.evidence,
+    userObservation: item.userObservation || null,
     currentLevel: item.currentLevel,
     targetLevel: item.targetLevel,
     impactLevel: item.impactLevel,

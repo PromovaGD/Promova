@@ -15,7 +15,10 @@ import br.com.promova.profile.CareerProfile;
 import br.com.promova.profile.CareerProfileRepository;
 import br.com.promova.user.User;
 import java.time.Instant;
+import java.time.Duration;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +26,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class EvidenceAnalysisService {
+  private static final Logger LOGGER = LoggerFactory.getLogger(EvidenceAnalysisService.class);
+  private static final int MAX_LIST_ITEMS = 10;
+  private static final int MAX_LIST_ITEM_LENGTH = 200;
   private final FrameworkProvider frameworkProvider;
   private final AnalysisEngine analysisEngine;
   private final EvidenceRepository evidenceRepository;
@@ -60,6 +66,13 @@ public class EvidenceAnalysisService {
    */
   @Transactional
   public SavedAnalysisResponse analyzeOwnedEvidence(User authenticatedUser, Long evidenceId) {
+    return analyzeOwnedEvidence(authenticatedUser, evidenceId, null);
+  }
+
+  @Transactional
+  public SavedAnalysisResponse analyzeOwnedEvidence(
+      User authenticatedUser, Long evidenceId, String userObservation) {
+    Instant startedAt = Instant.now();
     Evidence evidence =
         evidenceRepository
             .findByIdAndUserIdForUpdate(evidenceId, authenticatedUser.getId())
@@ -90,20 +103,39 @@ public class EvidenceAnalysisService {
 
     EvidenceAnalysisRequest request =
         new EvidenceAnalysisRequest(
-            evidence.getContent(), profile.getCurrentLevel(), profile.getTargetLevel());
-    EvidenceAnalysisResponse engineResult = analysisEngine.analyze(request, careerFramework);
-    validateEngineResult(engineResult, careerFramework, profile);
+            evidence.getContent(),
+            normalizeObservation(userObservation),
+            profile.getCurrentLevel(),
+            profile.getTargetLevel());
+    EvidenceAnalysisResponse engineResult;
+    try {
+      engineResult = analysisEngine.analyze(request, careerFramework);
+      validateEngineResult(engineResult, careerFramework, profile);
+    } catch (RuntimeException error) {
+      LOGGER.warn(
+          "analysis_failed evidenceId={} durationMs={} errorType={}",
+          evidenceId,
+          Duration.between(startedAt, Instant.now()).toMillis(),
+          error.getClass().getSimpleName());
+      throw error;
+    }
 
     var savedResponse =
         savedAnalysisService.saveEngineResult(
             evidence,
             profile.getCurrentLevel(),
             profile.getTargetLevel(),
+            request.userObservation(),
             engineResult,
             careerFramework,
             Instant.now());
     evidence.markAnalyzed();
     evidenceRepository.save(evidence);
+    LOGGER.info(
+        "analysis_succeeded evidenceId={} analysisId={} durationMs={}",
+        evidenceId,
+        savedResponse == null ? null : savedResponse.analysisId(),
+        Duration.between(startedAt, Instant.now()).toMillis());
     return savedResponse;
   }
 
@@ -114,6 +146,9 @@ public class EvidenceAnalysisService {
         || result.confidence() == null
         || result.reasoning() == null
         || result.reasoning().isBlank()
+        || result.reasoning().length() > 4000
+        || invalidList(result.competencies())
+        || invalidList(result.suggestions())
         || !careerFramework.containsLevel(result.estimatedLevel())) {
       throw new ResponseStatusException(
           HttpStatus.BAD_GATEWAY, "Analysis engine returned an invalid result.");
@@ -124,5 +159,28 @@ public class EvidenceAnalysisService {
       throw new ResponseStatusException(
           HttpStatus.BAD_REQUEST, "Perfil de carreira contém níveis fora do framework atual.");
     }
+  }
+
+  private String normalizeObservation(String value) {
+    if (value == null || value.isBlank()) {
+      return null;
+    }
+    String normalized = value.trim().replaceAll("\\s+", " ");
+    if (normalized.length() > 2000) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "A observação deve ter no máximo 2.000 caracteres.");
+    }
+    return normalized;
+  }
+
+  private boolean invalidList(java.util.List<String> values) {
+    return values == null
+        || values.size() > MAX_LIST_ITEMS
+        || values.stream()
+            .anyMatch(
+                value ->
+                    value == null
+                        || value.isBlank()
+                        || value.length() > MAX_LIST_ITEM_LENGTH);
   }
 }

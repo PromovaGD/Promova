@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  evidencePendingPage,
   evidenceDetailPage,
   evidenceEmptyPage,
   evidenceErrorPage,
@@ -22,6 +23,27 @@ const savedEvidence = {
   readiness: "Pronto para conversar sobre o impacto.",
   createdAt: "2026-09-02T12:00:00.000Z",
 };
+
+test("pending evidence keeps source and optional observation separate", () => {
+  const html = evidencePendingPage({
+    user: { name: "João Silva", role: "EMPLOYEE" },
+    pendingEvidence: {
+      source: "GitHub",
+      sourceMeta: "promova/app#42",
+      content: "Texto imutável da integração",
+    },
+    userObservation: "Contexto adicional",
+    analysisSubmitting: false,
+    analysisError: null,
+    evidences: [],
+  });
+
+  assert.match(html, /Texto imutável da integração/);
+  assert.match(html, /data-user-observation/);
+  assert.match(html, /Contexto adicional/);
+  assert.match(html, /data-action="analyze-evidence"/);
+  assert.match(html, /2000/);
+});
 
 test("empty evidence flow explains that the inbox is empty and offers next actions", () => {
   const html = evidenceEmptyPage({ user: { name: "João Silva", role: "EMPLOYEE" } });

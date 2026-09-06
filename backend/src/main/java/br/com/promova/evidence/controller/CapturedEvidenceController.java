@@ -1,6 +1,7 @@
 package br.com.promova.evidence.controller;
 
 import br.com.promova.analysis.dto.SavedAnalysisResponse;
+import br.com.promova.analysis.dto.EvidenceAnalysisCommand;
 import br.com.promova.analysis.service.EvidenceAnalysisService;
 import br.com.promova.auth.AuthService;
 import br.com.promova.auth.AuthTokenResolver;
@@ -77,8 +78,11 @@ public class CapturedEvidenceController {
    */
   @PostMapping("/{id}/analysis")
   public SavedAnalysisResponse analyze(
-      @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization, @PathVariable Long id) {
-    return evidenceAnalysisService.analyzeOwnedEvidence(requireUser(authorization), id);
+      @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+      @PathVariable Long id,
+      @Valid @RequestBody(required = false) EvidenceAnalysisCommand command) {
+    return evidenceAnalysisService.analyzeOwnedEvidence(
+        requireUser(authorization), id, command == null ? null : command.userObservation());
   }
 
   @PostMapping("/github/pull-request")

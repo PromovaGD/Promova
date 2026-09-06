@@ -7,9 +7,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 @Component
+@Profile({"dev", "test"})
 @ConditionalOnProperty(name = "promova.analysis.engine", havingValue = "mock", matchIfMissing = true)
 public class MockAnalysisEngine implements AnalysisEngine {
   private static final List<String> IMPACT_KEYWORDS =

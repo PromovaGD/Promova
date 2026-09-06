@@ -1,4 +1,3 @@
-import { dashboardContent } from "./dashboard-view.mjs";
 import { appPage } from "../components/layout.mjs";
 import { escapeHtml } from "../utils/html.mjs";
 
@@ -20,8 +19,9 @@ export function managerPage(state) {
     });
   }
 
-  const selectedEmployee =
-    state.employees.find((employee) => employee.id === state.selectedEmployeeId) || state.employees[0];
+  const selectedEmployee = state.employees.find(
+    (employee) => employee.id === state.selectedEmployeeId,
+  );
 
   return appPage(
     `
@@ -31,10 +31,11 @@ export function managerPage(state) {
         <div class="admin-sidebar-head">
           <span class="eyebrow">Manager Console</span>
           <h2>${escapeHtml(labels.employee)}s</h2>
-          <p class="card-copy">Selecione um ${escapeHtml(labels.employee.toLowerCase())} para acompanhar as análises.</p>
+          <p class="card-copy">Encontre uma pessoa e gerencie seu contexto de carreira.</p>
         </div>
+        ${managerPeopleFilters(state, labels)}
         <nav class="admin-employee-list" aria-label="${escapeHtml(labels.employee)}s">
-          ${state.employees
+          ${state.employees.length ? state.employees
             .map(
               (employee) => `
                 <button
@@ -47,38 +48,93 @@ export function managerPage(state) {
                   <span class="admin-employee-copy">
                     <strong>${escapeHtml(employee.name)}</strong>
                     <span>${escapeHtml(employee.email)}</span>
+                    <span>${escapeHtml(employee.jobRoleName || `Sem ${labels.jobRole.toLowerCase()}`)} · ${escapeHtml(employee.currentLevel || "—")} → ${escapeHtml(employee.targetLevel || "—")}</span>
                   </span>
                 </button>
               `,
             )
-            .join("")}
+            .join("") : `<p class="manager-no-results">Nenhum resultado para os filtros atuais.</p>`}
         </nav>
       </aside>
 
       <section class="admin-main">
         ${
-          selectedEmployee
-            ? `${managerCareerPlan(state, labels)}${dashboardContent(
-                {
-                  ...state,
-                  evidences: state.adminEvidences,
-                  dashboardFilters: state.adminFilters,
-                  viewingAsAdmin: true,
-                  viewedEmployee: selectedEmployee,
-                },
-                {
-                  title: selectedEmployee.name,
-                  subtitle: `Painel de análises do ${labels.employee.toLowerCase()}`,
-                  copy: "Visualize as evidências analisadas, filtros por data e detalhes completos de cada classificação.",
-                },
-              )}`
-            : `<div class="empty-state dashboard-empty"><p>Nenhum ${escapeHtml(labels.employee.toLowerCase())} cadastrado.</p></div>`
+          selectedEmployee ? managerEmployeeDetail(state, selectedEmployee, labels) : managerPeopleEmpty(state, labels)
         }
       </section>
     </div>
   `,
     { user: state.user, mode: "manager", terminology: labels },
   );
+}
+
+function managerPeopleFilters(state, labels) {
+  const filters = state.managerFilters || {};
+  const roles = state.managerSettings?.activeRoles || [];
+  const levels = state.managerSettings?.frameworkLevels || [];
+  return `
+    <form class="manager-people-filters" data-manager-search-form>
+      <label class="field"><span>Nome ou e-mail</span><input name="query" value="${escapeHtml(filters.query || "")}" placeholder="Buscar ${escapeHtml(labels.employee.toLowerCase())}" /></label>
+      <label class="field"><span>${escapeHtml(labels.jobRole)}</span><select name="jobRoleId"><option value="">Todos</option>${roles.map((role) => `<option value="${escapeHtml(role.id)}" ${String(role.id) === String(filters.jobRoleId || "") ? "selected" : ""}>${escapeHtml(role.name)}</option>`).join("")}</select></label>
+      <label class="field"><span>${escapeHtml(labels.level)}</span><select name="level"><option value="">Todos</option>${levels.map((level) => `<option value="${escapeHtml(level.key)}" ${level.key === filters.level ? "selected" : ""}>${escapeHtml(level.key)} · ${escapeHtml(level.title)}</option>`).join("")}</select></label>
+      <div class="manager-filter-actions"><button class="button secondary" type="submit">Buscar</button><button class="button ghost" type="button" data-action="clear-manager-filters">Limpar</button></div>
+    </form>`;
+}
+
+function managerPeopleEmpty(state, labels) {
+  if (state.managerPeopleStatus === "error") {
+    return `<div class="empty-state dashboard-empty" role="alert"><h2>Não foi possível carregar ${escapeHtml(labels.employee.toLowerCase())}s</h2><p>${escapeHtml(state.managerPeopleError || "Tente novamente.")}</p></div>`;
+  }
+  const filtered = Object.values(state.managerFilters || {}).some(Boolean);
+  return `<div class="empty-state dashboard-empty"><h2>${filtered ? "Nenhum resultado" : `Nenhum ${escapeHtml(labels.employee.toLowerCase())} cadastrado`}</h2><p>${filtered ? "Ajuste ou limpe os filtros para tentar novamente." : "Quando houver pessoas cadastradas, elas aparecerão aqui."}</p></div>`;
+}
+
+function managerEmployeeDetail(state, employee, labels) {
+  const section = state.managerDetailSection || "career-plan";
+  const characteristics = employee.characteristics || [];
+  return `
+    <div class="manager-employee-hero">
+      <div><span class="eyebrow">${escapeHtml(employee.jobRoleName || labels.employee)}</span><h1>${escapeHtml(employee.name)}</h1><p>${escapeHtml(employee.email)}</p></div>
+      <dl class="manager-summary"><div><dt>${escapeHtml(labels.level)}</dt><dd>${escapeHtml(employee.currentLevel || "—")} → ${escapeHtml(employee.targetLevel || "—")}</dd></div><div><dt>${escapeHtml(labels.characteristics)}</dt><dd>${characteristics.length ? characteristics.map(escapeHtml).join(", ") : "—"}</dd></div><div><dt>${escapeHtml(labels.objective)}s ativos</dt><dd>${Number(employee.activeObjectiveCount || 0)}</dd></div></dl>
+    </div>
+    <div class="manager-detail-tabs" role="tablist" aria-label="Detalhes de ${escapeHtml(employee.name)}">
+      ${managerDetailTab("career-plan", "Plano de carreira", section)}
+      ${managerDetailTab("evidence", "Evidências", section)}
+      ${managerDetailTab("analyses", "Análises", section)}
+    </div>
+    <div role="tabpanel">
+      ${section === "career-plan" ? managerCareerPlan(state, labels) : section === "evidence" ? managerEvidenceSection(state) : managerAnalysesSection(state)}
+    </div>`;
+}
+
+function managerDetailTab(value, label, selected) {
+  return `<button class="button ${value === selected ? "primary" : "secondary"}" type="button" role="tab" aria-selected="${value === selected}" data-action="switch-manager-detail" data-manager-detail="${value}">${label}</button>`;
+}
+
+function managerEvidenceSection(state) {
+  if (state.managerDetailStatus === "loading") return `<section class="form-card" aria-busy="true"><p>Carregando evidências…</p></section>`;
+  if (state.managerDetailError) return `<section class="form-card" role="alert"><p>${escapeHtml(state.managerDetailError)}</p></section>`;
+  const items = state.managerEvidenceRecords || [];
+  if (!items.length) return `<section class="empty-state"><h2>Nenhuma evidência</h2><p>Esta pessoa ainda não possui evidências capturadas.</p></section>`;
+  return `<section class="manager-record-list" aria-label="Evidências">${items.map((item) => {
+    const expanded = String(state.expandedEvidenceId) === String(item.id);
+    const panelId = `manager-evidence-${escapeHtml(item.id)}`;
+    return `<article class="form-card manager-record expandable-evidence"><button class="evidence-expansion-control" type="button" data-action="toggle-evidence" data-evidence-id="${escapeHtml(item.id)}" aria-expanded="${expanded}" aria-controls="${panelId}"><span class="status-pill">${escapeHtml(item.status)}</span><h3>${escapeHtml(item.sourceMeta || item.source)}</h3><small>${escapeHtml(formatTimestamp(item.occurredAt))}</small></button><div class="evidence-expanded-content" id="${panelId}" ${expanded ? "" : "hidden"}><h4>Conteúdo completo</h4><p>${escapeHtml(item.content)}</p><p class="subtle">Visualização gerencial somente leitura.</p></div></article>`;
+  }).join("")}</section>`;
+}
+
+function managerAnalysesSection(state) {
+  if (state.managerDetailStatus === "loading") return `<section class="form-card" aria-busy="true"><p>Carregando análises…</p></section>`;
+  if (state.managerDetailError) return `<section class="form-card" role="alert"><p>${escapeHtml(state.managerDetailError)}</p></section>`;
+  const items = state.adminEvidences || [];
+  if (!items.length) return `<section class="empty-state"><h2>Nenhuma análise</h2><p>As análises concluídas aparecerão aqui.</p></section>`;
+  return `<section class="manager-record-list" aria-label="Análises">${items.map((item) => `<article class="form-card manager-record"><div><span class="status-pill">${escapeHtml(item.confidence || "—")}</span><h3>${escapeHtml(item.sourceMeta || item.source)}</h3></div><p>${escapeHtml(item.justification || item.evidence)}</p><div class="manager-record-footer"><small>${escapeHtml(formatTimestamp(item.createdAt))}</small><button class="button secondary" type="button" data-action="open-evidence-detail" data-evidence-id="${escapeHtml(item.id)}" data-saved-analysis-id="${escapeHtml(item.analysisId || "")}">Ver análise</button></div></article>`).join("")}</section>`;
+}
+
+function formatTimestamp(value) {
+  if (!value) return "Data indisponível";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? String(value) : new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" }).format(date);
 }
 
 export function managerCareerPlan(state, labels) {

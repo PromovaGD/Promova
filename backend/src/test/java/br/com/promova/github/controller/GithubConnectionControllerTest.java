@@ -1,6 +1,8 @@
 package br.com.promova.github.controller;
 
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -134,5 +136,29 @@ class GithubConnectionControllerTest {
         .andExpect(jsonPath("$.message").value("GitHub denied access or the server token is rate-limited."))
         .andExpect(jsonPath("$.github_response").doesNotExist())
         .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString(secret))));
+  }
+
+  @Test
+  void clearsOnlyTheAuthenticatedEmployeesConfiguration() throws Exception {
+    when(settingsService.clearForUser(employee)).thenReturn(GithubSettingsResponse.unconfigured());
+
+    mockMvc
+        .perform(delete("/api/github/settings").header(HttpHeaders.AUTHORIZATION, "Bearer test-token"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.configured").value(false))
+        .andExpect(jsonPath("$.repoSlug").value(""));
+
+    verify(settingsService).clearForUser(employee);
+  }
+
+  @Test
+  void rejectsManagersFromEmployeeGithubActions() throws Exception {
+    User manager = new User("Manager", "manager@example.com", "hash", UserRole.MANAGER);
+    when(authTokenResolver.resolve("Bearer manager-token")).thenReturn("manager-token");
+    when(authService.requireUser("manager-token")).thenReturn(manager);
+
+    mockMvc
+        .perform(get("/api/github/settings").header(HttpHeaders.AUTHORIZATION, "Bearer manager-token"))
+        .andExpect(status().isForbidden());
   }
 }

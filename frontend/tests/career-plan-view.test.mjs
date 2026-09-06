@@ -59,4 +59,7 @@ test("employee profile is read-only and shows the assigned plan", () => {
   assert.match(html, /Liderar uma entrega/);
   assert.doesNotMatch(html, /data-profile-form/);
   assert.doesNotMatch(html, /Salvar perfil/);
+  assert.match(html, /id="github-connection-title"/);
+  assert.match(html, /Token do servidor/);
+  assert.match(html, /data-action="clear-github-settings"/);
 });

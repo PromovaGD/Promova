@@ -154,7 +154,7 @@ class CapturedEvidenceControllerTest {
             List.of("Add measurable impact"),
             "Aligned with target",
             Instant.parse("2026-05-12T10:00:00Z"));
-    when(evidenceAnalysisService.analyzeOwnedEvidence(employee, 41L)).thenReturn(response);
+    when(evidenceAnalysisService.analyzeOwnedEvidence(employee, 41L, null)).thenReturn(response);
 
     mockMvc
         .perform(
@@ -176,7 +176,7 @@ class CapturedEvidenceControllerTest {
         .andExpect(jsonPath("$.impactLevel").value("L4"))
         .andExpect(jsonPath("$.justification").value("Server-owned reasoning"));
 
-    verify(evidenceAnalysisService).analyzeOwnedEvidence(employee, 41L);
+    verify(evidenceAnalysisService).analyzeOwnedEvidence(employee, 41L, null);
   }
 
   @Test

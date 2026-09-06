@@ -55,6 +55,9 @@ public class SavedAnalysis {
   @Column(nullable = false)
   private String targetLevel;
 
+  @Column(length = 2000)
+  private String userObservation;
+
   @Column(nullable = false)
   private String impactLevel;
 
@@ -93,6 +96,40 @@ public class SavedAnalysis {
       String suggestionsJson,
       String readiness,
       Instant createdAt) {
+    this(
+        externalId,
+        user,
+        source,
+        sourceMeta,
+        evidence,
+        currentLevel,
+        targetLevel,
+        null,
+        impactLevel,
+        confidence,
+        justification,
+        competenciesJson,
+        suggestionsJson,
+        readiness,
+        createdAt);
+  }
+
+  public SavedAnalysis(
+      String externalId,
+      User user,
+      String source,
+      String sourceMeta,
+      String evidence,
+      String currentLevel,
+      String targetLevel,
+      String userObservation,
+      String impactLevel,
+      String confidence,
+      String justification,
+      String competenciesJson,
+      String suggestionsJson,
+      String readiness,
+      Instant createdAt) {
     this.externalId = externalId;
     this.user = user;
     this.source = source;
@@ -100,6 +137,7 @@ public class SavedAnalysis {
     this.evidence = evidence;
     this.currentLevel = currentLevel;
     this.targetLevel = targetLevel;
+    this.userObservation = userObservation;
     this.impactLevel = impactLevel;
     this.confidence = confidence;
     this.justification = justification;
@@ -121,6 +159,32 @@ public class SavedAnalysis {
       String readiness,
       Instant createdAt) {
     this(
+        evidence,
+        currentLevel,
+        targetLevel,
+        null,
+        impactLevel,
+        confidence,
+        justification,
+        competenciesJson,
+        suggestionsJson,
+        readiness,
+        createdAt);
+  }
+
+  public SavedAnalysis(
+      Evidence evidence,
+      String currentLevel,
+      String targetLevel,
+      String userObservation,
+      String impactLevel,
+      String confidence,
+      String justification,
+      String competenciesJson,
+      String suggestionsJson,
+      String readiness,
+      Instant createdAt) {
+    this(
         evidence.getExternalId(),
         evidence.getUser(),
         evidence.getSource(),
@@ -128,6 +192,7 @@ public class SavedAnalysis {
         evidence.getContent(),
         currentLevel,
         targetLevel,
+        userObservation,
         impactLevel,
         confidence,
         justification,
@@ -172,6 +237,10 @@ public class SavedAnalysis {
 
   public String getTargetLevel() {
     return targetLevel;
+  }
+
+  public String getUserObservation() {
+    return userObservation;
   }
 
   public String getImpactLevel() {

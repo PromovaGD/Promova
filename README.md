@@ -95,7 +95,7 @@ sequenceDiagram
     UI-->>User: Display evidence review
 ```
 
-O request ao AI provider acontece quando `PROMOVA_ANALYSIS_ENGINE=openrouter`. Caso contrário, o backend usa o engine mock local. O diagrama também está disponível em [`docs/evidence-ai-analysis-flow.md`](docs/evidence-ai-analysis-flow.md).
+O request ao AI provider acontece quando `PROMOVA_ANALYSIS_ENGINE=openrouter`. O mock existe apenas nos perfis `dev` e `test`; produção força OpenRouter e falha na inicialização sem `OPENROUTER_API_KEY`. Evidência de origem e observação opcional do funcionário são enviadas em campos separados. O diagrama também está disponível em [`docs/evidence-ai-analysis-flow.md`](docs/evidence-ai-analysis-flow.md).
 
 ## Editar o Career Framework
 

@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Locale;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -28,7 +27,8 @@ public class OpenRouterAnalysisEngine implements AnalysisEngine {
       You are Promova's career evidence reviewer.
 
       Your job is to review one career evidence entry against the provided career framework.
-      Use only the provided evidence and framework. Do not invent facts, metrics, scope, seniority, or business impact.
+      Source evidence and employee observation are separate inputs. Treat the observation only as bounded context about the source evidence.
+      Use only those inputs and the framework. Never invent facts, metrics, scope, seniority, or business impact.
 
       Review rules:
       - estimatedLevel must be one of the provided framework level keys.
@@ -75,7 +75,12 @@ public class OpenRouterAnalysisEngine implements AnalysisEngine {
 
   private String userPrompt(EvidenceAnalysisRequest request, CareerFramework careerFramework) {
     ObjectNode payload = objectMapper.createObjectNode();
-    payload.put("evidence", request.evidence());
+    payload.put("sourceEvidence", request.evidence());
+    if (request.userObservation() == null) {
+      payload.putNull("employeeObservation");
+    } else {
+      payload.put("employeeObservation", request.userObservation());
+    }
     payload.put("currentLevel", request.currentLevel());
     payload.put("targetLevel", request.targetLevel());
     payload.set("careerFramework", objectMapper.valueToTree(careerFramework.levels()));
@@ -93,7 +98,7 @@ public class OpenRouterAnalysisEngine implements AnalysisEngine {
     try {
       JsonNode json = objectMapper.readTree(extractJson(modelResponse));
       return new EvidenceAnalysisResponse(
-          normalizeLevel(json.path("estimatedLevel").asText(), request, careerFramework),
+          requiredLevel(json.path("estimatedLevel").asText(), careerFramework),
           confidence(json.path("confidence").asText()),
           requiredText(json, "reasoning"),
           stringList(json.path("competencies")),
@@ -103,54 +108,64 @@ public class OpenRouterAnalysisEngine implements AnalysisEngine {
     }
   }
 
-  private String normalizeLevel(
-      String estimatedLevel, EvidenceAnalysisRequest request, CareerFramework careerFramework) {
+  private String requiredLevel(String estimatedLevel, CareerFramework careerFramework) {
     if (estimatedLevel != null && careerFramework.levels().containsKey(estimatedLevel)) {
       return estimatedLevel;
     }
-
-    return careerFramework.resolveLevelOrDefault(request.currentLevel(), request.currentLevel());
+    throw invalidResponse("estimatedLevel is not part of the career framework");
   }
 
   private Confidence confidence(String value) {
-    String normalized = value == null ? "" : value.toLowerCase(Locale.ROOT);
-    return switch (normalized) {
+    return switch (value == null ? "" : value) {
       case "low" -> Confidence.LOW;
+      case "medium" -> Confidence.MEDIUM;
       case "high" -> Confidence.HIGH;
-      default -> Confidence.MEDIUM;
+      default -> throw invalidResponse("confidence is invalid");
     };
   }
 
   private String requiredText(JsonNode json, String fieldName) {
     String value = json.path(fieldName).asText();
     if (value == null || value.isBlank()) {
-      return "The AI reviewer completed the analysis but did not provide detailed reasoning.";
+      throw invalidResponse(fieldName + " is required");
     }
+    if (value.length() > 4000) throw invalidResponse(fieldName + " is too long");
     return value;
   }
 
   private List<String> stringList(JsonNode node) {
     if (!node.isArray()) {
-      return List.of();
+      throw invalidResponse("list field is not an array");
     }
 
     List<String> values = new ArrayList<>();
     Iterator<JsonNode> iterator = node.elements();
     while (iterator.hasNext()) {
-      String value = iterator.next().asText();
+      JsonNode item = iterator.next();
+      if (!item.isTextual()) {
+        throw invalidResponse("list field contains a non-string item");
+      }
+      String value = item.asText();
       if (value != null && !value.isBlank()) {
-        values.add(value);
+        String normalized = value.trim();
+        if (normalized.length() > 200 || values.size() >= 10) {
+          throw invalidResponse("list field exceeds its bounds");
+        }
+        values.add(normalized);
       }
     }
     return values;
   }
 
   private String extractJson(String modelResponse) {
-    String trimmed = modelResponse.trim();
-    if (!trimmed.startsWith("```")) {
-      return trimmed;
+    if (modelResponse == null || modelResponse.isBlank()) {
+      throw invalidResponse("response is empty");
     }
+    return modelResponse.trim();
+  }
 
-    return trimmed.replaceFirst("^```(?:json)?\\s*", "").replaceFirst("\\s*```$", "").trim();
+  private ResponseStatusException invalidResponse(String detail) {
+    return new ResponseStatusException(
+        HttpStatus.BAD_GATEWAY, "AI provider returned an invalid analysis: " + detail);
   }
 }

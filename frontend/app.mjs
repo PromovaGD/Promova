@@ -29,6 +29,7 @@ import { loadInsightsForCurrentUser } from "./services/insights-api.mjs";
 import { analyzeCapturedEvidence } from "./services/analysis-api.mjs";
 import {
   fetchCurrentUser,
+  fetchEmployeeEvidences,
   fetchEmployees,
   loginUser,
   logoutUser,
@@ -51,6 +52,7 @@ import {
 } from "./services/evidence-api.mjs";
 import {
   fetchGithubSettings,
+  clearGithubSettings,
   findGithubPullRequests,
   saveGithubSettings,
   syncGithub,
@@ -80,6 +82,7 @@ import {
   evidenceEmptyPage,
   evidenceErrorPage,
   evidenceLoadingPage,
+  evidencePendingPage,
   evidenceResultPage,
 } from "./views/evidence-view.mjs";
 import { landingPage } from "./views/landing-view.mjs";
@@ -89,7 +92,12 @@ const state = {
   view: "home",
   pendingEvidence: null,
   pendingEvidences: [],
+  dismissedEvidences: [],
   pendingStatus: "idle",
+  userObservation: "",
+  analysisSubmitting: false,
+  analysisError: null,
+  expandedEvidenceId: null,
   githubImport: createGithubImportState(),
   result: null,
   error: null,
@@ -107,9 +115,16 @@ const state = {
   dashboardFilters: {},
   dashboardTab: "dashboard",
   adminFilters: {},
+  managerFilters: {},
   employees: [],
   selectedEmployeeId: null,
   adminEvidences: [],
+  managerEvidenceRecords: [],
+  managerDetailSection: "career-plan",
+  managerDetailStatus: "idle",
+  managerDetailError: null,
+  managerPeopleStatus: "idle",
+  managerPeopleError: null,
   managerSection: "people",
   managerSettings: null,
   managerSettingsStatus: "idle",
@@ -245,6 +260,13 @@ function expireSession() {
   state.insightsStatus = "idle";
   state.insightsError = null;
   state.adminEvidences = [];
+  state.managerEvidenceRecords = [];
+  state.managerFilters = {};
+  state.managerDetailSection = "career-plan";
+  state.managerDetailStatus = "idle";
+  state.managerDetailError = null;
+  state.managerPeopleStatus = "idle";
+  state.managerPeopleError = null;
   state.employees = [];
   state.selectedEmployeeId = null;
   state.selectedEvidenceId = null;
@@ -255,7 +277,11 @@ function expireSession() {
   state.reviewError = null;
   state.pendingEvidence = null;
   state.pendingEvidences = [];
+  state.dismissedEvidences = [];
   state.pendingStatus = "idle";
+  state.userObservation = "";
+  state.analysisSubmitting = false;
+  state.analysisError = null;
   state.selectedCareerPlan = null;
   state.careerPlanStatus = "idle";
   state.careerPlanSaving = false;
@@ -273,6 +299,14 @@ function expireSession() {
 }
 
 function handleInput(event) {
+  const observation = event.target.closest("[data-user-observation]");
+  if (observation) {
+    state.userObservation = observation.value.slice(0, 2000);
+    const counter = appRoot.querySelector?.("[data-observation-counter]");
+    if (counter) counter.textContent = `${state.userObservation.length}/2000`;
+    return;
+  }
+
   const githubField = event.target.closest("[data-github-import-field]");
   if (githubField) {
     updateGithubImportField(state.githubImport, githubField.dataset.githubImportField, githubField.value);
@@ -320,13 +354,25 @@ function handleKeydown(event) {
 
 async function handleSubmit(event) {
   const form = event.target.closest(
-    "[data-auth-form], [data-review-form], [data-terminology-form], [data-job-role-form], [data-career-plan-form], [data-objective-form]",
+    "[data-auth-form], [data-review-form], [data-terminology-form], [data-job-role-form], [data-career-plan-form], [data-objective-form], [data-manager-search-form]",
   );
   if (!form) {
     return;
   }
 
   event.preventDefault();
+
+  if (form.matches("[data-manager-search-form]")) {
+    const values = new FormData(form);
+    state.managerFilters = {
+      query: String(values.get("query") || "").trim(),
+      jobRoleId: String(values.get("jobRoleId") || ""),
+      level: String(values.get("level") || ""),
+    };
+    await refreshManagerEmployees();
+    render();
+    return;
+  }
 
   if (form.matches("[data-career-plan-form]")) {
     await submitCareerPlan(form);
@@ -420,8 +466,19 @@ async function handleClick(event) {
     state.insightsError = null;
     state.pendingEvidence = null;
     state.pendingEvidences = [];
+    state.dismissedEvidences = [];
+    state.userObservation = "";
+    state.analysisSubmitting = false;
+    state.analysisError = null;
     state.employees = [];
     state.adminEvidences = [];
+    state.managerEvidenceRecords = [];
+    state.managerFilters = {};
+    state.managerDetailSection = "career-plan";
+    state.managerDetailStatus = "idle";
+    state.managerDetailError = null;
+    state.managerPeopleStatus = "idle";
+    state.managerPeopleError = null;
     state.managerSection = "people";
     state.managerSettings = null;
     state.managerSettingsStatus = "idle";
@@ -499,9 +556,32 @@ async function handleClick(event) {
 
   if (action === "select-employee") {
     state.selectedEmployeeId = Number(trigger.dataset.employeeId);
+    state.managerDetailSection = "career-plan";
     state.careerPlanNotice = null;
     state.careerPlanError = null;
-    await Promise.all([refreshEmployeeAnalyses(), refreshSelectedCareerPlan()]);
+    updateManagerDeepLink();
+    await Promise.all([
+      refreshEmployeeAnalyses(),
+      refreshManagerEvidenceRecords(),
+      refreshSelectedCareerPlan(),
+    ]);
+    render();
+    return;
+  }
+
+  if (action === "switch-manager-detail") {
+    state.managerDetailSection = ["career-plan", "evidence", "analyses"].includes(
+      trigger.dataset.managerDetail,
+    )
+      ? trigger.dataset.managerDetail
+      : "career-plan";
+    render();
+    return;
+  }
+
+  if (action === "clear-manager-filters") {
+    state.managerFilters = {};
+    await refreshManagerEmployees();
     render();
     return;
   }
@@ -545,6 +625,20 @@ async function handleClick(event) {
 
   if (action === "open-pending-evidence") {
     await openPendingEvidence(trigger.dataset.evidenceId);
+    return;
+  }
+
+  if (action === "toggle-evidence") {
+    state.expandedEvidenceId =
+      String(state.expandedEvidenceId) === String(trigger.dataset.evidenceId)
+        ? null
+        : trigger.dataset.evidenceId;
+    render();
+    return;
+  }
+
+  if (action === "analyze-evidence") {
+    await submitPendingEvidenceAnalysis();
     return;
   }
 
@@ -640,6 +734,13 @@ async function handleClick(event) {
 
   if (action === "test-github-settings") {
     await testGithubConnection();
+    return;
+  }
+
+  if (action === "clear-github-settings") {
+    if (window.confirm("Desconectar o GitHub e remover a configuração salva?")) {
+      await clearGithubConnectionSettings();
+    }
     return;
   }
 
@@ -931,25 +1032,27 @@ async function openManager() {
   state.view = "manager";
   state.viewingAsAdmin = true;
   state.permissionError = null;
+  state.managerPeopleStatus = "loading";
   render();
 
   try {
     state.managerSettingsStatus = "loading";
-    const [employees, settings, jobRoles] = await Promise.all([
-      fetchEmployees(),
+    const [settings, jobRoles] = await Promise.all([
       fetchManagerSettings(),
       fetchJobRoles(),
     ]);
-    state.employees = employees;
     state.managerSettings = settings;
     state.jobRoles = jobRoles;
     state.managerSettingsStatus = "ready";
-    state.selectedEmployeeId = state.selectedEmployeeId || state.employees[0]?.id || null;
-    await Promise.all([refreshEmployeeAnalyses(), refreshSelectedCareerPlan()]);
+    const linkedEmployeeId = managerEmployeeIdFromLocation();
+    if (linkedEmployeeId) state.selectedEmployeeId = linkedEmployeeId;
+    await refreshManagerEmployees({ preserveSelection: true });
   } catch (error) {
     state.error = error;
     state.managerSettingsStatus = "error";
     state.managerSettingsError = error.message || "Não foi possível carregar as configurações.";
+    state.managerPeopleStatus = "error";
+    state.managerPeopleError = error.message || "Não foi possível carregar as pessoas.";
   }
 
   render();
@@ -971,6 +1074,7 @@ async function refreshUserAnalyses() {
   }
 
   state.evidences = await loadAnalysesForCurrentUser(state.dashboardFilters);
+  preserveExpandedEvidence([...state.evidences, ...state.pendingEvidences]);
 }
 
 async function refreshInsights() {
@@ -1004,14 +1108,29 @@ async function refreshPendingEvidences() {
     return;
   }
 
-  state.pendingEvidences = await fetchEvidences({
-    status: "PENDING",
-    ...buildClearParams(state.dashboardFilters),
-  });
+  const dateFilters = buildClearParams(state.dashboardFilters);
+  [state.pendingEvidences, state.dismissedEvidences] = await Promise.all([
+    fetchEvidences({ status: "PENDING", ...dateFilters }),
+    fetchEvidences({ status: "DISMISSED", ...dateFilters }),
+  ]);
+  preserveExpandedEvidence([
+    ...state.evidences,
+    ...state.pendingEvidences,
+    ...state.dismissedEvidences,
+  ]);
 
   if (state.pendingEvidence) {
     state.pendingEvidence =
       state.pendingEvidences.find((item) => String(item.id) === String(state.pendingEvidence.id)) || null;
+  }
+}
+
+function preserveExpandedEvidence(items) {
+  if (
+    state.expandedEvidenceId != null &&
+    !items.some((item) => String(item.id) === String(state.expandedEvidenceId))
+  ) {
+    state.expandedEvidenceId = null;
   }
 }
 
@@ -1043,6 +1162,64 @@ async function refreshEmployeeAnalyses() {
   }
 
   state.adminEvidences = await loadAnalysesForEmployee(state.selectedEmployeeId, state.adminFilters);
+}
+
+async function refreshManagerEvidenceRecords() {
+  if (!state.selectedEmployeeId) {
+    state.managerEvidenceRecords = [];
+    return;
+  }
+  state.managerEvidenceRecords = await fetchEmployeeEvidences(state.selectedEmployeeId);
+}
+
+async function refreshManagerEmployees({ preserveSelection = false } = {}) {
+  state.managerPeopleStatus = "loading";
+  state.managerPeopleError = null;
+  try {
+    const filters = {};
+    if (state.managerFilters.query) filters.query = state.managerFilters.query;
+    if (state.managerFilters.jobRoleId) filters.jobRoleId = state.managerFilters.jobRoleId;
+    if (state.managerFilters.level) filters.level = state.managerFilters.level;
+    state.employees = await fetchEmployees(filters);
+    const selectedExists = state.employees.some(
+      (employee) => employee.id === state.selectedEmployeeId,
+    );
+    if (!preserveSelection || !selectedExists) {
+      state.selectedEmployeeId = state.employees[0]?.id || null;
+    }
+    state.managerPeopleStatus = "ready";
+    state.managerDetailStatus = "loading";
+    state.managerDetailError = null;
+    await Promise.all([
+      refreshEmployeeAnalyses(),
+      refreshManagerEvidenceRecords(),
+      refreshSelectedCareerPlan(),
+    ]);
+    state.managerDetailStatus = "ready";
+    updateManagerDeepLink();
+  } catch (error) {
+    if (error.isUnauthorized || error.status === 401) return;
+    state.employees = [];
+    state.selectedEmployeeId = null;
+    state.managerPeopleStatus = "error";
+    state.managerPeopleError = error.message || "Não foi possível carregar as pessoas.";
+    state.managerDetailStatus = "error";
+    state.managerDetailError = state.managerPeopleError;
+  }
+}
+
+function managerEmployeeIdFromLocation() {
+  if (typeof window === "undefined") return null;
+  const match = String(window.location?.hash || "").match(/^#\/manager\/employees\/(\d+)$/);
+  return match ? Number(match[1]) : null;
+}
+
+function updateManagerDeepLink() {
+  if (typeof window === "undefined" || !window.history?.replaceState) return;
+  const hash = state.selectedEmployeeId
+    ? `#/manager/employees/${state.selectedEmployeeId}`
+    : "#/manager";
+  window.history.replaceState(null, "", hash);
 }
 
 async function refreshSelectedAnalysisReview() {
@@ -1157,11 +1334,24 @@ async function openCapturedEvidence() {
     return;
   }
 
+  state.analysisError = null;
+  state.analysisSubmitting = false;
+  state.view = "pending-evidence";
+  render();
+}
+
+async function submitPendingEvidenceAnalysis() {
+  if (!state.pendingEvidence || state.analysisSubmitting) return;
+  state.analysisSubmitting = true;
+  state.analysisError = null;
   state.view = "loading-evidence";
   render();
 
   try {
-    const analyzedEvidence = await analyzeCapturedEvidence(state.pendingEvidence.id);
+    const analyzedEvidence = await analyzeCapturedEvidence(
+      state.pendingEvidence.id,
+      state.userObservation,
+    );
     state.pendingEvidence = null;
     state.pendingStatus = "idle";
     state.result = analyzedEvidence;
@@ -1169,6 +1359,7 @@ async function openCapturedEvidence() {
     state.review = { currentStatus: "UNREVIEWED", history: [] };
     state.reviewStatus = "ready";
     state.reviewError = null;
+    state.userObservation = "";
     state.view = "result";
     await refreshUserAnalyses();
     await refreshInsights();
@@ -1177,8 +1368,10 @@ async function openCapturedEvidence() {
     if (error.isUnauthorized || error.status === 401) {
       return;
     }
-    state.error = error;
-    state.view = "error";
+    state.analysisError = error.message || "Não foi possível analisar a evidência. Tente novamente.";
+    state.view = "pending-evidence";
+  } finally {
+    state.analysisSubmitting = false;
   }
 
   if (state.user) {
@@ -1312,6 +1505,22 @@ async function testGithubConnection() {
   }
 }
 
+async function clearGithubConnectionSettings() {
+  setGithubSettingsSaving(state.githubImport, true);
+  render();
+  try {
+    applyGithubSettings(state.githubImport, await clearGithubSettings());
+    state.githubImport.testMessage = "Configuração do GitHub removida.";
+    state.githubImport.testStatus = "success";
+    state.githubImport.syncResult = null;
+  } catch (error) {
+    setGithubSettingsError(state.githubImport, error, "Não foi possível desconectar o GitHub.");
+  } finally {
+    setGithubSettingsSaving(state.githubImport, false);
+    render();
+  }
+}
+
 async function syncGithubConnection() {
   setGithubSyncLoading(state.githubImport);
   render();
@@ -1376,6 +1585,8 @@ function render() {
     page = evidenceDetailPage(state);
   } else if (state.view === "loading-evidence") {
     page = evidenceLoadingPage(state);
+  } else if (state.view === "pending-evidence") {
+    page = evidencePendingPage(state);
   } else if (state.view === "empty-evidence") {
     page = evidenceEmptyPage(state);
   } else if (state.view === "error") {

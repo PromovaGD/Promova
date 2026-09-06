@@ -30,6 +30,7 @@ export function githubImportPanel(githubImport, pendingEvidences = []) {
         <button class="button ghost" type="button" data-action="test-github-settings" ${busy ? "disabled" : ""}>
           ${githubImport.testStatus === "loading" ? "Testando..." : "Testar acesso"}
         </button>
+        <button class="button ghost danger-text" type="button" data-action="clear-github-settings" ${busy || !githubImport.repoSlug ? "disabled" : ""}>Desconectar</button>
         <button class="button primary" type="button" data-action="sync-github" ${busy ? "disabled" : ""}>
           ${githubImport.syncStatus === "loading" ? "Sincronizando..." : "Sincronizar PRs"}
         </button>

@@ -45,6 +45,12 @@ public class GithubConnectionSettingsService {
     return GithubSettingsResponse.from(settingsRepository.save(settings));
   }
 
+  @Transactional
+  public GithubSettingsResponse clearForUser(User user) {
+    settingsRepository.findByUserId(user.getId()).ifPresent(settingsRepository::delete);
+    return GithubSettingsResponse.unconfigured();
+  }
+
   @Transactional(readOnly = true)
   public GithubConnectionSettings requireConfigured(User user) {
     GithubConnectionSettings settings =

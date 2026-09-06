@@ -102,6 +102,8 @@ openrouter.site-url=${OPENROUTER_SITE_URL:http://localhost:4173}
 openrouter.app-name=${OPENROUTER_APP_NAME:Promova}
 openrouter.max-tokens=${OPENROUTER_MAX_TOKENS:800}
 openrouter.temperature=${OPENROUTER_TEMPERATURE:0.2}
+openrouter.connect-timeout-seconds=${OPENROUTER_CONNECT_TIMEOUT_SECONDS:10}
+openrouter.read-timeout-seconds=${OPENROUTER_READ_TIMEOUT_SECONDS:30}
 ```
 
 O engine OpenRouter recebe a evidencia, os niveis atual/alvo e o career framework carregado pelo backend. O prompt de sistema instrui o modelo a:
@@ -111,7 +113,7 @@ O engine OpenRouter recebe a evidencia, os niveis atual/alvo e o career framewor
 - escolher `estimatedLevel` apenas entre os niveis existentes no framework;
 - retornar somente JSON no contrato de `EvidenceAnalysisResponse`.
 
-Se `PROMOVA_ANALYSIS_ENGINE` nao estiver definido como `openrouter`, o backend continuara usando o analisador mock.
+O analisador mock só está disponível nos perfis `dev` e `test`. O perfil `prod` força o engine `openrouter` e exige `OPENROUTER_API_KEY` válida na inicialização.
 
 ## Career Framework
 

@@ -76,7 +76,9 @@ class TrustedAnalysisPersistenceIntegrationTest {
             "L4", Confidence.HIGH, "Measured system improvement", List.of("Ownership"), List.of("Add metrics"));
     when(analysisEngine.analyze(any(EvidenceAnalysisRequest.class), any())).thenReturn(engineResult);
 
-    var first = analysisService.analyzeOwnedEvidence(owner, evidence.getId());
+    var first =
+        analysisService.analyzeOwnedEvidence(
+            owner, evidence.getId(), "  Contexto adicional   verificável  ");
     var second = analysisService.analyzeOwnedEvidence(owner, evidence.getId());
 
     assertThat(first.id()).isEqualTo(second.id());
@@ -86,6 +88,7 @@ class TrustedAnalysisPersistenceIntegrationTest {
     assertThat(first.competencies()).containsExactly("Ownership");
     assertThat(first.suggestions()).containsExactly("Add metrics");
     assertThat(first.readiness()).contains("L4");
+    assertThat(first.userObservation()).isEqualTo("Contexto adicional verificável");
 
     SavedAnalysis saved =
         savedAnalysisRepository
@@ -97,6 +100,7 @@ class TrustedAnalysisPersistenceIntegrationTest {
     assertThat(saved.getEvidence()).isEqualTo("Refactored checkout and increased coverage");
     assertThat(saved.getCurrentLevel()).isEqualTo("L3");
     assertThat(saved.getTargetLevel()).isEqualTo("L4");
+    assertThat(saved.getUserObservation()).isEqualTo("Contexto adicional verificável");
     assertThat(saved.getEvidenceEntity().getId()).isEqualTo(evidence.getId());
 
     Evidence reloaded = evidenceRepository.findById(evidence.getId()).orElseThrow();

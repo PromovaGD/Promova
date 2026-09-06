@@ -26,8 +26,8 @@ class MigrationStartupSmokeTest {
     MigrationInfo current = flyway.info().current();
 
     assertThat(current).isNotNull();
-    assertThat(current.getVersion().getVersion()).isEqualTo("6");
-    assertThat(current.getDescription()).isEqualTo("expand user career plans");
+    assertThat(current.getVersion().getVersion()).isEqualTo("7");
+    assertThat(current.getDescription()).isEqualTo("add analysis observation");
     assertThat(environment.getProperty("spring.jpa.hibernate.ddl-auto")).isEqualTo("validate");
     assertThat(environment.getProperty("spring.datasource.url"))
         .startsWith("jdbc:h2:mem:")
@@ -68,5 +68,16 @@ class MigrationStartupSmokeTest {
             .map(value -> value.toLowerCase(Locale.ROOT))
             .collect(Collectors.toSet());
     assertThat(evidenceColumns).contains("content", "occurred_at").doesNotContain("evidence");
+
+    Set<String> analysisColumns =
+        jdbcTemplate
+            .queryForList(
+                "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS "
+                    + "WHERE TABLE_SCHEMA = 'PUBLIC' AND TABLE_NAME = 'SAVED_ANALYSES'",
+                String.class)
+            .stream()
+            .map(value -> value.toLowerCase(Locale.ROOT))
+            .collect(Collectors.toSet());
+    assertThat(analysisColumns).contains("user_observation");
   }
 }

@@ -75,6 +75,7 @@ public class SavedAnalysisService {
       Evidence evidence,
       String currentLevel,
       String targetLevel,
+      String userObservation,
       EvidenceAnalysisResponse engineResult,
       CareerFramework careerFramework,
       Instant createdAt) {
@@ -84,6 +85,7 @@ public class SavedAnalysisService {
                 evidence,
                 currentLevel,
                 targetLevel,
+                userObservation,
                 engineResult.estimatedLevel(),
                 engineResult.confidence().value(),
                 engineResult.reasoning(),
@@ -115,6 +117,7 @@ public class SavedAnalysisService {
         saved.getEvidence(),
         saved.getCurrentLevel(),
         saved.getTargetLevel(),
+        saved.getUserObservation(),
         saved.getImpactLevel(),
         saved.getConfidence(),
         saved.getJustification(),

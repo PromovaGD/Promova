@@ -46,6 +46,37 @@ export function evidenceLoadingPage(state) {
   );
 }
 
+export function evidencePendingPage(state) {
+  const evidence = state.pendingEvidence;
+  return appPage(
+    `
+      ${pageHero(
+        "Evidência pendente",
+        "Revise antes de analisar",
+        "A fonte permanece intacta. Você pode acrescentar uma observação opcional como contexto limitado para a análise.",
+      )}
+      <div class="content-grid">
+        <section class="form-card evidence-observation-card">
+          ${sourceCard(evidence || {}, "Pendente")}
+          <div class="evidence-detected-panel"><h3>Evidência da fonte</h3><div class="evidence-preview">${escapeHtml(evidence?.content || "")}</div></div>
+          <label class="field">
+            <span>Sua observação <small>(opcional)</small></span>
+            <textarea data-user-observation maxlength="2000" rows="6" placeholder="Acrescente contexto verificável sem alterar a evidência original.">${escapeHtml(state.userObservation || "")}</textarea>
+          </label>
+          <div class="observation-counter" data-observation-counter>${String(state.userObservation || "").length}/2000</div>
+          ${state.analysisError ? `<p class="profile-status error" role="alert">${escapeHtml(state.analysisError)}</p>` : ""}
+          <div class="form-actions">
+            <button class="button primary" type="button" data-action="analyze-evidence" ${state.analysisSubmitting ? "disabled" : ""}>${state.analysisSubmitting ? "Analisando…" : "Analisar evidência"}</button>
+            <button class="button secondary" type="button" data-action="back-dashboard" ${state.analysisSubmitting ? "disabled" : ""}>Voltar ao painel</button>
+          </div>
+        </section>
+        <aside class="analysis-side"><div class="info-card soft-panel"><h3>Como a observação é usada</h3><p class="card-copy">Ela chega ao modelo separada da evidência de origem, fica salva com o resultado e não pode alterar dados da integração.</p></div></aside>
+      </div>
+    `,
+    pageOptions(state),
+  );
+}
+
 export function evidenceResultPage(state) {
   return appPage(renderAnalysisDetail(state.result, state), pageOptions(state));
 }
@@ -150,6 +181,8 @@ function renderAnalysisDetail(result, state, options = {}) {
         <p class="subtle">${escapeHtml(levelLabel)} alvo: <strong>${escapeHtml(result.targetLevel)}</strong></p>
         <div class="evidence-preview">${escapeHtml(result.evidence)}</div>
       </div>
+
+      ${result.userObservation ? `<div class="analysis-card"><h3>Observação do funcionário</h3><p>${escapeHtml(result.userObservation)}</p><p class="subtle">Contexto salvo com esta análise; a evidência de origem não foi alterada.</p></div>` : ""}
 
       ${reviewPanel(state, options)}
 

@@ -62,7 +62,7 @@ test("manager session lands in the console without loading employee workspace AP
 
   assert.deepEqual(
     urls.map((url) => new URL(url).pathname),
-    ["/auth/me", "/manager/employees", "/manager/settings", "/manager/settings/job-roles"],
+    ["/auth/me", "/manager/settings", "/manager/settings/job-roles", "/manager/employees"],
   );
   assert.match(root.innerHTML, /Manager Console/);
   assert.doesNotMatch(root.innerHTML, /data-action="open-dashboard"/);

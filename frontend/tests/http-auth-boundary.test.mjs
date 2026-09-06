@@ -69,6 +69,30 @@ test("403 preserves the valid session and publishes a permission error", async (
   assert.match(events[0].detail.message, /não tem permissão/);
 });
 
+test("server and network failures preserve the valid session", async () => {
+  const events = installBrowserFakes();
+  const user = { id: 2, role: "EMPLOYEE" };
+  saveAuthSession("valid-token", user);
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ message: "Serviço indisponível." }), {
+      status: 503,
+      headers: { "content-type": "application/json" },
+    });
+
+  await assert.rejects(() => apiGet("/profile", null, { auth: true }), /indisponível/);
+  assert.equal(loadAuthToken(), "valid-token");
+  assert.deepEqual(loadAuthUser(), user);
+  assert.deepEqual(events, []);
+
+  globalThis.fetch = async () => {
+    throw new TypeError("Failed to fetch");
+  };
+  await assert.rejects(() => apiGet("/profile", null, { auth: true }), /Failed to fetch/);
+  assert.equal(loadAuthToken(), "valid-token");
+  assert.deepEqual(loadAuthUser(), user);
+  assert.deepEqual(events, []);
+});
+
 test("supported manager API calls use only the manager namespace", async () => {
   installBrowserFakes();
   saveAuthSession("manager-token", { id: 1, role: "MANAGER" });

@@ -35,7 +35,14 @@ import {
   registerUser,
   clearUserAnalyses,
 } from "./services/auth-api.mjs";
-import { clearAuthSession, loadAuthToken, loadAuthUser, saveAuthSession } from "./services/auth-store.mjs";
+import {
+  clearAuthSession,
+  loadAuthRoute,
+  loadAuthToken,
+  loadAuthUser,
+  saveAuthRoute,
+  saveAuthSession,
+} from "./services/auth-store.mjs";
 import {
   captureEvidenceFromGithubPullRequest,
   dismissEvidence,
@@ -130,6 +137,7 @@ const DASHBOARD_TABS = ["dashboard", "framework", "criteria", "connections"];
 
 let appRoot;
 let lastRenderedView = null;
+let pendingProtectedRoute = null;
 
 export function startApp(root) {
   appRoot = root;
@@ -139,8 +147,10 @@ export function startApp(root) {
   appRoot.addEventListener("submit", handleSubmit);
   appRoot.addEventListener("keydown", handleKeydown);
   if (typeof window !== "undefined") {
+    pendingProtectedRoute = browserRoute();
     window.addEventListener("promova:auth-expired", handleAuthExpired);
     window.addEventListener("promova:permission-denied", handlePermissionDenied);
+    window.addEventListener("popstate", handleBrowserNavigation);
   }
   return bootstrapSession();
 }
@@ -148,6 +158,10 @@ export function startApp(root) {
 async function bootstrapSession() {
   const token = loadAuthToken();
   if (!token) {
+    if (isProtectedRoute(pendingProtectedRoute)) {
+      state.view = "auth";
+      state.authError = "Faça login para continuar.";
+    }
     render();
     return;
   }
@@ -155,20 +169,61 @@ async function bootstrapSession() {
   try {
     state.user = await fetchCurrentUser();
     saveAuthSession(token, state.user);
-    if (state.user.role === "MANAGER") {
-      await openManager();
-    } else {
-      await loadEmployeeWorkspace();
-    }
   } catch (error) {
     if (error.status === 401 || error.isUnauthorized) {
       expireSession();
       return;
     }
     state.error = error;
+    if (!isStoredUser(state.user)) {
+      state.view = "auth";
+      state.authError = "Não foi possível validar sua sessão agora. Tente novamente sem sair da conta.";
+      render();
+      return;
+    }
   }
 
+  await restoreAuthenticatedLocation();
+}
+
+async function restoreAuthenticatedLocation() {
+  const requestedRoute =
+    (isProtectedRoute(pendingProtectedRoute) && pendingProtectedRoute) || loadAuthRoute();
+  pendingProtectedRoute = null;
+
+  if (state.user.role === "MANAGER") {
+    state.managerSection = requestedRoute === "/manager?section=settings" ? "settings" : "people";
+    await openManager();
+    return;
+  }
+
+  state.viewingAsAdmin = false;
+  state.dashboardTab = dashboardTabFromRoute(requestedRoute);
+  state.view = requestedRoute === "/profile" ? "profile" : "dashboard";
   render();
+
+  try {
+    await loadEmployeeWorkspace();
+  } catch (error) {
+    if (error.status === 401 || error.isUnauthorized) {
+      return;
+    }
+    state.error = error;
+    if (state.view === "profile") {
+      state.profileError = error.message || "Não foi possível carregar o perfil.";
+    }
+  }
+
+  if (state.user) {
+    render();
+  }
+}
+
+async function handleBrowserNavigation() {
+  pendingProtectedRoute = browserRoute();
+  if (state.user && isProtectedRoute(pendingProtectedRoute)) {
+    await restoreAuthenticatedLocation();
+  }
 }
 
 function handleAuthExpired() {
@@ -321,12 +376,7 @@ async function handleSubmit(event) {
     saveAuthSession(response.token, response.user);
     state.user = response.user;
     state.authError = null;
-    if (state.user.role === "MANAGER") {
-      await openManager();
-    } else {
-      await loadEmployeeWorkspace();
-      state.view = "dashboard";
-    }
+    await restoreAuthenticatedLocation();
   } catch (error) {
     state.authError = error.message || "Não foi possível autenticar.";
   } finally {
@@ -1336,10 +1386,75 @@ function render() {
 
   appRoot.innerHTML = page;
   lastRenderedView = state.view;
+  syncBrowserLocation();
 
   if (viewChanged) {
     resetScrollPosition();
   }
+}
+
+function syncBrowserLocation() {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const route = routeForState();
+  if (state.user && isProtectedRoute(route)) {
+    saveAuthRoute(route);
+  }
+
+  try {
+    const currentRoute = `${window.location?.pathname || "/"}${window.location?.search || ""}`;
+    if (currentRoute !== route && typeof window.history?.replaceState === "function") {
+      window.history.replaceState({}, "", route);
+    }
+  } catch {
+    // Embedded browsers can restrict History API access; route persistence still works.
+  }
+}
+
+function routeForState() {
+  if (state.view === "auth") {
+    return "/login";
+  }
+  if (state.view === "profile") {
+    return "/profile";
+  }
+  if (state.view === "manager" || (state.user?.role === "MANAGER" && state.view === "permission-error")) {
+    return state.managerSection === "settings" ? "/manager?section=settings" : "/manager";
+  }
+  if (state.user?.role === "EMPLOYEE" && state.view !== "home") {
+    return state.dashboardTab === "dashboard" ? "/dashboard" : `/dashboard?tab=${state.dashboardTab}`;
+  }
+  return "/";
+}
+
+function browserRoute() {
+  try {
+    return `${window.location?.pathname || "/"}${window.location?.search || ""}`;
+  } catch {
+    return null;
+  }
+}
+
+function isProtectedRoute(route) {
+  return typeof route === "string" && (/^\/dashboard(?:\?|$)/.test(route) || route === "/profile" || /^\/manager(?:\?|$)/.test(route));
+}
+
+function dashboardTabFromRoute(route) {
+  if (typeof route !== "string" || !route.startsWith("/dashboard")) {
+    return "dashboard";
+  }
+  try {
+    const tab = new URL(route, "http://promova.local").searchParams.get("tab");
+    return DASHBOARD_TABS.includes(tab) ? tab : "dashboard";
+  } catch {
+    return "dashboard";
+  }
+}
+
+function isStoredUser(user) {
+  return Boolean(user && Number.isFinite(Number(user.id)) && ["EMPLOYEE", "MANAGER"].includes(user.role));
 }
 
 function resetScrollPosition() {

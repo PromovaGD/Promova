@@ -6,4 +6,5 @@ export const API_BASE_URL =
 export const SESSION_KEYS = {
   authToken: "promova.auth-token",
   authUser: "promova.auth-user",
+  authRoute: "promova.auth-route",
 };

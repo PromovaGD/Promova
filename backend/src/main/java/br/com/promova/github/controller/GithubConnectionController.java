@@ -9,10 +9,12 @@ import br.com.promova.github.connection.dto.GithubSettingsRequest;
 import br.com.promova.github.connection.dto.GithubSettingsResponse;
 import br.com.promova.github.connection.dto.GithubSyncResponse;
 import br.com.promova.user.User;
+import br.com.promova.user.UserRole;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -62,6 +64,12 @@ public class GithubConnectionController {
     return connectionTestService.test(requireUser(authorization));
   }
 
+  @DeleteMapping("/settings")
+  public GithubSettingsResponse clearSettings(
+      @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+    return settingsService.clearForUser(requireUser(authorization));
+  }
+
   @PostMapping("/sync")
   public GithubSyncResponse sync(
       @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
@@ -73,6 +81,11 @@ public class GithubConnectionController {
     if (token == null) {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token ausente.");
     }
-    return authService.requireUser(token);
+    User user = authService.requireUser(token);
+    if (user.getRole() != UserRole.EMPLOYEE) {
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN, "GitHub configuration is available only to employees.");
+    }
+    return user;
   }
 }

@@ -1,5 +1,4 @@
 import { appPage, pageHero } from "../components/layout.mjs";
-import { githubImportPanel } from "../features/github-import/github-import-panel.mjs";
 import { escapeHtml } from "../utils/html.mjs";
 import {
   badgeClass,
@@ -78,7 +77,7 @@ function dashboardTabs(activeTab) {
 function dashboardTabPanel(state, activeTab) {
   const content =
     activeTab === "connections"
-      ? githubImportPanel(state.githubImport, state.pendingEvidences)
+      ? `<section class="form-card"><span class="eyebrow">Conexões</span><h2>GitHub agora fica no seu Perfil</h2><p class="helper">Configure o repositório e o autor, teste o acesso e sincronize PRs em um único lugar.</p><button class="button primary" type="button" data-action="open-profile">Abrir Perfil</button></section>`
       : liveDashboardPreview(state, activeTab);
 
   return `

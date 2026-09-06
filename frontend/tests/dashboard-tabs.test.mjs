@@ -85,7 +85,9 @@ test("dashboard tabs render one focused panel at a time", () => {
 
   const connections = dashboardContent(stateFor("connections"), hero);
   assert.match(connections, /dashboard-panel-connections/);
-  assert.match(connections, /id="github-connection-title"/);
+  assert.match(connections, /GitHub agora fica no seu Perfil/);
+  assert.match(connections, /data-action="open-profile"/);
+  assert.doesNotMatch(connections, /id="github-connection-title"/);
   assert.doesNotMatch(connections, /data-action="apply-filters"/);
   assert.doesNotMatch(connections, /Fontes das evid&ecirc;ncias/);
 });

@@ -7,6 +7,7 @@ const filesToCheck = [
   "app.js",
   "scripts/build.js",
   "scripts/dev-server.js",
+  "scripts/dist-server.js",
   "scripts/lint.js",
 ];
 const directoriesToCheck = ["frontend"];
@@ -54,8 +55,12 @@ function ensureRequiredContent() {
   }
 
   const indexHtml = fs.readFileSync(path.join(root, "index.html"), "utf8");
-  if (!indexHtml.includes("app.js") || !indexHtml.includes("styles.css")) {
-    throw new Error("index.html must load app.js and styles.css");
+  if (
+    !indexHtml.includes("app.js") ||
+    !indexHtml.includes("styles.css") ||
+    !indexHtml.includes("promova-config.js")
+  ) {
+    throw new Error("index.html must load app.js, styles.css, and promova-config.js");
   }
 }
 

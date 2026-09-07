@@ -57,7 +57,7 @@ test("authenticated manager and employee sessions survive reload, navigation, an
   await assertManagerConsole(page);
   await page.reload();
   await assertManagerConsole(page);
-  assert.match(page.url(), /\/manager$/);
+  assert.equal(new URL(page.url()).pathname, "/manager");
 
   await page.getByRole("button", { name: "Sair" }).click();
   await page.locator('[data-action="open-auth"]').first().click();

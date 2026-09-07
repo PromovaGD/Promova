@@ -1,8 +1,12 @@
 name: Pipeline
 
 on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
   push:
-    branches-ignore:
+    branches:
       - main
 
 permissions:

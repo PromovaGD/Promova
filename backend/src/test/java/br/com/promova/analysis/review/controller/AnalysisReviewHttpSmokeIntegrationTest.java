@@ -108,11 +108,58 @@ class AnalysisReviewHttpSmokeIntegrationTest {
         .isEqualTo(manager.getId());
     assertThat(accepted.path("history").get(0).path("reviewerEmail").asText())
         .isEqualTo(managerEmail);
+    long acceptedReviewId = accepted.path("history").get(0).path("id").asLong();
     Instant firstCreatedAt =
         Instant.parse(accepted.path("history").get(0).path("createdAt").asText());
     assertThat(firstCreatedAt).isAfterOrEqualTo(beforeFirstReview);
     assertThat(firstCreatedAt).isBefore(Instant.now().plusSeconds(2));
     assertThat(firstCreatedAt.toString()).doesNotStartWith("2099-");
+
+    JsonNode ownerPage = json(request("GET", "/analyses?page=1&pageSize=1", employeeToken, null));
+    assertThat(ownerPage.path("total").asLong()).isEqualTo(1);
+    assertThat(ownerPage.path("items").get(0).path("analysisId").asLong()).isEqualTo(analysisId);
+    assertThat(ownerPage.path("items").get(0).path("currentReviewStatus").asText())
+        .isEqualTo("ACCEPTED");
+
+    JsonNode ownerDetail = json(request("GET", "/analyses/" + analysisId, employeeToken, null));
+    assertThat(ownerDetail.path("ownerId").asLong()).isEqualTo(employee.getId());
+    assertThat(ownerDetail.path("analysisId").asLong()).isEqualTo(analysisId);
+    assertThat(ownerDetail.path("currentReviewStatus").asText()).isEqualTo("ACCEPTED");
+    assertThat(request("GET", "/analyses/" + otherAnalysisId, employeeToken, null).statusCode())
+        .isEqualTo(404);
+
+    JsonNode managerDetail =
+        json(
+            request(
+                "GET",
+                "/manager/employees/" + employee.getId() + "/analyses/" + analysisId,
+                managerToken,
+                null));
+    assertThat(managerDetail.path("ownerId").asLong()).isEqualTo(employee.getId());
+
+    JsonNode acceptedQueue =
+        json(request("GET", "/manager/reviews?status=accepted&page=1&pageSize=25", managerToken, null));
+    assertThat(acceptedQueue.path("items")).hasSize(1);
+    assertThat(acceptedQueue.path("items").get(0).path("analysisId").asLong())
+        .isEqualTo(analysisId);
+    assertThat(acceptedQueue.path("counts").path("ACCEPTED").asLong()).isEqualTo(1);
+
+    String duplicateBody =
+        "{\"status\":\"ACCEPTED\",\"comment\":\"Once\",\"idempotencyKey\":\"stable-1\","
+            + "\"expectedLatestReviewId\":" + acceptedReviewId + "}";
+    JsonNode idempotentFirst =
+        json(requireCreated(request("POST", managerReviewPath(employee.getId(), analysisId), managerToken, duplicateBody)));
+    JsonNode idempotentRepeat =
+        json(requireCreated(request("POST", managerReviewPath(employee.getId(), analysisId), managerToken, duplicateBody)));
+    assertThat(idempotentRepeat.path("history")).hasSize(idempotentFirst.path("history").size());
+    long latestAfterIdempotent = idempotentFirst.path("history").get(idempotentFirst.path("history").size() - 1).path("id").asLong();
+    HttpResponse<String> conflict =
+        request(
+            "POST",
+            managerReviewPath(employee.getId(), analysisId),
+            managerToken,
+            "{\"status\":\"NEEDS_CONTEXT\",\"expectedLatestReviewId\":" + acceptedReviewId + "}");
+    assertThat(conflict.statusCode()).isEqualTo(409);
 
     JsonNode needsContext =
         json(
@@ -121,23 +168,37 @@ class AnalysisReviewHttpSmokeIntegrationTest {
                     "POST",
                     managerReviewPath(employee.getId(), analysisId),
                     managerToken,
-                    "{\"status\":\"NEEDS_CONTEXT\",\"comment\":\"Add outcome metrics.\"}")));
+                    "{\"status\":\"NEEDS_CONTEXT\",\"comment\":\"Add outcome metrics.\","
+                        + "\"expectedLatestReviewId\":" + latestAfterIdempotent + "}")));
     assertThat(needsContext.path("currentStatus").asText()).isEqualTo("NEEDS_CONTEXT");
-    assertThat(needsContext.path("history")).hasSize(2);
+    assertThat(needsContext.path("history")).hasSize(3);
     assertThat(needsContext.path("history").get(0).path("status").asText())
         .isEqualTo("ACCEPTED");
-    assertThat(needsContext.path("history").get(1).path("status").asText())
+    assertThat(needsContext.path("history").get(2).path("status").asText())
         .isEqualTo("NEEDS_CONTEXT");
     assertThat(needsContext.path("history").get(0).path("id").asLong())
-        .isLessThan(needsContext.path("history").get(1).path("id").asLong());
+        .isLessThan(needsContext.path("history").get(2).path("id").asLong());
 
     JsonNode employeeHistory = json(request("GET", reviewPath(analysisId), employeeToken, null));
     assertThat(employeeHistory.path("currentStatus").asText()).isEqualTo("NEEDS_CONTEXT");
-    assertThat(employeeHistory.path("history")).hasSize(2);
+    assertThat(employeeHistory.path("history")).hasSize(3);
     assertThat(employeeHistory.path("history").get(0).path("comment").asText())
         .isEqualTo("Clear evidence.");
-    assertThat(employeeHistory.path("history").get(1).path("comment").asText())
+    assertThat(employeeHistory.path("history").get(2).path("comment").asText())
         .isEqualTo("Add outcome metrics.");
+
+    JsonNode filteredManagerAnalyses =
+        json(
+            request(
+                "GET",
+                "/manager/employees/"
+                    + employee.getId()
+                    + "/analyses?review=needs-context&page=1&pageSize=25",
+                managerToken,
+                null));
+    assertThat(filteredManagerAnalyses.path("total").asLong()).isEqualTo(1);
+    assertThat(filteredManagerAnalyses.path("items").get(0).path("analysisId").asLong())
+        .isEqualTo(analysisId);
 
     HttpResponse<String> unknownStatus =
         request(

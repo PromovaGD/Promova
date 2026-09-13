@@ -26,8 +26,8 @@ class MigrationStartupSmokeTest {
     MigrationInfo current = flyway.info().current();
 
     assertThat(current).isNotNull();
-    assertThat(current.getVersion().getVersion()).isEqualTo("7");
-    assertThat(current.getDescription()).isEqualTo("add analysis observation");
+    assertThat(current.getVersion().getVersion()).isEqualTo("8");
+    assertThat(current.getDescription()).isEqualTo("modernization contracts");
     assertThat(environment.getProperty("spring.jpa.hibernate.ddl-auto")).isEqualTo("validate");
     assertThat(environment.getProperty("spring.datasource.url"))
         .startsWith("jdbc:h2:mem:")
@@ -79,5 +79,16 @@ class MigrationStartupSmokeTest {
             .map(value -> value.toLowerCase(Locale.ROOT))
             .collect(Collectors.toSet());
     assertThat(analysisColumns).contains("user_observation");
+
+    Set<String> reviewColumns =
+        jdbcTemplate
+            .queryForList(
+                "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS "
+                    + "WHERE TABLE_SCHEMA = 'PUBLIC' AND TABLE_NAME = 'SAVED_ANALYSIS_REVIEWS'",
+                String.class)
+            .stream()
+            .map(value -> value.toLowerCase(Locale.ROOT))
+            .collect(Collectors.toSet());
+    assertThat(reviewColumns).contains("idempotency_key");
   }
 }

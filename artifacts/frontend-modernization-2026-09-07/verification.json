@@ -1,0 +1,1074 @@
+{
+  "testedAt": "2026-09-07T16:46:41.967Z",
+  "errors": [],
+  "results": [
+    {
+      "scene": "result",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Análise salva · PR #7",
+      "dialog": false
+    },
+    {
+      "scene": "managerframework",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Framework oficial",
+      "dialog": false
+    },
+    {
+      "scene": "managereadonly",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Evidência capturada",
+      "dialog": false
+    },
+    {
+      "scene": "criterion",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Security",
+      "dialog": false
+    },
+    {
+      "scene": "overview",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Visão geral",
+      "dialog": false
+    },
+    {
+      "scene": "inbox",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Caixa de entrada",
+      "dialog": false
+    },
+    {
+      "scene": "evidence",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Trusted analysis · PR #7",
+      "dialog": false
+    },
+    {
+      "scene": "analyses",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Análises",
+      "dialog": false
+    },
+    {
+      "scene": "analysis",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Comunicação · #platform",
+      "dialog": false
+    },
+    {
+      "scene": "history",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Comunicação · #platform",
+      "dialog": false
+    },
+    {
+      "scene": "source",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Comunicação · #platform",
+      "dialog": false
+    },
+    {
+      "scene": "reports",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Relatórios de análises",
+      "dialog": false
+    },
+    {
+      "scene": "framework",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Framework",
+      "dialog": false
+    },
+    {
+      "scene": "plan",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Plano de carreira",
+      "dialog": false
+    },
+    {
+      "scene": "context",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Plano de carreira",
+      "dialog": false
+    },
+    {
+      "scene": "integrations",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "GitHub",
+      "dialog": false
+    },
+    {
+      "scene": "sync",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Sincronização do GitHub",
+      "dialog": false
+    },
+    {
+      "scene": "import",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Importar pull request",
+      "dialog": false
+    },
+    {
+      "scene": "people",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Pessoas",
+      "dialog": false
+    },
+    {
+      "scene": "managerplan",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Contexto de carreira",
+      "dialog": false
+    },
+    {
+      "scene": "managerevidence",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Evidências de Maria",
+      "dialog": false
+    },
+    {
+      "scene": "manageranalyses",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Análises de Maria",
+      "dialog": false
+    },
+    {
+      "scene": "reviews",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Revisões",
+      "dialog": false
+    },
+    {
+      "scene": "review",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Revisar análise",
+      "dialog": false
+    },
+    {
+      "scene": "roles",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Configuração de carreira",
+      "dialog": false
+    },
+    {
+      "scene": "role",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Engenharia de Software",
+      "dialog": false
+    },
+    {
+      "scene": "terminology",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Terminologia da organização",
+      "dialog": false
+    },
+    {
+      "scene": "loading",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Caixa de entrada",
+      "dialog": false
+    },
+    {
+      "scene": "empty",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Caixa de entrada",
+      "dialog": false
+    },
+    {
+      "scene": "error",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Caixa de entrada",
+      "dialog": false
+    },
+    {
+      "scene": "denied",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Permissão necessária",
+      "dialog": false
+    },
+    {
+      "scene": "mobile",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Caixa de entrada",
+      "dialog": true
+    },
+    {
+      "scene": "landing",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Evidências claras. Conversas melhores.",
+      "dialog": false
+    },
+    {
+      "scene": "login",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Entrar na sua conta",
+      "dialog": false
+    },
+    {
+      "scene": "register",
+      "width": 1440,
+      "bodyWidth": 1440,
+      "innerWidth": 1440,
+      "bodyHeight": 1000,
+      "innerHeight": 1000,
+      "h1": "Criar sua conta",
+      "dialog": false
+    },
+    {
+      "scene": "result",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Análise salva · PR #7",
+      "dialog": false
+    },
+    {
+      "scene": "managerframework",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Framework oficial",
+      "dialog": false
+    },
+    {
+      "scene": "managereadonly",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Evidência capturada",
+      "dialog": false
+    },
+    {
+      "scene": "criterion",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Security",
+      "dialog": false
+    },
+    {
+      "scene": "overview",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Visão geral",
+      "dialog": false
+    },
+    {
+      "scene": "inbox",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Caixa de entrada",
+      "dialog": false
+    },
+    {
+      "scene": "evidence",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Trusted analysis · PR #7",
+      "dialog": false
+    },
+    {
+      "scene": "analyses",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Análises",
+      "dialog": false
+    },
+    {
+      "scene": "analysis",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Comunicação · #platform",
+      "dialog": false
+    },
+    {
+      "scene": "history",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Comunicação · #platform",
+      "dialog": false
+    },
+    {
+      "scene": "source",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Comunicação · #platform",
+      "dialog": false
+    },
+    {
+      "scene": "reports",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Relatórios de análises",
+      "dialog": false
+    },
+    {
+      "scene": "framework",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Framework",
+      "dialog": false
+    },
+    {
+      "scene": "plan",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Plano de carreira",
+      "dialog": false
+    },
+    {
+      "scene": "context",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Plano de carreira",
+      "dialog": false
+    },
+    {
+      "scene": "integrations",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "GitHub",
+      "dialog": false
+    },
+    {
+      "scene": "sync",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Sincronização do GitHub",
+      "dialog": false
+    },
+    {
+      "scene": "import",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Importar pull request",
+      "dialog": false
+    },
+    {
+      "scene": "people",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Pessoas",
+      "dialog": false
+    },
+    {
+      "scene": "managerplan",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Contexto de carreira",
+      "dialog": false
+    },
+    {
+      "scene": "managerevidence",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Evidências de Maria",
+      "dialog": false
+    },
+    {
+      "scene": "manageranalyses",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Análises de Maria",
+      "dialog": false
+    },
+    {
+      "scene": "reviews",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Revisões",
+      "dialog": false
+    },
+    {
+      "scene": "review",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Revisar análise",
+      "dialog": false
+    },
+    {
+      "scene": "roles",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Configuração de carreira",
+      "dialog": false
+    },
+    {
+      "scene": "role",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Engenharia de Software",
+      "dialog": false
+    },
+    {
+      "scene": "terminology",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Terminologia da organização",
+      "dialog": false
+    },
+    {
+      "scene": "loading",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Caixa de entrada",
+      "dialog": false
+    },
+    {
+      "scene": "empty",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Caixa de entrada",
+      "dialog": false
+    },
+    {
+      "scene": "error",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Caixa de entrada",
+      "dialog": false
+    },
+    {
+      "scene": "denied",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Permissão necessária",
+      "dialog": false
+    },
+    {
+      "scene": "mobile",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Caixa de entrada",
+      "dialog": true
+    },
+    {
+      "scene": "landing",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Evidências claras. Conversas melhores.",
+      "dialog": false
+    },
+    {
+      "scene": "login",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Entrar na sua conta",
+      "dialog": false
+    },
+    {
+      "scene": "register",
+      "width": 390,
+      "bodyWidth": 390,
+      "innerWidth": 390,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Criar sua conta",
+      "dialog": false
+    },
+    {
+      "scene": "result",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Análise salva · PR #7",
+      "dialog": false
+    },
+    {
+      "scene": "managerframework",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Framework oficial",
+      "dialog": false
+    },
+    {
+      "scene": "managereadonly",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Evidência capturada",
+      "dialog": false
+    },
+    {
+      "scene": "criterion",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Security",
+      "dialog": false
+    },
+    {
+      "scene": "overview",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Visão geral",
+      "dialog": false
+    },
+    {
+      "scene": "inbox",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Caixa de entrada",
+      "dialog": false
+    },
+    {
+      "scene": "evidence",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Trusted analysis · PR #7",
+      "dialog": false
+    },
+    {
+      "scene": "analyses",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Análises",
+      "dialog": false
+    },
+    {
+      "scene": "analysis",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Comunicação · #platform",
+      "dialog": false
+    },
+    {
+      "scene": "history",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Comunicação · #platform",
+      "dialog": false
+    },
+    {
+      "scene": "source",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Comunicação · #platform",
+      "dialog": false
+    },
+    {
+      "scene": "reports",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Relatórios de análises",
+      "dialog": false
+    },
+    {
+      "scene": "framework",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Framework",
+      "dialog": false
+    },
+    {
+      "scene": "plan",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Plano de carreira",
+      "dialog": false
+    },
+    {
+      "scene": "context",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Plano de carreira",
+      "dialog": false
+    },
+    {
+      "scene": "integrations",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "GitHub",
+      "dialog": false
+    },
+    {
+      "scene": "sync",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Sincronização do GitHub",
+      "dialog": false
+    },
+    {
+      "scene": "import",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Importar pull request",
+      "dialog": false
+    },
+    {
+      "scene": "people",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Pessoas",
+      "dialog": false
+    },
+    {
+      "scene": "managerplan",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Contexto de carreira",
+      "dialog": false
+    },
+    {
+      "scene": "managerevidence",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Evidências de Maria",
+      "dialog": false
+    },
+    {
+      "scene": "manageranalyses",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Análises de Maria",
+      "dialog": false
+    },
+    {
+      "scene": "reviews",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Revisões",
+      "dialog": false
+    },
+    {
+      "scene": "review",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Revisar análise",
+      "dialog": false
+    },
+    {
+      "scene": "roles",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Configuração de carreira",
+      "dialog": false
+    },
+    {
+      "scene": "role",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Engenharia de Software",
+      "dialog": false
+    },
+    {
+      "scene": "terminology",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Terminologia da organização",
+      "dialog": false
+    },
+    {
+      "scene": "loading",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Caixa de entrada",
+      "dialog": false
+    },
+    {
+      "scene": "empty",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Caixa de entrada",
+      "dialog": false
+    },
+    {
+      "scene": "error",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Caixa de entrada",
+      "dialog": false
+    },
+    {
+      "scene": "denied",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Permissão necessária",
+      "dialog": false
+    },
+    {
+      "scene": "mobile",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Caixa de entrada",
+      "dialog": true
+    },
+    {
+      "scene": "landing",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Evidências claras. Conversas melhores.",
+      "dialog": false
+    },
+    {
+      "scene": "login",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Entrar na sua conta",
+      "dialog": false
+    },
+    {
+      "scene": "register",
+      "width": 320,
+      "bodyWidth": 320,
+      "innerWidth": 320,
+      "bodyHeight": 844,
+      "innerHeight": 844,
+      "h1": "Criar sua conta",
+      "dialog": false
+    }
+  ],
+  "stress": {
+    "rows": 500,
+    "listScrolls": true,
+    "bodyDoesNotGrow": true,
+    "actionVisible": true
+  },
+  "longText": {
+    "noHorizontalOverflow": true,
+    "bodyDoesNotGrow": true,
+    "actionVisible": true
+  },
+  "mobileDecision": {
+    "x": 244.671875,
+    "y": 771,
+    "width": 116.328125,
+    "height": 44
+  },
+  "interactionChecks": 8
+}

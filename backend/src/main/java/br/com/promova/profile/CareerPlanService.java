@@ -69,6 +69,11 @@ public class CareerPlanService {
     }
 
     CareerProfile profile = profileService.ensureProfile(employee);
+    if (request.expectedUpdatedAt() != null
+        && !request.expectedUpdatedAt().equals(profile.getUpdatedAt())) {
+      throw new ResponseStatusException(
+          HttpStatus.CONFLICT, "O plano mudou. Atualize os dados antes de salvar novamente.");
+    }
     profile.updatePlan(
         role,
         request.currentLevel(),
@@ -101,6 +106,11 @@ public class CareerPlanService {
                 () ->
                     new ResponseStatusException(
                         HttpStatus.NOT_FOUND, "Objetivo não encontrado."));
+    if (request.expectedUpdatedAt() != null
+        && !request.expectedUpdatedAt().equals(objective.getUpdatedAt())) {
+      throw new ResponseStatusException(
+          HttpStatus.CONFLICT, "O objetivo mudou. Atualize os dados antes de salvar novamente.");
+    }
     objective.update(request.text(), request.status(), request.targetDate(), manager);
     return CareerObjectiveResponse.from(objectiveRepository.save(objective));
   }

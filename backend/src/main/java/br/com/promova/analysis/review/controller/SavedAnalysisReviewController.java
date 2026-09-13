@@ -80,7 +80,7 @@ public class SavedAnalysisReviewController {
   private User requireManagerVisibleEmployee(User manager, Long employeeId) {
     return userRepository
         .findById(employeeId)
-        .filter(user -> !user.getId().equals(manager.getId()))
+        .filter(user -> user.getRole() == UserRole.EMPLOYEE)
         .orElseThrow(
             () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found."));
   }

@@ -19,6 +19,7 @@ import br.com.promova.user.User;
 import br.com.promova.user.UserRepository;
 import br.com.promova.user.UserRole;
 import java.time.LocalDate;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -157,6 +158,53 @@ class CareerPlanServiceTest {
         .isInstanceOf(ResponseStatusException.class)
         .extracting("statusCode")
         .isEqualTo(HttpStatus.BAD_REQUEST);
+  }
+
+  @Test
+  void rejectsAStaleCareerPlanVersionWithoutSaving() {
+    CareerProfile profile = new CareerProfile(employee, role, "L3", "L4", List.of());
+    when(userRepository.findById(7L)).thenReturn(Optional.of(employee));
+    when(frameworkProvider.load()).thenReturn(framework());
+    when(jobRoleRepository.findById(3L)).thenReturn(Optional.of(role));
+    when(profileService.ensureProfile(employee)).thenReturn(profile);
+
+    assertThatThrownBy(
+            () ->
+                service.updatePlan(
+                    7L,
+                    new CareerPlanUpdateRequest(
+                        3L, "L3", "L4", List.of(), Instant.EPOCH)))
+        .isInstanceOf(ResponseStatusException.class)
+        .extracting("statusCode")
+        .isEqualTo(HttpStatus.CONFLICT);
+    verify(profileRepository, never()).save(any());
+  }
+
+  @Test
+  void rejectsAStaleObjectiveVersionWithoutOverwritingIt() {
+    CareerProfile profile = new CareerProfile(employee, role, "L3", "L4", List.of());
+    ReflectionTestUtils.setField(profile, "id", 19L);
+    CareerObjective objective =
+        new CareerObjective(profile, "Original objective", LocalDate.parse("2026-12-01"), manager);
+    ReflectionTestUtils.setField(objective, "id", 29L);
+    when(userRepository.findById(7L)).thenReturn(Optional.of(employee));
+    when(profileService.ensureProfile(employee)).thenReturn(profile);
+    when(objectiveRepository.findByIdAndCareerProfileId(29L, 19L))
+        .thenReturn(Optional.of(objective));
+
+    assertThatThrownBy(
+            () ->
+                service.updateObjective(
+                    7L,
+                    29L,
+                    new CareerObjectiveRequest(
+                        "Overwritten", ObjectiveStatus.COMPLETED, null, Instant.EPOCH),
+                    manager))
+        .isInstanceOf(ResponseStatusException.class)
+        .extracting("statusCode")
+        .isEqualTo(HttpStatus.CONFLICT);
+    assertThat(objective.getText()).isEqualTo("Original objective");
+    verify(objectiveRepository, never()).save(any());
   }
 
   private CareerFramework framework() {

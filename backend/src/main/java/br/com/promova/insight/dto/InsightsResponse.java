@@ -41,6 +41,8 @@ public record InsightsResponse(
   public record Distribution(String label, int count, int percentage) {}
 
   public record CriterionCoverage(
+      String frameworkVersion,
+      String criterionId,
       String level,
       String levelTitle,
       String criterion,
@@ -63,13 +65,19 @@ public record InsightsResponse(
    * drill-down link.
    */
   public record EvidenceReference(
-      String id, Long evidenceId, String title, String source, Instant createdAt) {}
+      String id, Long analysisId, Long evidenceId, String title, String source, Instant createdAt) {}
 
   public record TrendBucket(
       String label, Instant bucketStart, Instant bucketEnd, int count, int percentage) {}
 
   public record Gap(
-      String level, String levelTitle, String criterion, String description, CoverageStatus status) {}
+      String frameworkVersion,
+      String criterionId,
+      String level,
+      String levelTitle,
+      String criterion,
+      String description,
+      CoverageStatus status) {}
 
   public enum CoverageStatus {
     SUPPORTED,

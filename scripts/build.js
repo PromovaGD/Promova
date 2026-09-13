@@ -6,6 +6,7 @@ const dist = path.join(root, "dist");
 const files = ["index.html", "styles.css", "app.js"];
 const directories = ["frontend"];
 const apiBaseUrl = process.env.PROMOVA_API_BASE_URL || "http://localhost:8080";
+const modernUi = process.env.PROMOVA_MODERN_UI !== "false";
 
 validateApiBaseUrl(apiBaseUrl);
 
@@ -22,7 +23,7 @@ for (const directory of directories) {
 
 fs.writeFileSync(
   path.join(dist, "promova-config.js"),
-  `window.PROMOVA_API_BASE_URL = ${JSON.stringify(apiBaseUrl)};\n`,
+  `window.PROMOVA_API_BASE_URL = ${JSON.stringify(apiBaseUrl)};\nwindow.PROMOVA_MODERN_UI = ${modernUi};\n`,
 );
 
 console.log(`Build complete. Files copied to ${dist}`);

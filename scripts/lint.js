@@ -48,7 +48,7 @@ function checkSyntax(file) {
 function ensureRequiredContent() {
   const appJs = fs.readFileSync(path.join(root, "app.js"), "utf8");
 
-  for (const requiredName of ["frontend/app.mjs", "startApp"]) {
+  for (const requiredName of ["frontend/modern-app.mjs", "startModernApp", "frontend/app.mjs", "startApp"]) {
     if (!appJs.includes(requiredName)) {
       throw new Error(`Expected ${requiredName} to exist in app.js`);
     }

@@ -2,10 +2,14 @@ package br.com.promova.analysis.service;
 
 import br.com.promova.analysis.dto.EvidenceAnalysisResponse;
 import br.com.promova.analysis.dto.SavedAnalysisRequest;
+import br.com.promova.analysis.dto.SavedAnalysisDetailResponse;
 import br.com.promova.analysis.dto.SavedAnalysisResponse;
 import br.com.promova.analysis.persistence.SavedAnalysis;
 import br.com.promova.analysis.persistence.SavedAnalysisRepository;
 import br.com.promova.analysis.review.persistence.SavedAnalysisReviewRepository;
+import br.com.promova.analysis.review.persistence.SavedAnalysisReview;
+import br.com.promova.analysis.review.ReviewStatus;
+import br.com.promova.common.PageResponse;
 import br.com.promova.evidence.Evidence;
 import br.com.promova.framework.CareerFramework;
 import br.com.promova.user.User;
@@ -15,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.Instant;
 import java.util.Collections;
 import java.util.List;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,9 +42,37 @@ public class SavedAnalysisService {
 
   @Transactional(readOnly = true)
   public List<SavedAnalysisResponse> listForUser(User user, Instant from, Instant to) {
+    validateDateWindow(from, to);
     return savedAnalysisRepository.findByUserAndDateRange(user, from, to).stream()
         .map(this::toResponseForTransaction)
         .toList();
+  }
+
+  @Transactional(readOnly = true)
+  public PageResponse<SavedAnalysisDetailResponse> listForUserPaged(
+      User user, String source, Instant from, Instant to, Pageable pageable) {
+    return listForUserPaged(user, source, from, to, null, pageable);
+  }
+
+  @Transactional(readOnly = true)
+  public PageResponse<SavedAnalysisDetailResponse> listForUserPaged(
+      User user, String source, Instant from, Instant to, ReviewStatus reviewStatus, Pageable pageable) {
+    validateDateWindow(from, to);
+    var page =
+        savedAnalysisRepository.findByUserAndDateRangePaged(
+            user, normalizeOptional(source), from, to, reviewStatus, pageable);
+    return PageResponse.from(page.map(this::toDetailResponse));
+  }
+
+  @Transactional(readOnly = true)
+  public SavedAnalysisDetailResponse getForUser(User user, Long analysisId) {
+    SavedAnalysis analysis =
+        savedAnalysisRepository
+            .findByIdAndUserId(analysisId, user.getId())
+            .orElseThrow(
+                () ->
+                    new ResponseStatusException(HttpStatus.NOT_FOUND, "Análise não encontrada."));
+    return toDetailResponse(analysis);
   }
 
   @Transactional
@@ -126,6 +159,43 @@ public class SavedAnalysisService {
         saved.getReadiness(),
         saved.getCreatedAt(),
         saved.getId());
+  }
+
+  private SavedAnalysisDetailResponse toDetailResponse(SavedAnalysis saved) {
+    SavedAnalysisReview latestReview =
+        savedAnalysisReviewRepository
+            .findFirstByAnalysisIdOrderByCreatedAtDescIdDesc(saved.getId())
+            .orElse(null);
+    return new SavedAnalysisDetailResponse(
+        saved.getExternalId(),
+        saved.getId(),
+        saved.getUser().getId(),
+        saved.getEvidenceEntity() == null ? null : saved.getEvidenceEntity().getId(),
+        saved.getSource(),
+        saved.getSourceMeta(),
+        saved.getEvidence(),
+        saved.getCurrentLevel(),
+        saved.getTargetLevel(),
+        saved.getUserObservation(),
+        saved.getImpactLevel(),
+        saved.getConfidence(),
+        saved.getJustification(),
+        readList(saved.getCompetenciesJson()),
+        readList(saved.getSuggestionsJson()),
+        saved.getReadiness(),
+        saved.getCreatedAt(),
+        latestReview == null ? ReviewStatus.UNREVIEWED : latestReview.getStatus(),
+        latestReview == null ? null : latestReview.getId());
+  }
+
+  private void validateDateWindow(Instant from, Instant to) {
+    if (from != null && to != null && from.isAfter(to)) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "from must be before to");
+    }
+  }
+
+  private String normalizeOptional(String value) {
+    return value == null || value.isBlank() ? null : value.trim();
   }
 
   private List<String> safeList(List<String> values) {

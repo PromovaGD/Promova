@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import br.com.promova.analysis.service.SavedAnalysisService;
+import br.com.promova.analysis.review.service.AnalysisReviewService;
 import br.com.promova.auth.AuthService;
 import br.com.promova.auth.AuthTokenResolver;
 import br.com.promova.config.ApiExceptionHandler;
@@ -38,6 +39,7 @@ class ManagerControllerSecurityTest {
   @MockitoBean private CareerProfileRepository careerProfileRepository;
   @MockitoBean private CareerObjectiveRepository careerObjectiveRepository;
   @MockitoBean private EvidenceService evidenceService;
+  @MockitoBean private AnalysisReviewService analysisReviewService;
 
   @Test
   void rejectsAnonymousManagerRequests() throws Exception {

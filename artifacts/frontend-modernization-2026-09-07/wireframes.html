@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Promova · Modernization wireframes</title><link rel="stylesheet" href="wireframes.css"></head>
+<body>
+<div class="prototype-bar"><strong>Promova / Design study</strong><label>Concept <select id="scenario" aria-label="Choose wireframe"></select></label><span>Illustrative data · no API writes</span><a href="PLAN.md">Plan</a></div>
+<div id="surface"></div>
+<dialog id="navigation" aria-labelledby="drawer-title"><div class="drawer-head"><strong id="drawer-title">Navegação</strong><button data-close>Fechar ×</button></div><div id="drawer-links"></div></dialog>
+<dialog id="action-dialog" aria-labelledby="dialog-title"><form method="dialog"><h2 id="dialog-title"></h2><div id="dialog-body"></div><div class="actions"><button value="cancel">Cancelar</button><button class="primary" value="confirm">Confirmar conceito</button></div></form></dialog>
+<div id="notice" role="status" aria-live="polite"></div>
+<script src="wireframes.js"></script>
+</body></html>

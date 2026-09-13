@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import br.com.promova.evidence.Evidence;
 import br.com.promova.evidence.EvidenceRepository;
 import br.com.promova.evidence.EvidenceStatus;
+import br.com.promova.analysis.persistence.SavedAnalysisRepository;
 import br.com.promova.user.User;
 import br.com.promova.user.UserRole;
 import java.time.Instant;
@@ -27,6 +28,7 @@ import org.springframework.web.server.ResponseStatusException;
 @ExtendWith(MockitoExtension.class)
 class EvidenceServiceTest {
   @Mock private EvidenceRepository evidenceRepository;
+  @Mock private SavedAnalysisRepository savedAnalysisRepository;
 
   private EvidenceService evidenceService;
   private User owner;
@@ -34,7 +36,7 @@ class EvidenceServiceTest {
 
   @BeforeEach
   void setUp() {
-    evidenceService = new EvidenceService(evidenceRepository);
+    evidenceService = new EvidenceService(evidenceRepository, savedAnalysisRepository);
     owner = user(7L, "owner@example.com");
     other = user(8L, "other@example.com");
   }

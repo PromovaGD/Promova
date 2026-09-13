@@ -2,6 +2,7 @@ package br.com.promova.analysis.controller;
 
 import br.com.promova.analysis.dto.SavedAnalysisResponse;
 import br.com.promova.analysis.service.SavedAnalysisService;
+import br.com.promova.common.PageRequestFactory;
 import br.com.promova.auth.AuthService;
 import br.com.promova.auth.AuthTokenResolver;
 import br.com.promova.user.User;
@@ -12,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -36,14 +38,29 @@ public class SavedAnalysisController {
   }
 
   @GetMapping
-  public List<SavedAnalysisResponse> list(
+  public Object list(
       @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
           Instant from,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-          Instant to) {
+          Instant to,
+      @RequestParam(required = false) String source,
+      @RequestParam(required = false) Integer page,
+      @RequestParam(required = false) Integer pageSize) {
     User user = authService.requireUser(requireToken(authorization));
+    if (page != null || pageSize != null || (source != null && !source.isBlank())) {
+      return savedAnalysisService.listForUserPaged(
+          user, source, from, to, PageRequestFactory.create(page, pageSize));
+    }
     return savedAnalysisService.listForUser(user, from, to);
+  }
+
+  @GetMapping("/{analysisId}")
+  public Object detail(
+      @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+      @PathVariable Long analysisId) {
+    User user = authService.requireUser(requireToken(authorization));
+    return savedAnalysisService.getForUser(user, analysisId);
   }
 
   @DeleteMapping

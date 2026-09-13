@@ -6,6 +6,7 @@ import br.com.promova.analysis.service.EvidenceAnalysisService;
 import br.com.promova.auth.AuthService;
 import br.com.promova.auth.AuthTokenResolver;
 import br.com.promova.evidence.dto.EvidenceResponse;
+import br.com.promova.common.PageRequestFactory;
 import br.com.promova.evidence.dto.GithubPullRequestCaptureRequest;
 import br.com.promova.evidence.service.EvidenceService;
 import br.com.promova.evidence.service.GithubCapturedEvidenceService;
@@ -49,20 +50,28 @@ public class CapturedEvidenceController {
   }
 
   @GetMapping
-  public List<EvidenceResponse> list(
+  public Object list(
       @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
       @RequestParam(required = false) String status,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
           Instant from,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-          Instant to) {
-    return evidenceService.listForUser(requireUser(authorization), status, from, to);
+          Instant to,
+      @RequestParam(required = false) String source,
+      @RequestParam(required = false) Integer page,
+      @RequestParam(required = false) Integer pageSize) {
+    User user = requireUser(authorization);
+    if (page != null || pageSize != null || (source != null && !source.isBlank())) {
+      return evidenceService.listForUserPaged(
+          user, status, source, from, to, PageRequestFactory.create(page, pageSize));
+    }
+    return evidenceService.listForUser(user, status, from, to);
   }
 
   @GetMapping("/{id}")
-  public EvidenceResponse get(
+  public Object get(
       @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization, @PathVariable Long id) {
-    return evidenceService.getForUser(requireUser(authorization), id);
+    return evidenceService.getCanonicalForUser(requireUser(authorization), id);
   }
 
   @PostMapping("/{id}/dismiss")

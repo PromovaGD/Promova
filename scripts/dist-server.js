@@ -35,15 +35,29 @@ const server = http.createServer((request, response) => {
     return;
   }
 
-  const resolvedPath =
-    fs.existsSync(filePath) && fs.statSync(filePath).isFile()
-      ? filePath
-      : path.join(root, "index.html");
+  const exists = fs.existsSync(filePath) && fs.statSync(filePath).isFile();
+  const isRoute = request.method === "GET" && acceptsHtml(request) && isApplicationRoute(pathname);
+  if (!exists && !isRoute) {
+    response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+    response.end("Not found");
+    return;
+  }
+  const resolvedPath = exists ? filePath : path.join(root, "index.html");
   const contentType = mimeTypes[path.extname(resolvedPath).toLowerCase()] || "application/octet-stream";
 
   response.writeHead(200, { "Content-Type": contentType });
   fs.createReadStream(resolvedPath).pipe(response);
 });
+
+function acceptsHtml(request) {
+  const accept = request.headers.accept || "";
+  return !accept || accept.includes("text/html") || accept.includes("*/*");
+}
+
+function isApplicationRoute(pathname) {
+  return pathname === "/" || /^\/(login|register|dashboard|profile|manager)(\/|$)/.test(pathname)
+    || /^\/(app|manage|workspace)(\/|$)/.test(pathname);
+}
 
 server.on("error", (error) => {
   console.error(`Frontend server failed: ${error.message}`);

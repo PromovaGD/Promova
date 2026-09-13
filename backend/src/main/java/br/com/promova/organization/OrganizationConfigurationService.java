@@ -2,6 +2,8 @@ package br.com.promova.organization;
 
 import br.com.promova.framework.CareerFramework;
 import br.com.promova.framework.FrameworkProvider;
+import br.com.promova.framework.FrameworkIdentity;
+import br.com.promova.framework.dto.FrameworkStructureResponse;
 import br.com.promova.organization.dto.CareerConfigurationResponse;
 import br.com.promova.organization.dto.JobRoleArchiveRequest;
 import br.com.promova.organization.dto.JobRoleRequest;
@@ -62,6 +64,31 @@ public class OrganizationConfigurationService {
             ? jobRoleRepository.findAllByOrderByNameAsc()
             : jobRoleRepository.findByStatusOrderByNameAsc(JobRoleStatus.ACTIVE);
     return roles.stream().map(JobRoleResponse::from).toList();
+  }
+
+  @Transactional(readOnly = true)
+  public FrameworkStructureResponse readFramework() {
+    CareerFramework framework = frameworkProvider.load();
+    String version = FrameworkIdentity.version(framework);
+    return new FrameworkStructureResponse(
+        version,
+        framework.levels().entrySet().stream()
+            .map(
+                entry ->
+                    new FrameworkStructureResponse.Level(
+                        entry.getKey(),
+                        entry.getValue().title(),
+                        entry.getValue().description(),
+                        entry.getValue().criteria().entrySet().stream()
+                            .map(
+                                criterion ->
+                                    new FrameworkStructureResponse.Criterion(
+                                        FrameworkIdentity.criterionId(
+                                            version, entry.getKey(), criterion.getKey()),
+                                        criterion.getKey(),
+                                        criterion.getValue()))
+                            .toList()))
+            .toList());
   }
 
   @Transactional

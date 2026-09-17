@@ -50,6 +50,7 @@ test("production modernization covers both roles, canonical resources, history a
   const managerToken = await loginApi("manager@promova.com","manager123");
   const me = await api("/auth/me",employeeToken);
   const pending = await api("/evidences/github/pull-request",employeeToken,"POST",{repo:"acme/project",pullNumber:8,usernameHint:"joao"});
+  const dialogEvidence = await api("/evidences/github/pull-request",employeeToken,"POST",{repo:"acme/project",pullNumber:9,usernameHint:"joao"});
   const analyzedEvidence = await api("/evidences/github/pull-request",employeeToken,"POST",{repo:"acme/project",pullNumber:7,usernameHint:"joao"});
   const analysis = await api(`/evidences/${analyzedEvidence.id}/analysis`,employeeToken,"POST",{userObservation:"Liderei a implantação, documentei os resultados e reduzi o tempo de recuperação em 35%."});
   await seedEvidences(employeeToken,500);
@@ -81,6 +82,9 @@ test("production modernization covers both roles, canonical resources, history a
   const cachedNavigationMs=Math.round(performance.now()-cachedStarted);
   interactionTimings.push({name:"overview-to-inbox",durationMs:cachedNavigationMs});
   assert.ok(cachedNavigationMs<200,`cached navigation took ${cachedNavigationMs}ms`);
+  await page.locator('#inbox-filter input[name="source"]').fill("GitHub");
+  await page.getByRole("button",{name:"Aplicar filtros"}).click();
+  await page.waitForURL(url=>url.pathname==="/app/inbox"&&url.searchParams.get("status")==="pending"&&url.searchParams.get("source")==="GitHub"&&url.searchParams.get("page")==="1");
   await capture(page,`/workspace/people/${employee.id}/analyses/${analysis.analysisId}?view=summary`,"05-employee-analysis-summary.png",true);
   await capture(page,`/workspace/people/${employee.id}/analyses/${analysis.analysisId}?view=history`,"06-employee-review-history.png",true);
   await capture(page,"/app/framework","07-employee-framework.png",true);
@@ -95,9 +99,28 @@ test("production modernization covers both roles, canonical resources, history a
   await capture(page,"/app/inbox?status=pending","21-mobile-employee-inbox.png",true);
   await capture(page,`/workspace/people/${employee.id}/evidence/${pending.id}`,"22-mobile-employee-evidence.png",true);
   await page.setViewportSize({width:1440,height:1000});
+  await page.goto(`${appUrl}/workspace/people/${employee.id}/evidence/${dialogEvidence.id}`);
+  await page.locator('[aria-busy="true"]').waitFor({state:"detached"});
+  await page.getByRole("button",{name:"Dispensar"}).click();
+  const evidenceDialog=page.locator("#action-dialog");
+  await evidenceDialog.waitFor({state:"visible"});
+  await evidenceDialog.getByRole("button",{name:"Cancelar"}).click();
+  await evidenceDialog.waitFor({state:"hidden"});
+  assert.equal(new URL(page.url()).pathname,`/workspace/people/${employee.id}/evidence/${dialogEvidence.id}`);
+  await page.getByRole("button",{name:"Dispensar"}).click();
+  await evidenceDialog.waitFor({state:"visible"});
+  await evidenceDialog.getByRole("button",{name:"Confirmar"}).click();
+  await page.waitForURL("**/app/inbox?status=pending");
   await page.getByRole("button",{name:"Sair"}).click();
   await loginUi(page,"manager@promova.com","manager123","/manage/people");
+  await page.locator('#people-filter input[name="q"]').fill("joao.silva");
+  await page.locator('#people-filter input[name="level"]').fill(employee.currentLevel);
+  await page.getByRole("button",{name:"Aplicar filtros"}).click();
+  await page.waitForURL(url=>url.pathname==="/manage/people"&&url.searchParams.get("q")==="joao.silva"&&url.searchParams.get("level")===employee.currentLevel&&url.searchParams.get("page")==="1");
   await capture(page,`/manage/people/${employee.id}/career-plan`,"14-manager-person-plan.png",true);
+  for (const href of [`/manage/people/${employee.id}/career-plan`,`/manage/people/${employee.id}/evidence`,`/manage/people/${employee.id}/analyses`]) {
+    assert.equal(await page.locator(`nav.tabs a[href="${href}"]`).count(),1,`person workspace tab ${href} is available from the career plan`);
+  }
   await capture(page,`/manage/people/${employee.id}/evidence`,"15-manager-person-evidence.png",true);
   await capture(page,`/workspace/people/${employee.id}/evidence/${pending.id}`,"16-manager-evidence-detail.png",true);
   await capture(page,`/manage/people/${employee.id}/career-plan/objectives/new`,"17-manager-objective-editor.png",true);
@@ -117,6 +140,11 @@ test("production modernization covers both roles, canonical resources, history a
   await firstDialogControl.focus();
   await page.keyboard.press("Shift+Tab");
   assert.equal(await lastDialogControl.evaluate(node=>node===document.activeElement),true,"native dialog contains focus");
+  await lastDialogControl.click();
+  await accountDialog.waitFor({state:"hidden"});
+  assert.equal(await account.evaluate(node=>node===document.activeElement),true,"dialog close button returns focus to trigger");
+  await account.click();
+  await accountDialog.waitFor({state:"visible"});
   await page.keyboard.press("Escape");
   await accountDialog.waitFor({state:"hidden"});
   assert.equal(await account.evaluate(node=>node===document.activeElement),true,"dialog returns focus to trigger");
@@ -133,7 +161,7 @@ test("production modernization covers both roles, canonical resources, history a
 
   await page.setViewportSize({width:320,height:740});
   await page.goto(`${appUrl}/manage/career/roles`);
-  await page.getByRole("heading",{name:"Cargos"}).waitFor();
+  await page.getByRole("heading",{name:"Cargos",exact:true}).waitFor();
   assert.equal(await horizontalOverflow(page),0);
   await resetScroll(page);
   await page.screenshot({path:path.join(screenshotDir,"24-mobile-320-manager-roles.png"),fullPage:false});
@@ -149,6 +177,10 @@ test("production modernization covers both roles, canonical resources, history a
   await page.keyboard.press("Escape");
   assert.equal(await menu.getAttribute("aria-expanded"),"false");
   assert.equal(await menu.evaluate((node)=>node===document.activeElement),true,"drawer returns focus to trigger");
+  await menu.click();
+  await page.locator("#navigation.open").waitFor();
+  await page.locator("#navigation").getByRole("link",{name:"Pessoas",exact:true}).click();
+  await page.waitForURL(url=>url.pathname==="/manage/people");
   await page.goto(`${appUrl}/workspace/people/${employee.id}/analyses/${analysis.analysisId}?view=source`);
   await page.getByRole("heading",{name:"Análise salva"}).waitFor();
   assert.equal(await horizontalOverflow(page),0);

@@ -1,6 +1,6 @@
 # Promova modernization implementation status
 
-Updated: 12 September 2026
+Updated: 17 September 2026
 
 This is the continuation and release-evidence ledger for the approved modernization in `PLAN.md`.
 The planning package and original screenshot archive are user-owned inputs and remain intact.
@@ -94,6 +94,12 @@ The planning package and original screenshot archive are user-owned inputs and r
 - [x] Frontend lint/tests/build, backend full tests, boot JAR/runtime smoke, and production Chrome E2E pass.
 - [x] 24 deterministic actual-application screenshots captured: all 20 audit mappings plus four critical
   mobile states, with machine-readable timing/viewport evidence in `actual/verification.json`.
+- [x] A second production-build control audit exercised 29 workflow groups across both roles, including
+  every authenticated mobile navigation destination, manager edits/reviews/configuration, GitHub actions,
+  evidence mutations, destructive confirmations, legacy redirects, and explicit logout token invalidation.
+- [x] The follow-up audit found and fixed four shared frontend regressions: filter serialization/navigation
+  races, missing manager person tabs, intercepted native dialog submissions, and a pointer-blocking mobile
+  drawer backdrop. Permanent E2E assertions now cover each path.
 - [!] Firefox, desktop Safari, mobile Safari, and mobile Chrome engine runs remain externally blocked; see below.
 
 ## Release-gate evidence
@@ -125,6 +131,10 @@ The planning package and original screenshot archive are user-owned inputs and r
 - `npm run test:e2e`: 1/1 production-build browser scenario passed after creating 500 real records;
   both roles, 20 mappings, four mobile captures, routing, session, permission, keyboard, long-content,
   pagination and reflow checks passed.
+- Production control audit: 29/29 workflow groups passed after remediation; no application 404, console
+  exception, API error response, or failed mutation remained. Chromium reported `ERR_ABORTED` for three
+  successful 204 responses; response assertions, persisted mutation state, and 401 checks for both revoked
+  logout tokens confirmed successful completion.
 - Rollback build was generated with `PROMOVA_MODERN_UI=false`; the default modern build was restored.
 - Screenshot directory: `actual/`; structured evidence: `actual/verification.json`.
 
@@ -135,4 +145,4 @@ The planning package and original screenshot archive are user-owned inputs and r
   is no iOS Simulator; no Android/mobile-Chrome runtime is installed. Enabling Safari automation is a user
   setting and installing browser/simulator engines is outside the repository implementation. Chrome desktop
   and responsive/emulated viewport gates pass; cross-engine sign-off must be run when those environments exist.
-- No product/API deviations from the approved plan were accepted. No deploy, merge, commit, or publish was performed.
+- No product/API deviations from the approved plan were accepted. No deploy, merge, or publish was performed.

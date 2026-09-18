@@ -109,6 +109,22 @@ class AnalysisReviewHttpSmokeIntegrationTest {
     assertThat(accepted.path("history").get(0).path("reviewerEmail").asText())
         .isEqualTo(managerEmail);
     long acceptedReviewId = accepted.path("history").get(0).path("id").asLong();
+    assertThat(
+            request(
+                    "POST",
+                    managerReviewPath(employee.getId(), analysisId),
+                    managerToken,
+                    "{\"status\":\"NEEDS_CONTEXT\",\"expectedLatestReviewId\":0}")
+                .statusCode())
+        .isEqualTo(409);
+    assertThat(
+            request(
+                    "POST",
+                    managerReviewPath(employee.getId(), analysisId),
+                    managerToken,
+                    "{\"status\":\"NEEDS_CONTEXT\"}")
+                .statusCode())
+        .isEqualTo(409);
     Instant firstCreatedAt =
         Instant.parse(accepted.path("history").get(0).path("createdAt").asText());
     assertThat(firstCreatedAt).isAfterOrEqualTo(beforeFirstReview);

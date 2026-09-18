@@ -39,6 +39,8 @@ The planning package and original screenshot archive are user-owned inputs and r
   not-found/forbidden states, and heading focus.
 - [x] Safe same-origin protected `returnTo`, cold cached-session validation, role guards, expiry redirect,
   and employee ownership guard before a resource request.
+- [x] Concurrent 401 responses collapse into one expiry transition, abort stale route work, and preserve the
+  original canonical protected destination without nesting login redirects.
 - [x] Distinct role navigation, account dialog, skip link, keyboard-contained mobile drawer, and explicit
   dialog focus containment/return.
 - [x] Intended HTML deep links fall back in both development and production-build servers; missing assets
@@ -54,7 +56,9 @@ The planning package and original screenshot archive are user-owned inputs and r
 - [x] Stable SHA-256 framework version, criterion IDs, canonical supporting analysis IDs, and manager
   read-only framework endpoint.
 - [x] GitHub PR search paging metadata.
-- [x] Review idempotency/stale-history conflict plus version-aware career-plan/objective mutations.
+- [x] Review idempotency/stale-history conflict plus version-aware career-plan/objective mutations. Review
+  compare-and-append holds a pessimistic stream lock and explicitly represents “expect no prior review,” so
+  competing first decisions cannot both commit.
 - [x] V8 adds a nullable review idempotency key and indexes only; old clients remain valid.
 - [x] Authorization, direct-resource, pagination, filtering, queue, duplicate, conflict, length-boundary,
   and stale-version backend tests.
@@ -85,15 +89,16 @@ The planning package and original screenshot archive are user-owned inputs and r
 ## P5 — hardening and rollout readiness
 
 - [x] Obsolete reads abort and late commits are rejected by navigation epoch.
-- [x] Evidence/review/objective drafts survive local rerenders; dirty navigation/unload is guarded.
+- [x] Evidence, review, objective, career context, terminology, role, GitHub connection, and GitHub search
+  drafts survive local rerenders; link, Back/Forward, and unload navigation are guarded.
 - [x] Duplicate clicks are disabled; evidence mutations reconcile unknown outcomes; review retries reuse the
   same server idempotency identity; conflicts preserve editable values.
 - [x] Responsive bounded workspaces, visible focus, skip link, drawer/dialog focus contract, Escape, reduced
   motion, live loading/toast states, long-text wrapping, and no horizontal-overflow concealment.
 - [x] Immutable-artifact rollout/rollback and additive migration behavior documented in `ROLLOUT.md`.
 - [x] Frontend lint/tests/build, backend full tests, boot JAR/runtime smoke, and production Chrome E2E pass.
-- [x] 24 deterministic actual-application screenshots captured: all 20 audit mappings plus four critical
-  mobile states, with machine-readable timing/viewport evidence in `actual/verification.json`.
+- [x] 26 deterministic actual-application screenshots captured: all 20 audit mappings plus critical mobile
+  states, with machine-readable timing/viewport evidence in `actual/verification.json`.
 - [x] A second production-build control audit exercised 29 workflow groups across both roles, including
   every authenticated mobile navigation destination, manager edits/reviews/configuration, GitHub actions,
   evidence mutations, destructive confirmations, and explicit logout token invalidation.
@@ -102,6 +107,9 @@ The planning package and original screenshot archive are user-owned inputs and r
   drawer backdrop. Permanent E2E assertions now cover each path.
 - [x] The pre-production consolidation removed the superseded UI, duplicate views/components/services/tests,
   `modern-*` production names, legacy URL shims, and `PROMOVA_MODERN_UI`; only the approved implementation ships.
+- [x] An independent PR review found and drove fixes for concurrent expiry, first-review concurrency,
+  stored-text escaping, the review-queue employee-name contract, missing-objective handling, complete draft
+  coverage, manager filters, Framework dates, GitHub search pagination, field limits, and forbidden-state focus.
 - [!] Firefox, desktop Safari, mobile Safari, and mobile Chrome engine runs remain externally blocked; see below.
 
 ## Release-gate evidence
@@ -118,10 +126,10 @@ The planning package and original screenshot archive are user-owned inputs and r
 - [x] Mutation duplicate/retry, ambiguous outcome, stale review/plan/objective versions, archive replacement,
   status validation, and 2,001-character rejection have automated coverage.
 - [x] Historical profile context, criterion-gap disclaimer, source/observation separation, all six terminology
-  fields, official levels, allowed roles, and unknown-status fallback are retained.
+  fields, official levels, allowed roles (including the two-level minimum), and unknown-status fallback are retained.
 - [x] Active-route calls only; list API and DOM are bounded. On the declared local Chrome/H2/stub profile,
-  employee Overview cold load was 584ms, its slowest API was 16ms, and usable in-app Overview→Inbox
-  navigation was 144ms. The observed cold-route range was 539–1,376ms, excluding analysis-engine runtime.
+  employee Overview cold load was 592ms, its slowest API was 17ms, and usable in-app Overview→Inbox
+  navigation was 125ms. The observed cold-route range was 542–765ms, excluding analysis-engine runtime.
 - [x] Actual production-build application exercised as both employee and manager in Google Chrome.
 - [!] Cross-engine/device gate incomplete because the required engines are unavailable or disabled.
 
@@ -132,8 +140,9 @@ The planning package and original screenshot archive are user-owned inputs and r
 - `backend/gradlew test`: 139/139 backend tests passed.
 - `npm run smoke:ci`: frontend build, backend `bootJar`, packaged runtime/auth/CORS smoke passed.
 - `npm run test:e2e`: 1/1 production-build browser scenario passed after creating 500 real records;
-  both roles, 20 mappings, four mobile captures, routing, session, permission, keyboard, long-content,
-  pagination and reflow checks passed.
+  both roles, 20 mappings, mobile captures, routing, session, permission, keyboard, long-content,
+  pagination, manager filters, draft navigation, competing first reviews, browser-error monitoring, and
+  reflow checks passed.
 - Production control audit: 29/29 workflow groups passed after remediation; no application 404, console
   exception, API error response, or failed mutation remained. Chromium reported `ERR_ABORTED` for three
   successful 204 responses; response assertions, persisted mutation state, and 401 checks for both revoked

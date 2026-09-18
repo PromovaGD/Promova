@@ -2,12 +2,14 @@ package br.com.promova.analysis.persistence;
 
 import br.com.promova.user.User;
 import br.com.promova.analysis.review.ReviewStatus;
+import jakarta.persistence.LockModeType;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,6 +24,16 @@ public interface SavedAnalysisRepository extends JpaRepository<SavedAnalysis, Lo
         AND a.user.id = :userId
       """)
   Optional<SavedAnalysis> findByIdAndUserId(
+      @Param("analysisId") Long analysisId, @Param("userId") Long userId);
+
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query(
+      """
+      SELECT a FROM SavedAnalysis a
+      WHERE a.id = :analysisId
+        AND a.user.id = :userId
+      """)
+  Optional<SavedAnalysis> findByIdAndUserIdForUpdate(
       @Param("analysisId") Long analysisId, @Param("userId") Long userId);
 
   @Query(

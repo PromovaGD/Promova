@@ -104,8 +104,10 @@ public class AnalysisReviewService {
       throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Manager review access required.");
     }
 
-    SavedAnalysis analysis = requireAnalysis(analysisId, ownerId);
+    ReviewStatus status = ReviewStatus.parseAction(request.status());
+    String comment = normalizeComment(request.comment());
     String idempotencyKey = normalizeIdempotencyKey(request.idempotencyKey());
+    SavedAnalysis analysis = requireAnalysisForUpdate(analysisId, ownerId);
     if (idempotencyKey != null
         && reviewRepository
             .findByAnalysisIdAndReviewerIdAndIdempotencyKey(
@@ -119,14 +121,14 @@ public class AnalysisReviewService {
             .findFirstByAnalysisIdOrderByCreatedAtDescIdDesc(analysisId)
             .map(SavedAnalysisReview::getId)
             .orElse(null);
-    if (request.expectedLatestReviewId() != null
-        && !request.expectedLatestReviewId().equals(latestReviewId)) {
+    Long expectedLatestReviewId = request.expectedLatestReviewId();
+    boolean expectedNone = expectedLatestReviewId == null || expectedLatestReviewId == 0L;
+    if ((expectedNone && latestReviewId != null)
+        || (!expectedNone && !expectedLatestReviewId.equals(latestReviewId))) {
       throw new ResponseStatusException(
           HttpStatus.CONFLICT, "A revisão mudou. Atualize o histórico antes de tentar novamente.");
     }
 
-    ReviewStatus status = ReviewStatus.parseAction(request.status());
-    String comment = normalizeComment(request.comment());
     reviewRepository.save(
         new SavedAnalysisReview(
             analysis, reviewer, status, comment, Instant.now(), idempotencyKey));
@@ -136,6 +138,13 @@ public class AnalysisReviewService {
   private SavedAnalysis requireAnalysis(Long analysisId, Long ownerId) {
     return savedAnalysisRepository
         .findByIdAndUserId(analysisId, ownerId)
+        .orElseThrow(
+            () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Analysis not found."));
+  }
+
+  private SavedAnalysis requireAnalysisForUpdate(Long analysisId, Long ownerId) {
+    return savedAnalysisRepository
+        .findByIdAndUserIdForUpdate(analysisId, ownerId)
         .orElseThrow(
             () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Analysis not found."));
   }

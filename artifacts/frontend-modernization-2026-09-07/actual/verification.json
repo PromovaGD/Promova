@@ -1,193 +1,209 @@
 {
-  "generatedAt": "2026-09-18T01:15:29.629Z",
+  "generatedAt": "2026-09-18T14:22:21.111Z",
   "browser": "Google Chrome (Playwright)",
   "productionBuild": true,
   "roles": [
     "EMPLOYEE",
     "MANAGER"
   ],
-  "screenshots": 24,
+  "screenshots": 26,
   "routeTimings": [
     {
       "route": "/",
-      "durationMs": 581,
-      "domContentLoadedMs": 18,
+      "durationMs": 597,
+      "domContentLoadedMs": 30,
       "apiMaxMs": 0,
       "apiRequests": 0,
       "viewport": "1440x1000"
     },
     {
       "route": "/login",
-      "durationMs": 554,
-      "domContentLoadedMs": 28,
+      "durationMs": 585,
+      "domContentLoadedMs": 52,
       "apiMaxMs": 0,
       "apiRequests": 0,
       "viewport": "1440x1000"
     },
     {
       "route": "/register",
-      "durationMs": 532,
-      "domContentLoadedMs": 16,
+      "durationMs": 542,
+      "domContentLoadedMs": 22,
       "apiMaxMs": 0,
       "apiRequests": 0,
       "viewport": "1440x1000"
     },
     {
       "route": "/app/overview",
-      "durationMs": 551,
-      "domContentLoadedMs": 24,
-      "apiMaxMs": 10,
+      "durationMs": 592,
+      "domContentLoadedMs": 37,
+      "apiMaxMs": 17,
       "apiRequests": 4,
       "viewport": "1440x1000"
     },
     {
       "route": "/workspace/people/2/analyses/1?view=summary",
-      "durationMs": 546,
-      "domContentLoadedMs": 19,
-      "apiMaxMs": 9,
+      "durationMs": 563,
+      "domContentLoadedMs": 27,
+      "apiMaxMs": 10,
       "apiRequests": 3,
       "viewport": "1440x1000"
     },
     {
       "route": "/workspace/people/2/analyses/1?view=history",
-      "durationMs": 539,
-      "domContentLoadedMs": 14,
-      "apiMaxMs": 4,
+      "durationMs": 556,
+      "domContentLoadedMs": 20,
+      "apiMaxMs": 5,
       "apiRequests": 3,
       "viewport": "1440x1000"
     },
     {
       "route": "/app/framework",
-      "durationMs": 552,
-      "domContentLoadedMs": 23,
-      "apiMaxMs": 6,
+      "durationMs": 548,
+      "domContentLoadedMs": 17,
+      "apiMaxMs": 9,
       "apiRequests": 3,
       "viewport": "1440x1000"
     },
     {
       "route": "/app/framework/criteria/criterion-v1-d87f9dafb5cb60904b809aa7?level=L3",
-      "durationMs": 542,
-      "domContentLoadedMs": 20,
+      "durationMs": 550,
+      "domContentLoadedMs": 25,
       "apiMaxMs": 0,
       "apiRequests": 0,
       "viewport": "1440x1000"
     },
     {
       "route": "/app/integrations/github",
-      "durationMs": 547,
-      "domContentLoadedMs": 21,
+      "durationMs": 765,
+      "domContentLoadedMs": 234,
+      "apiMaxMs": 8,
+      "apiRequests": 2,
+      "viewport": "1440x1000"
+    },
+    {
+      "route": "/app/integrations/github/import",
+      "durationMs": 703,
+      "domContentLoadedMs": 170,
+      "apiMaxMs": 5,
+      "apiRequests": 1,
+      "viewport": "1440x1000"
+    },
+    {
+      "route": "/app/career-plan?view=context",
+      "durationMs": 704,
+      "domContentLoadedMs": 162,
+      "apiMaxMs": 16,
+      "apiRequests": 2,
+      "viewport": "1440x1000"
+    },
+    {
+      "route": "/app/inbox?status=pending",
+      "durationMs": 693,
+      "domContentLoadedMs": 156,
       "apiMaxMs": 9,
       "apiRequests": 2,
       "viewport": "1440x1000"
     },
     {
-      "route": "/app/career-plan?view=context",
-      "durationMs": 1374,
-      "domContentLoadedMs": 844,
-      "apiMaxMs": 11,
-      "apiRequests": 2,
-      "viewport": "1440x1000"
-    },
-    {
-      "route": "/app/inbox?status=pending",
-      "durationMs": 686,
-      "domContentLoadedMs": 160,
-      "apiMaxMs": 7,
-      "apiRequests": 2,
-      "viewport": "1440x1000"
-    },
-    {
       "route": "/workspace/people/2/evidence/1",
-      "durationMs": 678,
-      "domContentLoadedMs": 156,
-      "apiMaxMs": 6,
+      "durationMs": 690,
+      "domContentLoadedMs": 161,
+      "apiMaxMs": 5,
       "apiRequests": 2,
       "viewport": "1440x1000"
     },
     {
       "route": "/app/analyses",
-      "durationMs": 676,
-      "domContentLoadedMs": 151,
-      "apiMaxMs": 6,
+      "durationMs": 690,
+      "domContentLoadedMs": 155,
+      "apiMaxMs": 7,
       "apiRequests": 2,
       "viewport": "1440x1000"
     },
     {
       "route": "/app/inbox?status=pending",
-      "durationMs": 547,
-      "domContentLoadedMs": 18,
-      "apiMaxMs": 8,
+      "durationMs": 558,
+      "domContentLoadedMs": 20,
+      "apiMaxMs": 9,
       "apiRequests": 2,
       "viewport": "390x844"
     },
     {
       "route": "/workspace/people/2/evidence/1",
-      "durationMs": 539,
-      "domContentLoadedMs": 16,
+      "durationMs": 558,
+      "domContentLoadedMs": 23,
       "apiMaxMs": 5,
       "apiRequests": 2,
       "viewport": "390x844"
     },
     {
       "route": "/manage/people/2/career-plan",
-      "durationMs": 685,
-      "domContentLoadedMs": 164,
-      "apiMaxMs": 6,
+      "durationMs": 720,
+      "domContentLoadedMs": 186,
+      "apiMaxMs": 9,
       "apiRequests": 4,
       "viewport": "1440x1000"
     },
     {
       "route": "/manage/people/2/evidence",
-      "durationMs": 679,
-      "domContentLoadedMs": 154,
-      "apiMaxMs": 9,
+      "durationMs": 701,
+      "domContentLoadedMs": 158,
+      "apiMaxMs": 14,
       "apiRequests": 3,
       "viewport": "1440x1000"
     },
     {
       "route": "/workspace/people/2/evidence/1",
-      "durationMs": 535,
-      "domContentLoadedMs": 15,
-      "apiMaxMs": 4,
+      "durationMs": 551,
+      "domContentLoadedMs": 21,
+      "apiMaxMs": 6,
       "apiRequests": 2,
       "viewport": "1440x1000"
     },
     {
       "route": "/manage/people/2/career-plan/objectives/new",
-      "durationMs": 677,
-      "domContentLoadedMs": 152,
-      "apiMaxMs": 7,
+      "durationMs": 696,
+      "domContentLoadedMs": 159,
+      "apiMaxMs": 8,
+      "apiRequests": 4,
+      "viewport": "1440x1000"
+    },
+    {
+      "route": "/manage/people/2/career-plan/objectives/999999",
+      "durationMs": 718,
+      "domContentLoadedMs": 185,
+      "apiMaxMs": 8,
       "apiRequests": 4,
       "viewport": "1440x1000"
     },
     {
       "route": "/manage/people/2/analyses",
-      "durationMs": 678,
-      "domContentLoadedMs": 153,
+      "durationMs": 694,
+      "domContentLoadedMs": 155,
       "apiMaxMs": 5,
       "apiRequests": 3,
       "viewport": "1440x1000"
     },
     {
       "route": "/workspace/people/2/analyses/1?view=review",
-      "durationMs": 691,
-      "domContentLoadedMs": 151,
-      "apiMaxMs": 4,
+      "durationMs": 698,
+      "domContentLoadedMs": 160,
+      "apiMaxMs": 6,
       "apiRequests": 3,
       "viewport": "1440x1000"
     },
     {
       "route": "/manage/career/roles",
-      "durationMs": 680,
-      "domContentLoadedMs": 156,
-      "apiMaxMs": 5,
+      "durationMs": 689,
+      "domContentLoadedMs": 158,
+      "apiMaxMs": 6,
       "apiRequests": 3,
       "viewport": "1440x1000"
     },
     {
       "route": "/workspace/people/2/analyses/1?view=review",
-      "durationMs": 548,
-      "domContentLoadedMs": 15,
+      "durationMs": 550,
+      "domContentLoadedMs": 22,
       "apiMaxMs": 4,
       "apiRequests": 3,
       "viewport": "390x844"
@@ -196,7 +212,7 @@
   "interactionTimings": [
     {
       "name": "overview-to-inbox",
-      "durationMs": 109
+      "durationMs": 125
     }
   ],
   "viewports": [
@@ -215,6 +231,16 @@
     "back/forward",
     "forbidden role",
     "missing resource",
+    "missing objective",
+    "draft navigation guard",
+    "persisted plan/objective/terminology/role/GitHub mutations",
+    "review mutation lock",
+    "concurrent first review",
+    "manager filters",
+    "GitHub search pagination/import",
+    "concurrent session expiry",
+    "uncaught browser errors",
+    "unexpected HTTP errors",
     "drawer focus trap/return",
     "200% text",
     "zero horizontal overflow"

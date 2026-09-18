@@ -55,6 +55,8 @@ test("production application covers both roles, canonical resources, history and
   const dialogEvidence = await api("/evidences/github/pull-request",employeeToken,"POST",{repo:"acme/project",pullNumber:9,usernameHint:"joao"});
   const analyzedEvidence = await api("/evidences/github/pull-request",employeeToken,"POST",{repo:"acme/project",pullNumber:7,usernameHint:"joao"});
   const analysis = await api(`/evidences/${analyzedEvidence.id}/analysis`,employeeToken,"POST",{userObservation:"Liderei a implantação, documentei os resultados e reduzi o tempo de recuperação em 35%."});
+  const concurrentEvidence = await api("/evidences/github/pull-request",employeeToken,"POST",{repo:"acme/project",pullNumber:10,usernameHint:"joao"});
+  const concurrentAnalysis = await api(`/evidences/${concurrentEvidence.id}/analysis`,employeeToken,"POST",{userObservation:"Valida a primeira decisão concorrente."});
   await seedEvidences(employeeToken,500);
   const boundedPage=await api("/evidences?status=PENDING&page=1&pageSize=25",employeeToken);
   assert.ok(boundedPage.total>=500,"500-record fixture is visible through bounded pagination");
@@ -62,12 +64,21 @@ test("production application covers both roles, canonical resources, history and
   const people = await api("/manager/employees?page=1&pageSize=25",managerToken);
   const employee = people.items.find(person=>person.email==="joao.silva@empresa.com");
   assert.equal(employee.id,me.id);
+  const concurrentReviewUrl=`${apiUrl}/manager/employees/${employee.id}/analyses/${concurrentAnalysis.analysisId}/reviews`;
+  const concurrentReviews=await Promise.all(["ACCEPTED","NEEDS_CONTEXT"].map(status=>fetch(concurrentReviewUrl,{method:"POST",headers:{Authorization:`Bearer ${managerToken}`,"Content-Type":"application/json"},body:JSON.stringify({status,expectedLatestReviewId:0,idempotencyKey:`concurrent-${status}`})})));
+  assert.deepEqual(concurrentReviews.map(response=>response.status).sort(),[201,409],"exactly one concurrent first review commits");
+  const concurrentHistory=await api(`/manager/employees/${employee.id}/analyses/${concurrentAnalysis.analysisId}/reviews`,managerToken);
+  assert.equal(concurrentHistory.history.length,1,"the concurrent review stream remains append-once");
   await api(`/manager/employees/${employee.id}/analyses/${analysis.analysisId}/reviews`,managerToken,"POST",{status:"NEEDS_CONTEXT",comment:"Inclua as métricas do período seguinte na próxima conversa.",idempotencyKey:"e2e-review"});
 
   await mkdir(screenshotDir,{recursive:true});
   browser = await chromium.launch({executablePath:chrome,headless:true});
   const context = await browser.newContext({viewport:{width:1440,height:1000},deviceScaleFactor:1});
   const page = await context.newPage();
+  const pageErrors=[],consoleErrors=[],httpErrors=[];
+  page.on("pageerror",error=>pageErrors.push(error.message));
+  page.on("console",message=>{if(message.type()==="error")consoleErrors.push(message.text());});
+  page.on("response",response=>{if(response.status()>=400)httpErrors.push({status:response.status(),url:response.url()});});
   await capture(page,"/","01-public-landing.png");
   await capture(page,"/login","02-auth-login.png");
   await capture(page,"/register","03-auth-register.png");
@@ -93,6 +104,23 @@ test("production application covers both roles, canonical resources, history and
   const criterionHref = await page.locator('.row-list a[href*="/criteria/"]').first().getAttribute("href");
   if (criterionHref) await capture(page,criterionHref,"08-employee-criterion.png",true);
   await capture(page,"/app/integrations/github","09-employee-github.png",true);
+  await page.locator('#github-form input[name="repoSlug"]').fill("acme/project");
+  await page.locator('#github-form input[name="authorLogin"]').fill("joao");
+  const githubSave=page.waitForResponse(response=>response.url().endsWith("/api/github/settings")&&response.request().method()==="PUT");
+  await page.getByRole("button",{name:"Salvar",exact:true}).click();
+  assert.equal((await githubSave).status(),200);
+  await page.reload();
+  await page.locator('[aria-busy="true"]').waitFor({state:"detached"});
+  assert.equal(await page.locator('#github-form input[name="repoSlug"]').inputValue(),"acme/project");
+  await capture(page,"/app/integrations/github/import","26-employee-github-search.png",true);
+  await page.locator('#github-import-form input[name="repoSlug"]').fill("acme/project");
+  await page.locator('#github-import-form input[name="authorLogin"]').fill("joao");
+  await page.getByRole("button",{name:"Pesquisar"}).click();
+  await page.getByRole("button",{name:"Próxima"}).waitFor();
+  await page.getByRole("button",{name:"Próxima"}).click();
+  await page.getByText("9–10 de 10").waitFor();
+  await page.getByRole("button",{name:/Importar/}).first().click();
+  await page.waitForURL(url=>url.pathname.startsWith(`/workspace/people/${employee.id}/evidence/`));
   await capture(page,"/app/career-plan?view=context","10-employee-career-context.png",true);
   await capture(page,"/app/inbox?status=pending","11-employee-inbox.png",true);
   await capture(page,`/workspace/people/${employee.id}/evidence/${pending.id}`,"12-employee-evidence.png",true);
@@ -123,12 +151,77 @@ test("production application covers both roles, canonical resources, history and
   for (const href of [`/manage/people/${employee.id}/career-plan`,`/manage/people/${employee.id}/evidence`,`/manage/people/${employee.id}/analyses`]) {
     assert.equal(await page.locator(`nav.tabs a[href="${href}"]`).count(),1,`person workspace tab ${href} is available from the career plan`);
   }
+  await page.goto(`${appUrl}/manage/people/${employee.id}/career-plan?view=context`);
+  await page.locator('[aria-busy="true"]').waitFor({state:"detached"});
+  await page.locator('#plan-form textarea[name="characteristics"]').fill("Comunicação clara\nExecução consistente");
+  const planSave=page.waitForResponse(response=>response.url().endsWith(`/manager/employees/${employee.id}/career-plan`)&&response.request().method()==="PUT");
+  await page.getByRole("button",{name:"Salvar contexto"}).click();
+  assert.equal((await planSave).status(),200);
+  await page.reload();
+  await page.locator('[aria-busy="true"]').waitFor({state:"detached"});
+  assert.match(await page.locator('#plan-form textarea[name="characteristics"]').inputValue(),/Execução consistente/);
   await capture(page,`/manage/people/${employee.id}/evidence`,"15-manager-person-evidence.png",true);
+  await page.locator('#person-evidence-filter input[name="source"]').fill("GitHub");
+  await page.getByRole("button",{name:"Aplicar filtros"}).click();
+  await page.waitForURL(url=>url.pathname===`/manage/people/${employee.id}/evidence`&&url.searchParams.get("source")==="GitHub"&&url.searchParams.get("page")==="1");
   await capture(page,`/workspace/people/${employee.id}/evidence/${pending.id}`,"16-manager-evidence-detail.png",true);
   await capture(page,`/manage/people/${employee.id}/career-plan/objectives/new`,"17-manager-objective-editor.png",true);
+  const objectiveText=page.locator('#objective-form textarea[name="text"]');
+  await objectiveText.fill("Rascunho preservado durante a navegação");
+  await page.getByRole("link",{name:"Cancelar"}).click();
+  const draftDialog=page.locator("#action-dialog");
+  await draftDialog.waitFor({state:"visible"});
+  await draftDialog.getByRole("button",{name:"Continuar editando"}).click();
+  assert.equal(await objectiveText.inputValue(),"Rascunho preservado durante a navegação");
+  await page.getByRole("link",{name:"Cancelar"}).click();
+  await draftDialog.waitFor({state:"visible"});
+  await draftDialog.getByRole("button",{name:"Descartar e sair"}).click();
+  await page.waitForURL(`**/manage/people/${employee.id}/career-plan`);
+  await capture(page,`/manage/people/${employee.id}/career-plan/objectives/999999`,"25-manager-missing-objective.png",true);
+  await page.getByText("Este objetivo não existe ou não está mais disponível.").waitFor();
+  await page.goto(`${appUrl}/manage/people/${employee.id}/career-plan/objectives/new`);
+  await page.locator('[aria-busy="true"]').waitFor({state:"detached"});
+  await page.locator('#objective-form textarea[name="text"]').fill("Objetivo criado pelo teste de produção");
+  const objectiveSave=page.waitForResponse(response=>response.url().endsWith(`/manager/employees/${employee.id}/career-plan/objectives`)&&response.request().method()==="POST");
+  await page.getByRole("button",{name:"Salvar objetivo"}).click();
+  assert.equal((await objectiveSave).status(),200);
+  await page.waitForURL(`**/manage/people/${employee.id}/career-plan`);
+  await page.getByText("Objetivo criado pelo teste de produção").waitFor();
   await capture(page,`/manage/people/${employee.id}/analyses`,"18-manager-person-analyses.png",true);
+  await page.locator('#person-analyses-filter select[name="review"]').selectOption("needs-context");
+  await page.getByRole("button",{name:"Aplicar filtros"}).click();
+  await page.waitForURL(url=>url.pathname===`/manage/people/${employee.id}/analyses`&&url.searchParams.get("review")==="needs-context"&&url.searchParams.get("page")==="1");
   await capture(page,`/workspace/people/${employee.id}/analyses/${analysis.analysisId}?view=review`,"19-manager-review.png",true);
+  const reviewEndpoint=`**/manager/employees/${employee.id}/analyses/${analysis.analysisId}/reviews`;
+  await page.route(reviewEndpoint,async route=>{if(route.request().method()==="POST")await new Promise(resolve=>setTimeout(resolve,300));await route.continue();});
+  const needsContext=page.getByRole("button",{name:"Solicitar contexto"});
+  await needsContext.click();
+  await page.waitForTimeout(50);
+  assert.equal(await page.locator("button[data-review]:disabled").count(),2,"both review decisions lock during a mutation");
+  await page.waitForURL(url=>url.pathname===`/workspace/people/${employee.id}/analyses/${analysis.analysisId}`&&url.searchParams.get("view")==="history");
+  await page.unroute(reviewEndpoint);
   await capture(page,"/manage/career/roles","20-manager-career-settings.png",true);
+  await page.goto(`${appUrl}/manage/career/terminology`);
+  await page.locator('[aria-busy="true"]').waitFor({state:"detached"});
+  const terminologyInput=page.locator("#terminology-form input").first(),terminologyValue=await terminologyInput.inputValue();
+  await terminologyInput.fill(`${terminologyValue} E2E`.slice(0,80));
+  const terminologySave=page.waitForResponse(response=>response.url().endsWith("/manager/settings/terminology")&&response.request().method()==="PUT");
+  await page.getByRole("button",{name:"Salvar terminologia"}).click();
+  assert.equal((await terminologySave).status(),200);
+  await page.reload();
+  await page.locator('[aria-busy="true"]').waitFor({state:"detached"});
+  assert.equal(await page.locator("#terminology-form input").first().inputValue(),`${terminologyValue} E2E`.slice(0,80));
+  await page.goto(`${appUrl}/manage/career/roles/new`);
+  await page.locator('[aria-busy="true"]').waitFor({state:"detached"});
+  await page.locator('#role-form input[name="name"]').fill("Cargo de validação E2E");
+  await page.locator('#role-form textarea[name="description"]').fill("Confirma persistência e limites do editor canônico.");
+  await page.locator('#role-form input[name="allowedLevelIds"]').nth(0).check();
+  await page.locator('#role-form input[name="allowedLevelIds"]').nth(1).check();
+  const roleSave=page.waitForResponse(response=>response.url().endsWith("/manager/settings/job-roles")&&response.request().method()==="POST");
+  await page.getByRole("button",{name:"Salvar cargo"}).click();
+  assert.equal((await roleSave).status(),200);
+  await page.waitForURL("**/manage/career/roles");
+  await page.getByText("Cargo de validação E2E").waitFor();
   await page.setViewportSize({width:390,height:844});
   await capture(page,`/workspace/people/${employee.id}/analyses/${analysis.analysisId}?view=review`,"23-mobile-manager-review.png",true);
   await page.setViewportSize({width:1440,height:1000});
@@ -155,6 +248,7 @@ test("production application covers both roles, canonical resources, history and
   await page.getByRole("heading",{name:"Revisões",exact:true}).waitFor();
   await page.locator('[aria-busy="true"]').waitFor({state:"detached"});
   assert.match(await page.locator("body").innerText(),/Precisa de contexto|Precisam de contexto/);
+  assert.doesNotMatch(await page.locator("body").innerText(),/undefined/);
   await page.goBack();
   await page.goForward();
   assert.equal(new URL(page.url()).pathname,"/manage/reviews");
@@ -199,15 +293,22 @@ test("production application covers both roles, canonical resources, history and
 
   await page.goto(`${appUrl}/app/overview`);
   await page.getByRole("heading",{name:"Permissão necessária"}).waitFor();
+  assert.equal(await page.locator("main main").count(),0,"forbidden state does not nest main landmarks");
+  assert.equal(await page.getByRole("button",{name:/Menu/}).count(),1,"forbidden shell remains interactive");
   await page.goto(`${appUrl}/workspace/people/999999/analyses/999999?view=summary`);
   await page.getByText(/não existe|não está disponível/).waitFor();
   await page.goto(`${appUrl}/app/overview`);
   assert.equal(new URL(page.url()).pathname,"/app/overview");
 
   await page.evaluate(()=>localStorage.setItem("promova.auth-token","expired-token"));
-  await page.goto(`${appUrl}/manage/reviews?status=unreviewed`);
+  await page.goto(`${appUrl}/manage/people/${employee.id}/career-plan?view=context`);
   await page.waitForURL("**/login?returnTo=**");
-  assert.match(new URL(page.url()).searchParams.get("returnTo")||"",/^\/manage\/reviews/);
+  assert.equal(new URL(page.url()).searchParams.get("returnTo"),`/manage/people/${employee.id}/career-plan?view=context`,"concurrent 401 responses preserve one canonical destination");
+
+  assert.deepEqual(pageErrors,[],"application raises no uncaught page errors");
+  assert.deepEqual(consoleErrors.filter(message=>!message.includes("Failed to load resource")),[],"application logs no JavaScript console errors");
+  const unexpectedHttp=httpErrors.filter(({status,url})=>!(status===401||status===404&&url.includes("/manager/employees/999999/analyses/999999")));
+  assert.deepEqual(unexpectedHttp,[],`unexpected failed responses: ${JSON.stringify(unexpectedHttp)}`);
 
   const primaryWorkspace = routeTimings.find(({route})=>route==="/app/overview");
   assert.ok(primaryWorkspace?.durationMs<2_000,`cold primary workspace took ${primaryWorkspace?.durationMs}ms`);
@@ -216,11 +317,11 @@ test("production application covers both roles, canonical resources, history and
     browser:"Google Chrome (Playwright)",
     productionBuild:true,
     roles:["EMPLOYEE","MANAGER"],
-    screenshots:24,
+    screenshots:26,
     routeTimings,
     interactionTimings,
     viewports:["1440x1000","1280x720","768x1024","390x844","320x740","844x390","320 CSS px (1280px at 400% equivalent)"],
-    checks:["deep-link fallback","missing asset 404","reload","back/forward","forbidden role","missing resource","drawer focus trap/return","200% text","zero horizontal overflow"],
+    checks:["deep-link fallback","missing asset 404","reload","back/forward","forbidden role","missing resource","missing objective","draft navigation guard","persisted plan/objective/terminology/role/GitHub mutations","review mutation lock","concurrent first review","manager filters","GitHub search pagination/import","concurrent session expiry","uncaught browser errors","unexpected HTTP errors","drawer focus trap/return","200% text","zero horizontal overflow"],
   },null,2)+"\n","utf8");
 });
 
@@ -246,4 +347,4 @@ function startProcess(command,args,options){const child=spawn(command,args,{...o
 async function stopProcess(child){if(!child||child.exitCode!==null)return;try{process.kill(process.platform==="win32"?child.pid:-child.pid,"SIGTERM");}catch{return;}await Promise.race([new Promise(r=>child.once("exit",r)),new Promise(r=>setTimeout(r,8000))]);if(child.exitCode===null)try{process.kill(-child.pid,"SIGKILL");}catch{}}
 async function waitFor(url,statuses,timeout){const end=Date.now()+timeout;let error;while(Date.now()<end){try{const response=await fetch(url);if(statuses.includes(response.status))return;error=new Error(`status ${response.status}`);}catch(e){error=e;}await new Promise(r=>setTimeout(r,250));}throw new Error(`Timed out waiting for ${url}: ${error?.message}`);}
 async function seedEvidences(token,count){for(let start=0;start<count;start+=25){await Promise.all(Array.from({length:Math.min(25,count-start)},(_,offset)=>api("/evidences/github/pull-request",token,"POST",{repo:"acme/project",pullNumber:1000+start+offset,usernameHint:"joao"})));}}
-async function startGithubStub(){return new Promise(resolve=>{const server=http.createServer((req,res)=>{const number=Number(req.url.match(/pulls\/(\d+)/)?.[1]||7);const now=new Date().toISOString();const payload={number,title:number===7?"Trusted server-owned analysis and resilient persistence":"Improve team delivery with documented recovery metrics",state:"closed",merged_at:now,closed_at:now,html_url:`https://github.com/acme/project/pull/${number}`,user:{login:"joao"},updated_at:now,created_at:now,body:"Refactor improve tests ownership leadership. "+"Long evidence context. ".repeat(480)+"\n"+"x".repeat(1200)};res.writeHead(200,{"Content-Type":"application/json"});res.end(JSON.stringify(payload));});server.listen(0,"127.0.0.1",()=>resolve(server));});}
+async function startGithubStub(){return new Promise(resolve=>{const server=http.createServer((req,res)=>{const number=Number(req.url.match(/pulls\/(\d+)/)?.[1]||7);const now=new Date().toISOString();const payload={number,title:number===7?"Trusted server-owned analysis and resilient persistence":"Improve team delivery with documented recovery metrics",state:"closed",merged_at:now,closed_at:now,html_url:`https://github.com/acme/project/pull/${number}`,user:{login:"joao"},updated_at:now,created_at:now,body:"Refactor improve tests ownership leadership. "+"Long evidence context. ".repeat(480)+"\n"+"x".repeat(1200)};const response=req.url.startsWith("/search/issues")?{total_count:10,incomplete_results:false,items:[payload]}:payload;res.writeHead(200,{"Content-Type":"application/json"});res.end(JSON.stringify(response));});server.listen(0,"127.0.0.1",()=>resolve(server));});}

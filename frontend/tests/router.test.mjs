@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { canAccess, canonicalUrl, legacyDestination, matchRoute, safeReturnTo } from "../router.mjs";
+import { canAccess, canonicalUrl, matchRoute, safeReturnTo } from "../router.mjs";
 
 test("all canonical nested resources match stable numeric identifiers", () => {
   const evidence = matchRoute("https://promova.test/workspace/people/22/evidence/91");
@@ -33,10 +33,4 @@ test("resource ownership and role destinations are guarded", () => {
   assert.equal(canAccess(resource, { id: 3, role: "EMPLOYEE" }), false);
   assert.equal(canAccess(resource, { id: 1, role: "MANAGER" }), true);
   assert.equal(canAccess(matchRoute("https://promova.test/manage/reviews"), { id: 2, role: "EMPLOYEE" }), false);
-});
-
-test("legacy dashboard, settings and hash links redirect predictably", () => {
-  assert.equal(legacyDestination("https://promova.test/dashboard?tab=criteria"), "/app/framework?support=missing");
-  assert.equal(legacyDestination("https://promova.test/manager?section=settings"), "/manage/career/roles");
-  assert.equal(legacyDestination("https://promova.test/manager#/manager/employees/8"), "/manage/people/8/career-plan");
 });

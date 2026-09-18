@@ -18,18 +18,17 @@ A aplicação captura evidências de fontes conectadas, transforma essas informa
 
 O output gerado do frontend fica em `dist/` e não deve ser versionado.
 
-## Interface modernizada
+## Interface
 
-A interface atual mantém a arquitetura nativa de ES modules e usa rotas reais para os espaços de
-funcionário e gestor. O histórico de implementação e as evidências de aceitação ficam em
-`artifacts/frontend-modernization-2026-09-07/IMPLEMENTATION_STATUS.md`; o procedimento de rollout e
-rollback está em `artifacts/frontend-modernization-2026-09-07/ROLLOUT.md`.
+A interface de produção mantém a arquitetura nativa de ES modules e usa rotas reais para os espaços
+de funcionário e gestor. Existe um único entrypoint (`frontend/app.mjs`), um único stylesheet
+(`styles.css`) e uma única camada de API da aplicação (`frontend/services/api.mjs`); a interface
+anterior e o seletor de build foram removidos.
 
-O build moderno é o padrão. Para gerar temporariamente a interface anterior durante um rollback:
-
-```sh
-PROMOVA_MODERN_UI=false npm run build
-```
+O histórico de implementação e as evidências de aceitação ficam em
+`artifacts/frontend-modernization-2026-09-07/IMPLEMENTATION_STATUS.md`. O procedimento atual de
+rollout e rollback por artefato/versionamento fica em
+`artifacts/frontend-modernization-2026-09-07/ROLLOUT.md`.
 
 ## Requisitos
 
@@ -155,7 +154,7 @@ Frontend:
 npm run check
 ```
 
-Regressão E2E da modernização (inicia backend e frontend de produção locais, usa Chrome, um banco
+Regressão E2E da aplicação (inicia backend e frontend de produção locais, usa Chrome, um banco
 H2 temporário e um stub GitHub local):
 
 ```powershell
@@ -165,8 +164,8 @@ npm run test:e2e
 
 No macOS, o teste usa o Google Chrome em `/Applications` por padrão. Em outros ambientes, defina
 `PROMOVA_E2E_CHROME` com o caminho do executável de Chrome/Chromium. As portas padrão são `14175`
-(frontend) e `18082` (backend), configuráveis por `PROMOVA_MODERN_E2E_FRONTEND_PORT` e
-`PROMOVA_MODERN_E2E_BACKEND_PORT`. O teste cobre ambos os papéis, rotas canônicas, reload,
+(frontend) e `18082` (backend), configuráveis por `PROMOVA_E2E_FRONTEND_PORT` e
+`PROMOVA_E2E_BACKEND_PORT`. O teste cobre ambos os papéis, rotas canônicas, reload,
 back/forward, retorno seguro de autenticação, sessão expirada, autorização, paginação com 500
 registros, texto longo, teclado, reflow e os 20 mapeamentos visuais auditados.
 

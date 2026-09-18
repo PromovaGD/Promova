@@ -55,7 +55,7 @@ function acceptsHtml(request) {
 }
 
 function isApplicationRoute(pathname) {
-  return pathname === "/" || /^\/(login|register|dashboard|profile|manager)(\/|$)/.test(pathname)
+  return pathname === "/" || /^\/(login|register)(\/|$)/.test(pathname)
     || /^\/(app|manage|workspace)(\/|$)/.test(pathname);
 }
 

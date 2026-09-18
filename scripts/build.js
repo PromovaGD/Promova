@@ -6,7 +6,6 @@ const dist = path.join(root, "dist");
 const files = ["index.html", "styles.css", "app.js"];
 const directories = ["frontend"];
 const apiBaseUrl = process.env.PROMOVA_API_BASE_URL || "http://localhost:8080";
-const modernUi = process.env.PROMOVA_MODERN_UI !== "false";
 
 validateApiBaseUrl(apiBaseUrl);
 
@@ -23,7 +22,7 @@ for (const directory of directories) {
 
 fs.writeFileSync(
   path.join(dist, "promova-config.js"),
-  `window.PROMOVA_API_BASE_URL = ${JSON.stringify(apiBaseUrl)};\nwindow.PROMOVA_MODERN_UI = ${modernUi};\n`,
+  `window.PROMOVA_API_BASE_URL = ${JSON.stringify(apiBaseUrl)};\n`,
 );
 
 console.log(`Build complete. Files copied to ${dist}`);
@@ -39,6 +38,9 @@ function copyDirectory(source, destination) {
   fs.mkdirSync(destination, { recursive: true });
 
   for (const entry of fs.readdirSync(source, { withFileTypes: true })) {
+    if (entry.isDirectory() && entry.name === "tests") {
+      continue;
+    }
     const sourcePath = path.join(source, entry.name);
     const destinationPath = path.join(destination, entry.name);
 

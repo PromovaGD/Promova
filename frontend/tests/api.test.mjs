@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { modernApi } from "../services/modern-api.mjs";
+import { api } from "../services/api.mjs";
 
 test("review retries reuse a deterministic idempotency key", async () => {
   const originalFetch = globalThis.fetch;
@@ -18,8 +18,8 @@ test("review retries reuse a deterministic idempotency key", async () => {
       expectedLatestReviewId: 19,
       idempotencyKey: "random-browser-value",
     };
-    await modernApi.review(2, 7, body);
-    await modernApi.review(2, 7, body);
+    await api.review(2, 7, body);
+    await api.review(2, 7, body);
 
     assert.equal(bodies[0].idempotencyKey, bodies[1].idempotencyKey);
     assert.match(bodies[0].idempotencyKey, /^review-2-7-19-[a-f0-9]+$/);
@@ -39,7 +39,7 @@ test("analyze reconciles an ambiguous response through canonical detail", async 
   };
 
   try {
-    assert.deepEqual(await modernApi.analyzeEvidence(41, "Context"), { analysisId: 91 });
+    assert.deepEqual(await api.analyzeEvidence(41, "Context"), { analysisId: 91 });
     assert.deepEqual(requests.map(({ method }) => method), ["POST", "GET"]);
     assert.match(requests[1].url, /\/evidences\/41$/);
   } finally {
@@ -57,7 +57,7 @@ test("dismiss reconciles a completed transition after a lost response", async ()
   };
 
   try {
-    assert.equal((await modernApi.dismissEvidence(8)).status, "DISMISSED");
+    assert.equal((await api.dismissEvidence(8)).status, "DISMISSED");
     assert.equal(call, 2);
   } finally {
     globalThis.fetch = originalFetch;

@@ -48,9 +48,25 @@ function checkSyntax(file) {
 function ensureRequiredContent() {
   const appJs = fs.readFileSync(path.join(root, "app.js"), "utf8");
 
-  for (const requiredName of ["frontend/modern-app.mjs", "startModernApp", "frontend/app.mjs", "startApp"]) {
+  for (const requiredName of ["frontend/app.mjs", "startApp"]) {
     if (!appJs.includes(requiredName)) {
       throw new Error(`Expected ${requiredName} to exist in app.js`);
+    }
+  }
+
+  for (const obsoleteName of ["modern-app", "modern.css", "PROMOVA_MODERN_UI"]) {
+    if (appJs.includes(obsoleteName)) {
+      throw new Error(`Obsolete frontend selector ${obsoleteName} must not exist in app.js`);
+    }
+  }
+
+  for (const obsoletePath of [
+    "frontend/modern-app.mjs",
+    "frontend/modern.css",
+    "frontend/services/modern-api.mjs",
+  ]) {
+    if (fs.existsSync(path.join(root, obsoletePath))) {
+      throw new Error(`Parallel frontend file ${obsoletePath} must not exist`);
     }
   }
 
@@ -60,7 +76,16 @@ function ensureRequiredContent() {
     !indexHtml.includes("styles.css") ||
     !indexHtml.includes("promova-config.js")
   ) {
-    throw new Error("index.html must load app.js, styles.css, and promova-config.js");
+    throw new Error("index.html must load the canonical app.js, styles.css, and promova-config.js");
+  }
+
+  if (indexHtml.includes("modern.css")) {
+    throw new Error("index.html must not load a parallel modern stylesheet");
+  }
+
+  const buildJs = fs.readFileSync(path.join(root, "scripts/build.js"), "utf8");
+  if (buildJs.includes("PROMOVA_MODERN_UI")) {
+    throw new Error("The production build must not contain a legacy UI selector");
   }
 }
 

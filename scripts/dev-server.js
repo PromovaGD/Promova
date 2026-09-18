@@ -41,7 +41,7 @@ function createServer() {
     }
 
     const acceptsHtml = !request.headers.accept || request.headers.accept.includes("text/html") || request.headers.accept.includes("*/*");
-    const isRoute = /^\/(app|manage|workspace|login|register|dashboard|profile|manager)(\/|$)/.test(urlPath);
+    const isRoute = /^\/(app|manage|workspace|login|register)(\/|$)/.test(urlPath);
     if (request.method === "GET" && acceptsHtml && isRoute) {
       sendFile(response, path.join(root, "index.html"));
       return;

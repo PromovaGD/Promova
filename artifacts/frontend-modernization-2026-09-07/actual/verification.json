@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-17T22:24:30.424Z",
+  "generatedAt": "2026-09-18T01:15:29.629Z",
   "browser": "Google Chrome (Playwright)",
   "productionBuild": true,
   "roles": [
@@ -10,184 +10,184 @@
   "routeTimings": [
     {
       "route": "/",
-      "durationMs": 594,
-      "domContentLoadedMs": 12,
+      "durationMs": 581,
+      "domContentLoadedMs": 18,
       "apiMaxMs": 0,
       "apiRequests": 0,
       "viewport": "1440x1000"
     },
     {
       "route": "/login",
-      "durationMs": 552,
-      "domContentLoadedMs": 25,
+      "durationMs": 554,
+      "domContentLoadedMs": 28,
       "apiMaxMs": 0,
       "apiRequests": 0,
       "viewport": "1440x1000"
     },
     {
       "route": "/register",
-      "durationMs": 545,
-      "domContentLoadedMs": 11,
+      "durationMs": 532,
+      "domContentLoadedMs": 16,
       "apiMaxMs": 0,
       "apiRequests": 0,
       "viewport": "1440x1000"
     },
     {
       "route": "/app/overview",
-      "durationMs": 561,
-      "domContentLoadedMs": 20,
+      "durationMs": 551,
+      "domContentLoadedMs": 24,
       "apiMaxMs": 10,
       "apiRequests": 4,
       "viewport": "1440x1000"
     },
     {
       "route": "/workspace/people/2/analyses/1?view=summary",
-      "durationMs": 537,
-      "domContentLoadedMs": 9,
-      "apiMaxMs": 5,
+      "durationMs": 546,
+      "domContentLoadedMs": 19,
+      "apiMaxMs": 9,
       "apiRequests": 3,
       "viewport": "1440x1000"
     },
     {
       "route": "/workspace/people/2/analyses/1?view=history",
-      "durationMs": 537,
-      "domContentLoadedMs": 7,
+      "durationMs": 539,
+      "domContentLoadedMs": 14,
       "apiMaxMs": 4,
       "apiRequests": 3,
       "viewport": "1440x1000"
     },
     {
       "route": "/app/framework",
-      "durationMs": 545,
-      "domContentLoadedMs": 10,
-      "apiMaxMs": 9,
+      "durationMs": 552,
+      "domContentLoadedMs": 23,
+      "apiMaxMs": 6,
       "apiRequests": 3,
       "viewport": "1440x1000"
     },
     {
       "route": "/app/framework/criteria/criterion-v1-d87f9dafb5cb60904b809aa7?level=L3",
-      "durationMs": 541,
-      "domContentLoadedMs": 12,
+      "durationMs": 542,
+      "domContentLoadedMs": 20,
       "apiMaxMs": 0,
       "apiRequests": 0,
       "viewport": "1440x1000"
     },
     {
       "route": "/app/integrations/github",
-      "durationMs": 542,
-      "domContentLoadedMs": 10,
-      "apiMaxMs": 5,
+      "durationMs": 547,
+      "domContentLoadedMs": 21,
+      "apiMaxMs": 9,
       "apiRequests": 2,
       "viewport": "1440x1000"
     },
     {
       "route": "/app/career-plan?view=context",
-      "durationMs": 764,
-      "domContentLoadedMs": 224,
+      "durationMs": 1374,
+      "domContentLoadedMs": 844,
       "apiMaxMs": 11,
       "apiRequests": 2,
       "viewport": "1440x1000"
     },
     {
       "route": "/app/inbox?status=pending",
-      "durationMs": 680,
-      "domContentLoadedMs": 149,
-      "apiMaxMs": 6,
+      "durationMs": 686,
+      "domContentLoadedMs": 160,
+      "apiMaxMs": 7,
       "apiRequests": 2,
       "viewport": "1440x1000"
     },
     {
       "route": "/workspace/people/2/evidence/1",
-      "durationMs": 673,
-      "domContentLoadedMs": 146,
-      "apiMaxMs": 4,
+      "durationMs": 678,
+      "domContentLoadedMs": 156,
+      "apiMaxMs": 6,
       "apiRequests": 2,
       "viewport": "1440x1000"
     },
     {
       "route": "/app/analyses",
-      "durationMs": 680,
-      "domContentLoadedMs": 146,
-      "apiMaxMs": 4,
+      "durationMs": 676,
+      "domContentLoadedMs": 151,
+      "apiMaxMs": 6,
       "apiRequests": 2,
       "viewport": "1440x1000"
     },
     {
       "route": "/app/inbox?status=pending",
-      "durationMs": 542,
-      "domContentLoadedMs": 12,
-      "apiMaxMs": 6,
+      "durationMs": 547,
+      "domContentLoadedMs": 18,
+      "apiMaxMs": 8,
       "apiRequests": 2,
       "viewport": "390x844"
     },
     {
       "route": "/workspace/people/2/evidence/1",
-      "durationMs": 546,
-      "domContentLoadedMs": 12,
-      "apiMaxMs": 4,
+      "durationMs": 539,
+      "domContentLoadedMs": 16,
+      "apiMaxMs": 5,
       "apiRequests": 2,
       "viewport": "390x844"
     },
     {
       "route": "/manage/people/2/career-plan",
-      "durationMs": 958,
-      "domContentLoadedMs": 428,
+      "durationMs": 685,
+      "domContentLoadedMs": 164,
       "apiMaxMs": 6,
       "apiRequests": 4,
       "viewport": "1440x1000"
     },
     {
       "route": "/manage/people/2/evidence",
-      "durationMs": 682,
-      "domContentLoadedMs": 153,
-      "apiMaxMs": 7,
+      "durationMs": 679,
+      "domContentLoadedMs": 154,
+      "apiMaxMs": 9,
       "apiRequests": 3,
       "viewport": "1440x1000"
     },
     {
       "route": "/workspace/people/2/evidence/1",
-      "durationMs": 542,
-      "domContentLoadedMs": 13,
-      "apiMaxMs": 5,
+      "durationMs": 535,
+      "domContentLoadedMs": 15,
+      "apiMaxMs": 4,
       "apiRequests": 2,
       "viewport": "1440x1000"
     },
     {
       "route": "/manage/people/2/career-plan/objectives/new",
-      "durationMs": 679,
-      "domContentLoadedMs": 147,
-      "apiMaxMs": 4,
+      "durationMs": 677,
+      "domContentLoadedMs": 152,
+      "apiMaxMs": 7,
       "apiRequests": 4,
       "viewport": "1440x1000"
     },
     {
       "route": "/manage/people/2/analyses",
-      "durationMs": 683,
-      "domContentLoadedMs": 155,
-      "apiMaxMs": 4,
+      "durationMs": 678,
+      "domContentLoadedMs": 153,
+      "apiMaxMs": 5,
       "apiRequests": 3,
       "viewport": "1440x1000"
     },
     {
       "route": "/workspace/people/2/analyses/1?view=review",
-      "durationMs": 679,
-      "domContentLoadedMs": 147,
-      "apiMaxMs": 6,
+      "durationMs": 691,
+      "domContentLoadedMs": 151,
+      "apiMaxMs": 4,
       "apiRequests": 3,
       "viewport": "1440x1000"
     },
     {
       "route": "/manage/career/roles",
-      "durationMs": 690,
-      "domContentLoadedMs": 162,
-      "apiMaxMs": 4,
+      "durationMs": 680,
+      "domContentLoadedMs": 156,
+      "apiMaxMs": 5,
       "apiRequests": 3,
       "viewport": "1440x1000"
     },
     {
       "route": "/workspace/people/2/analyses/1?view=review",
-      "durationMs": 547,
-      "domContentLoadedMs": 9,
+      "durationMs": 548,
+      "domContentLoadedMs": 15,
       "apiMaxMs": 4,
       "apiRequests": 3,
       "viewport": "390x844"
@@ -196,7 +196,7 @@
   "interactionTimings": [
     {
       "name": "overview-to-inbox",
-      "durationMs": 120
+      "durationMs": 109
     }
   ],
   "viewports": [
@@ -213,7 +213,6 @@
     "missing asset 404",
     "reload",
     "back/forward",
-    "legacy redirect",
     "forbidden role",
     "missing resource",
     "drawer focus trap/return",

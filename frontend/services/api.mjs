@@ -1,6 +1,6 @@
 import { apiDelete, apiGet, apiPost, apiPut } from "./http.mjs";
 
-export const modernApi = {
+export const api = {
   evidences: (params, signal) => apiGet("/evidences", { ...dateParams(params), status: params?.status, source: params?.source, page: params?.page || 1, pageSize: 25 }, { signal }),
   evidence: (ownerId, id, manager, signal) => apiGet(manager ? `/manager/employees/${ownerId}/evidences/${id}` : `/evidences/${id}`, null, { signal }),
   dismissEvidence: (id) => reconcileEvidenceMutation(id, () => apiPost(`/evidences/${id}/dismiss`, {}), evidence => evidence.status === "DISMISSED"),

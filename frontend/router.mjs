@@ -69,22 +69,6 @@ export function canonicalUrl(route) {
   return `${route.path}${params.size ? `?${params}` : ""}`;
 }
 
-export function legacyDestination(locationLike) {
-  const url = new URL(locationLike.href || String(locationLike), "http://promova.local");
-  const hashMatch = url.hash.match(/^#\/manager\/employees\/(\d+)$/);
-  if (hashMatch) return `/manage/people/${hashMatch[1]}/career-plan`;
-  if (url.pathname === "/dashboard") {
-    const tab = url.searchParams.get("tab");
-    if (tab === "framework") return "/app/framework";
-    if (tab === "criteria") return "/app/framework?support=missing";
-    if (tab === "connections") return "/app/integrations/github";
-    return EMPLOYEE_HOME;
-  }
-  if (url.pathname === "/profile") return "/app/career-plan";
-  if (url.pathname === "/manager") return url.searchParams.get("section") === "settings" ? "/manage/career/roles" : MANAGER_HOME;
-  return null;
-}
-
 export function safeReturnTo(value) {
   if (!value || typeof value !== "string" || !value.startsWith("/") || value.startsWith("//")) return null;
   try {

@@ -10,16 +10,16 @@ import { chromium } from "playwright-core";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const chrome = process.env.PROMOVA_E2E_CHROME || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
-const backendPort = Number(process.env.PROMOVA_MODERN_E2E_BACKEND_PORT || 18082);
-const frontendPort = Number(process.env.PROMOVA_MODERN_E2E_FRONTEND_PORT || 14175);
+const backendPort = Number(process.env.PROMOVA_E2E_BACKEND_PORT || 18082);
+const frontendPort = Number(process.env.PROMOVA_E2E_FRONTEND_PORT || 14175);
 const apiUrl = `http://127.0.0.1:${backendPort}`;
 const appUrl = `http://127.0.0.1:${frontendPort}`;
 const screenshotDir = path.join(root, "artifacts/frontend-modernization-2026-09-07/actual");
 const routeTimings = [];
 const interactionTimings = [];
 
-test("production modernization covers both roles, canonical resources, history and reflow", { timeout: 300_000 }, async (t) => {
-  const temp = await mkdtemp(path.join(os.tmpdir(), "promova-modern-e2e-"));
+test("production application covers both roles, canonical resources, history and reflow", { timeout: 300_000 }, async (t) => {
+  const temp = await mkdtemp(path.join(os.tmpdir(), "promova-application-e2e-"));
   const processes = [];
   let browser;
   const github = await startGithubStub();
@@ -44,6 +44,8 @@ test("production modernization covers both roles, canonical resources, history a
   processes.push(backend,frontend);
   await Promise.all([waitFor(`${apiUrl}/auth/me`,[401],90_000),waitFor(`${appUrl}/app/overview`,[200],30_000)]);
   assert.equal((await fetch(`${appUrl}/missing-module.js`)).status,404);
+  assert.equal((await fetch(`${appUrl}/dashboard`,{headers:{Accept:"text/html"}})).status,404);
+  assert.equal((await fetch(`${appUrl}/manager`,{headers:{Accept:"text/html"}})).status,404);
   assert.match((await (await fetch(`${appUrl}/app/overview`,{headers:{Accept:"text/html"}})).text()),/<div id="app"><\/div>/);
 
   const employeeToken = await loginApi("joao.silva@empresa.com","senha123");
@@ -150,14 +152,14 @@ test("production modernization covers both roles, canonical resources, history a
   assert.equal(await account.evaluate(node=>node===document.activeElement),true,"dialog returns focus to trigger");
 
   await page.goto(`${appUrl}/manage/reviews?status=needs-context`);
-  await page.getByRole("heading",{name:"Revisões"}).waitFor();
+  await page.getByRole("heading",{name:"Revisões",exact:true}).waitFor();
   await page.locator('[aria-busy="true"]').waitFor({state:"detached"});
   assert.match(await page.locator("body").innerText(),/Precisa de contexto|Precisam de contexto/);
   await page.goBack();
   await page.goForward();
   assert.equal(new URL(page.url()).pathname,"/manage/reviews");
   await page.reload();
-  await page.getByRole("heading",{name:"Revisões"}).waitFor();
+  await page.getByRole("heading",{name:"Revisões",exact:true}).waitFor();
 
   await page.setViewportSize({width:320,height:740});
   await page.goto(`${appUrl}/manage/career/roles`);
@@ -199,8 +201,6 @@ test("production modernization covers both roles, canonical resources, history a
   await page.getByRole("heading",{name:"Permissão necessária"}).waitFor();
   await page.goto(`${appUrl}/workspace/people/999999/analyses/999999?view=summary`);
   await page.getByText(/não existe|não está disponível/).waitFor();
-  await page.goto(`${appUrl}/manager?section=settings`);
-  await page.waitForURL("**/manage/career/roles");
   await page.goto(`${appUrl}/app/overview`);
   assert.equal(new URL(page.url()).pathname,"/app/overview");
 
@@ -220,7 +220,7 @@ test("production modernization covers both roles, canonical resources, history a
     routeTimings,
     interactionTimings,
     viewports:["1440x1000","1280x720","768x1024","390x844","320x740","844x390","320 CSS px (1280px at 400% equivalent)"],
-    checks:["deep-link fallback","missing asset 404","reload","back/forward","legacy redirect","forbidden role","missing resource","drawer focus trap/return","200% text","zero horizontal overflow"],
+    checks:["deep-link fallback","missing asset 404","reload","back/forward","forbidden role","missing resource","drawer focus trap/return","200% text","zero horizontal overflow"],
   },null,2)+"\n","utf8");
 });
 

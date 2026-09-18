@@ -1,6 +1,6 @@
 # Promova modernization implementation status
 
-Updated: 17 September 2026
+Updated: 18 September 2026
 
 This is the continuation and release-evidence ledger for the approved modernization in `PLAN.md`.
 The planning package and original screenshot archive are user-owned inputs and remain intact.
@@ -14,8 +14,8 @@ The planning package and original screenshot archive are user-owned inputs and r
 - All 35 wireframe concepts were inspected in a browser at 1440×1000 and 390×844 and measured at
   320×740. `gallery.html`, `previews/`, all 20 original audit screenshots, and long original captures
   were reviewed before implementation.
-- Native ES modules are retained. The modern app and legacy app are selected once before startup;
-  both routers never run together.
+- Native ES modules are retained. The approved application is now the sole production frontend:
+  `frontend/app.mjs`, `styles.css`, and `frontend/services/api.mjs` are canonical, with no UI selector.
 - Existing unpaged array endpoints remain compatible. Pagination is opt-in with `page`/`pageSize`,
   one-based pages, a default size of 25, a hard maximum of 50, and stable secondary ID ordering.
 - Existing global manager-to-employee authority is preserved. Every manager resource still validates
@@ -35,7 +35,7 @@ The planning package and original screenshot archive are user-owned inputs and r
 ## P1 — shell, routing, session
 
 - [x] Separate public, authentication, employee, and manager layouts with a persistent authenticated shell.
-- [x] Explicit route registry, canonical query handling, native links, `popstate`, titles, legacy redirects,
+- [x] Explicit route registry, canonical query handling, native links, `popstate`, titles,
   not-found/forbidden states, and heading focus.
 - [x] Safe same-origin protected `returnTo`, cold cached-session validation, role guards, expiry redirect,
   and employee ownership guard before a resource request.
@@ -90,16 +90,18 @@ The planning package and original screenshot archive are user-owned inputs and r
   same server idempotency identity; conflicts preserve editable values.
 - [x] Responsive bounded workspaces, visible focus, skip link, drawer/dialog focus contract, Escape, reduced
   motion, live loading/toast states, long-text wrapping, and no horizontal-overflow concealment.
-- [x] Rollout/rollback build selection and additive migration behavior documented in `ROLLOUT.md`.
+- [x] Immutable-artifact rollout/rollback and additive migration behavior documented in `ROLLOUT.md`.
 - [x] Frontend lint/tests/build, backend full tests, boot JAR/runtime smoke, and production Chrome E2E pass.
 - [x] 24 deterministic actual-application screenshots captured: all 20 audit mappings plus four critical
   mobile states, with machine-readable timing/viewport evidence in `actual/verification.json`.
 - [x] A second production-build control audit exercised 29 workflow groups across both roles, including
   every authenticated mobile navigation destination, manager edits/reviews/configuration, GitHub actions,
-  evidence mutations, destructive confirmations, legacy redirects, and explicit logout token invalidation.
+  evidence mutations, destructive confirmations, and explicit logout token invalidation.
 - [x] The follow-up audit found and fixed four shared frontend regressions: filter serialization/navigation
   races, missing manager person tabs, intercepted native dialog submissions, and a pointer-blocking mobile
   drawer backdrop. Permanent E2E assertions now cover each path.
+- [x] The pre-production consolidation removed the superseded UI, duplicate views/components/services/tests,
+  `modern-*` production names, legacy URL shims, and `PROMOVA_MODERN_UI`; only the approved implementation ships.
 - [!] Firefox, desktop Safari, mobile Safari, and mobile Chrome engine runs remain externally blocked; see below.
 
 ## Release-gate evidence
@@ -109,7 +111,7 @@ The planning package and original screenshot archive are user-owned inputs and r
 - [x] 390×844, 320×740, 768×1024, 844×390, 200% text, and the 320-CSS-pixel reflow equivalent of
   1280px at 400% zoom; commit controls remain reachable with zero body horizontal overflow.
 - [x] Cold load, direct nested route, reload, parent/breadcrumb links, back/forward, filters, invalid/deleted
-  IDs, legacy redirect, safe `returnTo`, expiry redirect, forbidden role, and intentional production fallback.
+  IDs, safe `returnTo`, expiry redirect, forbidden role, and intentional production fallback.
 - [x] Same-owner/foreign-owner and employee/manager authorization tests return non-leaking 404/403 results.
 - [x] Skip link, route-heading focus, visible focus, keyboard drawer/dialog containment and return, Escape,
   native-link rows, bounded scrolling, and text-plus-color states.
@@ -125,7 +127,8 @@ The planning package and original screenshot archive are user-owned inputs and r
 
 ## Validation evidence
 
-- `npm run check`: lint passed, 39/39 frontend tests passed, production build passed.
+- `npm run check`: lint passed, 16/16 canonical frontend tests passed, production build passed. Obsolete
+  tests tied only to the removed UI were deleted rather than carried into the production architecture.
 - `backend/gradlew test`: 139/139 backend tests passed.
 - `npm run smoke:ci`: frontend build, backend `bootJar`, packaged runtime/auth/CORS smoke passed.
 - `npm run test:e2e`: 1/1 production-build browser scenario passed after creating 500 real records;
@@ -135,7 +138,7 @@ The planning package and original screenshot archive are user-owned inputs and r
   exception, API error response, or failed mutation remained. Chromium reported `ERR_ABORTED` for three
   successful 204 responses; response assertions, persisted mutation state, and 401 checks for both revoked
   logout tokens confirmed successful completion.
-- Rollback build was generated with `PROMOVA_MODERN_UI=false`; the default modern build was restored.
+- Rollback uses the previously verified immutable artifact or a source revert; no parallel UI is compiled.
 - Screenshot directory: `actual/`; structured evidence: `actual/verification.json`.
 
 ## Material deviations / external blockers

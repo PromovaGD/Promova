@@ -9,6 +9,7 @@ import br.com.promova.organization.dto.JobRoleRequest;
 import br.com.promova.organization.dto.JobRoleResponse;
 import br.com.promova.organization.dto.TerminologyResponse;
 import br.com.promova.organization.dto.TerminologyUpdateRequest;
+import br.com.promova.framework.dto.FrameworkStructureResponse;
 import br.com.promova.user.User;
 import br.com.promova.user.UserRole;
 import jakarta.validation.Valid;
@@ -55,6 +56,13 @@ public class ManagerSettingsController {
       @RequestParam(defaultValue = "false") boolean includeArchived) {
     requireManager(authorization);
     return configurationService.listRoles(includeArchived);
+  }
+
+  @GetMapping("/framework")
+  public FrameworkStructureResponse framework(
+      @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+    requireManager(authorization);
+    return configurationService.readFramework();
   }
 
   @PutMapping("/terminology")

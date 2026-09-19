@@ -1,0 +1,3 @@
+# Promova targets Java 21 (see backend/build.gradle toolchain).
+# Gradle 8.13 cannot run on Java 25 ("Unsupported class file major version 69").
+java=21.0.2-open

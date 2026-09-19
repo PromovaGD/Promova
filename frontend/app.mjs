@@ -1,1698 +1,299 @@
-import {
-  chooseGithubPullRequest,
-  createGithubImportState,
-  githubImportRequest,
-  applyGithubSettings,
-  setGithubConnectionTestError,
-  setGithubConnectionTestResult,
-  setGithubConnectionTesting,
-  setGithubImportError,
-  setGithubImportIdle,
-  setGithubImportLoading,
-  setGithubImportResults,
-  setGithubSettingsError,
-  setGithubSettingsLoading,
-  setGithubSettingsSaving,
-  setGithubSyncError,
-  setGithubSyncLoading,
-  setGithubSyncResult,
-  updateGithubImportField,
-} from "./features/github-import/github-import-model.mjs";
-import {
-  loadAnalysesForCurrentUser,
-  loadAnalysesForEmployee,
-  loadReviewsForCurrentUser,
-  loadReviewsForEmployee,
-  submitReviewForEmployee,
-} from "./services/analyses-api.mjs";
-import { loadInsightsForCurrentUser } from "./services/insights-api.mjs";
-import { analyzeCapturedEvidence } from "./services/analysis-api.mjs";
-import {
-  fetchCurrentUser,
-  fetchEmployeeEvidences,
-  fetchEmployees,
-  loginUser,
-  logoutUser,
-  registerUser,
-  clearUserAnalyses,
-} from "./services/auth-api.mjs";
-import {
-  clearAuthSession,
-  loadAuthRoute,
-  loadAuthToken,
-  loadAuthUser,
-  saveAuthRoute,
-  saveAuthSession,
-} from "./services/auth-store.mjs";
-import {
-  captureEvidenceFromGithubPullRequest,
-  dismissEvidence,
-  fetchEvidence,
-  fetchEvidences,
-} from "./services/evidence-api.mjs";
-import {
-  fetchGithubSettings,
-  clearGithubSettings,
-  findGithubPullRequests,
-  saveGithubSettings,
-  syncGithub,
-  testGithubSettings,
-} from "./services/github-api.mjs";
-import { fetchProfile } from "./services/profile-api.mjs";
-import {
-  createEmployeeObjective,
-  fetchEmployeeCareerPlan,
-  updateEmployeeCareerPlan,
-  updateEmployeeObjective,
-} from "./services/career-plan-api.mjs";
-import {
-  archiveJobRole,
-  createJobRole,
-  fetchCareerConfiguration,
-  fetchJobRoles,
-  fetchManagerSettings,
-  updateJobRole,
-  updateTerminology,
-} from "./services/manager-settings-api.mjs";
-import { managerPage, permissionPage } from "./views/manager-view.mjs";
-import { authPage } from "./views/auth-view.mjs";
-import { dashboardPage } from "./views/dashboard-view.mjs";
-import {
-  evidenceDetailPage,
-  evidenceEmptyPage,
-  evidenceErrorPage,
-  evidenceLoadingPage,
-  evidencePendingPage,
-  evidenceResultPage,
-} from "./views/evidence-view.mjs";
-import { landingPage } from "./views/landing-view.mjs";
-import { profilePage } from "./views/profile-view.mjs";
+import { loginUser, logoutUser, registerUser, fetchCurrentUser } from "./services/auth-api.mjs";
+import { clearAuthSession, loadAuthToken, loadAuthUser, saveAuthSession } from "./services/auth-store.mjs";
+import { api } from "./services/api.mjs";
+import { canAccess, canonicalUrl, matchRoute, roleHome, safeReturnTo } from "./router.mjs";
+import { escapeHtml as esc } from "./utils/html.mjs";
 
-const state = {
-  view: "home",
-  pendingEvidence: null,
-  pendingEvidences: [],
-  dismissedEvidences: [],
-  pendingStatus: "idle",
-  userObservation: "",
-  analysisSubmitting: false,
-  analysisError: null,
-  expandedEvidenceId: null,
-  githubImport: createGithubImportState(),
-  result: null,
-  error: null,
-  evidences: [],
-  insights: null,
-  insightsStatus: "idle",
-  insightsError: null,
-  user: loadAuthUser(),
-  profile: null,
-  profileLoading: false,
-  profileError: null,
-  authMode: "login",
-  authLoading: false,
-  authError: null,
-  dashboardFilters: {},
-  dashboardTab: "dashboard",
-  adminFilters: {},
-  managerFilters: {},
-  employees: [],
-  selectedEmployeeId: null,
-  adminEvidences: [],
-  managerEvidenceRecords: [],
-  managerDetailSection: "career-plan",
-  managerDetailStatus: "idle",
-  managerDetailError: null,
-  managerPeopleStatus: "idle",
-  managerPeopleError: null,
-  managerSection: "people",
-  managerSettings: null,
-  managerSettingsStatus: "idle",
-  managerSettingsSaving: false,
-  managerSettingsError: null,
-  managerSettingsNotice: null,
-  jobRoles: [],
-  careerConfiguration: null,
-  selectedCareerPlan: null,
-  careerPlanStatus: "idle",
-  careerPlanSaving: false,
-  careerPlanError: null,
-  careerPlanNotice: null,
-  selectedEvidenceId: null,
-  selectedAnalysisId: null,
-  review: null,
-  reviewStatus: "idle",
-  reviewSaving: false,
-  reviewError: null,
-  viewingAsAdmin: false,
-  permissionError: null,
-};
+const state = { user: loadAuthUser(), validated: false, route: null, data: null, error: null, loading: false, epoch: 0, controller: null, drafts: new Map(), shellRole: null, returnTo: null, expiring: false };
+const titles = { overview:"Visão geral", inbox:"Caixa de entrada", analyses:"Análises", reports:"Relatórios de análises", framework:"Framework", criterion:"Critério", "career-plan":"Plano de carreira", integrations:"Integrações", github:"GitHub", "github-import":"Importar pull request", people:"Pessoas", "person-plan":"Plano de carreira", "objective-new":"Novo objetivo", objective:"Editar objetivo", "person-evidence":"Evidências", "person-analyses":"Análises", reviews:"Revisões", terminology:"Terminologia da organização", roles:"Cargos", "role-new":"Novo cargo", role:"Cargo", "manager-framework":"Framework oficial", "evidence-detail":"Evidência capturada", "analysis-detail":"Análise salva" };
+const employeeNav = [["/app/overview","Visão geral"],["/app/inbox?status=pending","Caixa de entrada"],["/app/analyses","Análises"],["/app/framework","Framework"],["/app/career-plan","Plano de carreira"],["/app/integrations","Integrações"]];
+const managerNav = [["/manage/people","Pessoas"],["/manage/reviews?status=unreviewed","Revisões"],["/manage/career/roles","Configuração de carreira"]];
 
-const DASHBOARD_TABS = ["dashboard", "framework", "criteria", "connections"];
-
-let appRoot;
-let lastRenderedView = null;
-let pendingProtectedRoute = null;
-
-export function startApp(root) {
-  appRoot = root;
-  lastRenderedView = null;
-  appRoot.addEventListener("click", handleClick);
-  appRoot.addEventListener("input", handleInput);
-  appRoot.addEventListener("submit", handleSubmit);
-  appRoot.addEventListener("keydown", handleKeydown);
-  if (typeof window !== "undefined") {
-    pendingProtectedRoute = browserRoute();
-    window.addEventListener("promova:auth-expired", handleAuthExpired);
-    window.addEventListener("promova:permission-denied", handlePermissionDenied);
-    window.addEventListener("popstate", handleBrowserNavigation);
-  }
-  return bootstrapSession();
+export async function startApp(root) {
+  document.body.classList.add("app-ui");
+  root.innerHTML = `<a class="skip-link" href="#main-content">Pular para o conteúdo</a><div id="application-root"></div><div id="toast" class="toast" role="status" aria-live="polite"></div>${dialogMarkup()}`;
+  document.addEventListener("click", onArchiveRole, true);
+  document.addEventListener("click", onDrawerNavigation, true);
+  document.addEventListener("click", onClick);
+  document.addEventListener("submit", onSubmit);
+  document.addEventListener("input", onInput);
+  document.addEventListener("change", onInput);
+  bindActionDialog();
+  window.addEventListener("popstate", onPopState);
+  window.addEventListener("promova:auth-expired", () => expireSession());
+  window.addEventListener("beforeunload", (event) => { if (state.drafts.size) { event.preventDefault(); event.returnValue = ""; } });
+  await navigate(location.href, { history: "none" });
 }
 
-async function bootstrapSession() {
-  const token = loadAuthToken();
-  if (!token) {
-    if (isProtectedRoute(pendingProtectedRoute)) {
-      state.view = "auth";
-      state.authError = "Faça login para continuar.";
-    }
-    render();
-    return;
-  }
-
-  try {
-    state.user = await fetchCurrentUser();
-    saveAuthSession(token, state.user);
-  } catch (error) {
-    if (error.status === 401 || error.isUnauthorized) {
-      expireSession();
-      return;
-    }
-    state.error = error;
-    if (!isStoredUser(state.user)) {
-      state.view = "auth";
-      state.authError = "Não foi possível validar sua sessão agora. Tente novamente sem sair da conta.";
-      render();
-      return;
-    }
-  }
-
-  await restoreAuthenticatedLocation();
-}
-
-async function restoreAuthenticatedLocation() {
-  const requestedRoute =
-    (isProtectedRoute(pendingProtectedRoute) && pendingProtectedRoute) || loadAuthRoute();
-  pendingProtectedRoute = null;
-
-  if (state.user.role === "MANAGER") {
-    state.managerSection = requestedRoute === "/manager?section=settings" ? "settings" : "people";
-    await openManager();
-    return;
-  }
-
-  state.viewingAsAdmin = false;
-  state.dashboardTab = dashboardTabFromRoute(requestedRoute);
-  state.view = requestedRoute === "/profile" ? "profile" : "dashboard";
-  render();
-
-  try {
-    await loadEmployeeWorkspace();
-  } catch (error) {
-    if (error.status === 401 || error.isUnauthorized) {
-      return;
-    }
-    state.error = error;
-    if (state.view === "profile") {
-      state.profileError = error.message || "Não foi possível carregar o perfil.";
-    }
-  }
-
-  if (state.user) {
-    render();
-  }
-}
-
-async function handleBrowserNavigation() {
-  pendingProtectedRoute = browserRoute();
-  if (state.user && isProtectedRoute(pendingProtectedRoute)) {
-    await restoreAuthenticatedLocation();
-  }
-}
-
-function handleAuthExpired() {
-  expireSession();
-}
-
-function handlePermissionDenied(event) {
-  showPermissionError(event?.detail?.message);
-}
-
-function expireSession() {
-  clearAuthSession();
-  state.user = null;
-  state.profile = null;
-  state.profileLoading = false;
-  state.profileError = null;
-  state.evidences = [];
-  state.insights = null;
-  state.insightsStatus = "idle";
-  state.insightsError = null;
-  state.adminEvidences = [];
-  state.managerEvidenceRecords = [];
-  state.managerFilters = {};
-  state.managerDetailSection = "career-plan";
-  state.managerDetailStatus = "idle";
-  state.managerDetailError = null;
-  state.managerPeopleStatus = "idle";
-  state.managerPeopleError = null;
-  state.employees = [];
-  state.selectedEmployeeId = null;
-  state.selectedEvidenceId = null;
-  state.selectedAnalysisId = null;
-  state.review = null;
-  state.reviewStatus = "idle";
-  state.reviewSaving = false;
-  state.reviewError = null;
-  state.pendingEvidence = null;
-  state.pendingEvidences = [];
-  state.dismissedEvidences = [];
-  state.pendingStatus = "idle";
-  state.userObservation = "";
-  state.analysisSubmitting = false;
-  state.analysisError = null;
-  state.selectedCareerPlan = null;
-  state.careerPlanStatus = "idle";
-  state.careerPlanSaving = false;
-  state.careerPlanError = null;
-  state.careerPlanNotice = null;
-  state.result = null;
-  state.githubImport = createGithubImportState();
-  state.dashboardTab = "dashboard";
-  state.viewingAsAdmin = false;
-  state.permissionError = null;
-  state.authLoading = false;
-  state.authError = "Sua sessão expirou. Faça login novamente.";
-  state.view = "auth";
-  render();
-}
-
-function handleInput(event) {
-  const observation = event.target.closest("[data-user-observation]");
-  if (observation) {
-    state.userObservation = observation.value.slice(0, 2000);
-    const counter = appRoot.querySelector?.("[data-observation-counter]");
-    if (counter) counter.textContent = `${state.userObservation.length}/2000`;
-    return;
-  }
-
-  const githubField = event.target.closest("[data-github-import-field]");
-  if (githubField) {
-    updateGithubImportField(state.githubImport, githubField.dataset.githubImportField, githubField.value);
-    return;
-  }
-
-  const filterField = event.target.closest("[data-filter-field]");
-  if (filterField) {
-    const scope = filterField.dataset.filterScope;
-    const key = filterField.dataset.filterField;
-    const filters = scope === "admin" ? state.adminFilters : state.dashboardFilters;
-    filters[key] = filterField.value;
-  }
-
-}
-
-function handleKeydown(event) {
-  const tab = event.target.closest?.('[role="tab"][data-dashboard-tab]');
-  if (!tab || state.view !== "dashboard" || state.viewingAsAdmin) {
-    return;
-  }
-
-  const tabs = Array.from(appRoot.querySelectorAll('[role="tab"][data-dashboard-tab]'));
-  const currentIndex = tabs.indexOf(tab);
-  if (currentIndex < 0) {
-    return;
-  }
-
-  let nextIndex;
-  if (event.key === "ArrowRight") {
-    nextIndex = (currentIndex + 1) % tabs.length;
-  } else if (event.key === "ArrowLeft") {
-    nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
-  } else if (event.key === "Home") {
-    nextIndex = 0;
-  } else if (event.key === "End") {
-    nextIndex = tabs.length - 1;
-  } else {
-    return;
-  }
-
-  event.preventDefault();
-  selectDashboardTab(tabs[nextIndex].dataset.dashboardTab, true);
-}
-
-async function handleSubmit(event) {
-  const form = event.target.closest(
-    "[data-auth-form], [data-review-form], [data-terminology-form], [data-job-role-form], [data-career-plan-form], [data-objective-form], [data-manager-search-form]",
-  );
-  if (!form) {
-    return;
-  }
-
-  event.preventDefault();
-
-  if (form.matches("[data-manager-search-form]")) {
-    const values = new FormData(form);
-    state.managerFilters = {
-      query: String(values.get("query") || "").trim(),
-      jobRoleId: String(values.get("jobRoleId") || ""),
-      level: String(values.get("level") || ""),
-    };
-    await refreshManagerEmployees();
-    render();
-    return;
-  }
-
-  if (form.matches("[data-career-plan-form]")) {
-    await submitCareerPlan(form);
-    return;
-  }
-
-  if (form.matches("[data-objective-form]")) {
-    await submitCareerObjective(form);
-    return;
-  }
-
-  if (form.matches("[data-terminology-form]")) {
-    await submitTerminology(form);
-    return;
-  }
-
-  if (form.matches("[data-job-role-form]")) {
-    await submitJobRole(form);
-    return;
-  }
-
-  if (form.matches("[data-review-form]")) {
-    await submitAnalysisReview(form, event.submitter);
-    return;
-  }
-
-
-  const formData = new FormData(form);
-  const payload = {
-    email: String(formData.get("email") || "").trim(),
-    password: String(formData.get("password") || ""),
-  };
-
-  state.authLoading = true;
-  state.authError = null;
-  render();
-
-  try {
-    const response =
-      form.dataset.authForm === "register"
-        ? await registerUser({
-            name: String(formData.get("name") || "").trim(),
-            ...payload,
-          })
-        : await loginUser(payload);
-
-    saveAuthSession(response.token, response.user);
-    state.user = response.user;
-    state.authError = null;
-    await restoreAuthenticatedLocation();
-  } catch (error) {
-    state.authError = error.message || "Não foi possível autenticar.";
-  } finally {
-    state.authLoading = false;
-    render();
-  }
-}
-
-async function handleClick(event) {
-  const trigger = event.target.closest("[data-action]");
-  if (!trigger) {
-    return;
-  }
-
-  const action = trigger.dataset.action;
-
-  if (action === "open-auth") {
-    state.view = "auth";
-    state.authError = null;
-    render();
-    return;
-  }
-
-  if (action === "switch-auth-login" || action === "switch-auth-register") {
-    state.authMode = action === "switch-auth-login" ? "login" : "register";
-    state.authError = null;
-    render();
-    return;
-  }
-
-  if (action === "logout") {
-    await logoutUser();
-    clearAuthSession();
-    state.user = null;
-    state.profile = null;
-    state.profileLoading = false;
-    state.profileError = null;
-    state.evidences = [];
-    state.insights = null;
-    state.insightsStatus = "idle";
-    state.insightsError = null;
-    state.pendingEvidence = null;
-    state.pendingEvidences = [];
-    state.dismissedEvidences = [];
-    state.userObservation = "";
-    state.analysisSubmitting = false;
-    state.analysisError = null;
-    state.employees = [];
-    state.adminEvidences = [];
-    state.managerEvidenceRecords = [];
-    state.managerFilters = {};
-    state.managerDetailSection = "career-plan";
-    state.managerDetailStatus = "idle";
-    state.managerDetailError = null;
-    state.managerPeopleStatus = "idle";
-    state.managerPeopleError = null;
-    state.managerSection = "people";
-    state.managerSettings = null;
-    state.managerSettingsStatus = "idle";
-    state.managerSettingsSaving = false;
-    state.managerSettingsError = null;
-    state.managerSettingsNotice = null;
-    state.jobRoles = [];
-    state.careerConfiguration = null;
-    state.selectedCareerPlan = null;
-    state.careerPlanStatus = "idle";
-    state.careerPlanSaving = false;
-    state.careerPlanError = null;
-    state.careerPlanNotice = null;
-    state.selectedEmployeeId = null;
-    state.selectedEvidenceId = null;
-    state.selectedAnalysisId = null;
-    state.review = null;
-    state.reviewStatus = "idle";
-    state.reviewSaving = false;
-    state.reviewError = null;
-    state.githubImport = createGithubImportState();
-    state.dashboardTab = "dashboard";
-    state.permissionError = null;
-    state.authError = null;
-    state.view = "home";
-    render();
-    return;
-  }
-
-  if (action === "open-dashboard") {
-    if (!requireEmployeeAccess()) {
-      return;
-    }
-    await openDashboard();
-    return;
-  }
-
-  if (action === "open-connections") {
-    if (!requireEmployeeAccess()) {
-      return;
-    }
-    state.view = "dashboard";
-    state.viewingAsAdmin = false;
-    state.dashboardTab = "connections";
-    state.error = null;
-    render();
-    return;
-  }
-
-  if (action === "switch-dashboard-tab") {
-    const nextTab = trigger.dataset.dashboardTab;
-    selectDashboardTab(nextTab, true);
-    return;
-  }
-
-  if (action === "open-profile") {
-    if (!requireEmployeeAccess()) {
-      return;
-    }
-    await openProfile();
-    return;
-  }
-
-  if (action === "open-manager") {
-    if (!requireAuth()) {
-      return;
-    }
-    if (state.user.role !== "MANAGER") {
-      showPermissionError();
-      return;
-    }
-    await openManager();
-    return;
-  }
-
-  if (action === "select-employee") {
-    state.selectedEmployeeId = Number(trigger.dataset.employeeId);
-    state.managerDetailSection = "career-plan";
-    state.careerPlanNotice = null;
-    state.careerPlanError = null;
-    updateManagerDeepLink();
-    await Promise.all([
-      refreshEmployeeAnalyses(),
-      refreshManagerEvidenceRecords(),
-      refreshSelectedCareerPlan(),
-    ]);
-    render();
-    return;
-  }
-
-  if (action === "switch-manager-detail") {
-    state.managerDetailSection = ["career-plan", "evidence", "analyses"].includes(
-      trigger.dataset.managerDetail,
-    )
-      ? trigger.dataset.managerDetail
-      : "career-plan";
-    render();
-    return;
-  }
-
-  if (action === "clear-manager-filters") {
-    state.managerFilters = {};
-    await refreshManagerEmployees();
-    render();
-    return;
-  }
-
-  if (action === "switch-manager-section") {
-    state.managerSection = trigger.dataset.managerSection === "settings" ? "settings" : "people";
-    state.managerSettingsError = null;
-    state.managerSettingsNotice = null;
-    render();
-    return;
-  }
-
-  if (action === "archive-job-role") {
-    const card = trigger.closest("[data-job-role-card]");
-    const replacementRoleId = card?.querySelector("[data-replacement-role]")?.value || null;
-    if (!window.confirm("Arquivar este cargo? Usuários atribuídos exigem um cargo alternativo.")) {
-      return;
-    }
-    await archiveManagerJobRole(trigger.dataset.jobRoleId, replacementRoleId);
-    return;
-  }
-
-  if (action === "open-evidence-detail") {
-    state.selectedEvidenceId = trigger.dataset.analysisId || trigger.dataset.evidenceId;
-    const pool = state.view === "manager" ? state.adminEvidences : state.evidences;
-    const selected = pool.find((item) => String(item.id) === String(state.selectedEvidenceId));
-    state.selectedAnalysisId =
-      trigger.dataset.savedAnalysisId || selected?.analysisId || null;
-    state.review = null;
-    state.reviewStatus = "loading";
-    state.reviewError = null;
-    state.viewingAsAdmin = state.view === "manager";
-    state.view = "evidence-detail";
-    render();
-    await refreshSelectedAnalysisReview();
-    if (state.user && state.view === "evidence-detail") {
-      render();
-    }
-    return;
-  }
-
-  if (action === "open-pending-evidence") {
-    await openPendingEvidence(trigger.dataset.evidenceId);
-    return;
-  }
-
-  if (action === "toggle-evidence") {
-    state.expandedEvidenceId =
-      String(state.expandedEvidenceId) === String(trigger.dataset.evidenceId)
-        ? null
-        : trigger.dataset.evidenceId;
-    render();
-    return;
-  }
-
-  if (action === "analyze-evidence") {
-    await submitPendingEvidenceAnalysis();
-    return;
-  }
-
-  if (action === "dismiss-evidence") {
-    await dismissPendingEvidence(trigger.dataset.evidenceId);
-    return;
-  }
-
-  if (action === "apply-filters") {
-    await applyFilters(trigger.dataset.filterScope);
-    return;
-  }
-
-  if (action === "clear-filters") {
-    if (trigger.dataset.filterScope === "admin") {
-      state.adminFilters = {};
-    } else {
-      state.dashboardFilters = {};
-    }
-    await applyFilters(trigger.dataset.filterScope);
-    return;
-  }
-
-  if (action === "clear-analyses") {
-    await clearAnalyses(trigger.dataset.filterScope);
-    return;
-  }
-
-  if (action === "open-form" || action === "back-form") {
-    if (!requireEmployeeAccess()) {
-      return;
-    }
-    await openCapturedEvidence();
-    return;
-  }
-
-  if (action === "back-home") {
-    event.preventDefault();
-    state.view = "home";
-    render();
-    return;
-  }
-
-  if (action === "back-dashboard") {
-    const returnToAdmin = state.viewingAsAdmin;
-    state.viewingAsAdmin = false;
-    state.selectedEvidenceId = null;
-    state.selectedAnalysisId = null;
-    state.review = null;
-    state.reviewStatus = "idle";
-    state.reviewError = null;
-    if (returnToAdmin) {
-      await openManager();
-      return;
-    }
-    if (state.user?.role === "MANAGER") {
-      await openManager();
-      return;
-    }
-    state.dashboardTab = "dashboard";
-    state.view = "dashboard";
-    render();
-    return;
-  }
-
-  if (action === "reload-pending") {
-    state.dashboardTab = "dashboard";
-    state.view = "dashboard";
-    await loadPendingEvidence({ force: true });
-    if (state.pendingStatus === "error") {
-      state.view = "error";
-    }
-    render();
-    return;
-  }
-
-  if (action === "reload-insights") {
-    await refreshInsights();
-    state.view = "dashboard";
-    render();
-    return;
-  }
-
-  if (action === "search-github-prs") {
-    await searchGithubPulls();
-    return;
-  }
-
-  if (action === "save-github-settings") {
-    await saveGithubConnectionSettings();
-    return;
-  }
-
-  if (action === "test-github-settings") {
-    await testGithubConnection();
-    return;
-  }
-
-  if (action === "clear-github-settings") {
-    if (window.confirm("Desconectar o GitHub e remover a configuração salva?")) {
-      await clearGithubConnectionSettings();
-    }
-    return;
-  }
-
-  if (action === "sync-github") {
-    await syncGithubConnection();
-    return;
-  }
-
-  if (action === "use-github-pr") {
-    chooseGithubPullRequest(state.githubImport, trigger.dataset.pullNumber);
-    render();
-    return;
-  }
-
-  if (action === "import-github-pr") {
-    await importGithubPullRequest();
-  }
-}
-
-function requireAuth() {
-  if (state.user) {
-    return true;
-  }
-
-  state.view = "auth";
-  state.authError = "Faça login para continuar.";
-  render();
-  return false;
-}
-
-function requireEmployeeAccess() {
-  if (!requireAuth()) {
-    return false;
-  }
-  if (state.user.role === "MANAGER") {
-    showPermissionError("O Manager Console não oferece ações do painel de funcionário.");
-    return false;
-  }
-  return true;
-}
-
-function showPermissionError(message) {
-  state.permissionError = message || "Você não tem permissão para realizar esta ação.";
-  state.view = "permission-error";
-  render();
-}
-
-function selectDashboardTab(nextTab, focus = false) {
-  if (!DASHBOARD_TABS.includes(nextTab)) {
-    return;
-  }
-
-  state.dashboardTab = nextTab;
-  render();
-
-  if (focus) {
-    appRoot.querySelector(`#dashboard-tab-${nextTab}`)?.focus();
-  }
-}
-
-async function openProfile() {
-  state.view = "profile";
-  state.profileError = null;
-  render();
-
-  try {
-    await refreshProfile();
-  } catch (error) {
-    if (!error.isUnauthorized && error.status !== 401) {
-      state.profileError = error.message || "Não foi possível carregar o perfil.";
-    }
-  }
-
-  if (state.user) {
-    render();
-  }
-}
-
-async function refreshProfile() {
-  if (!state.user) {
-    state.profile = null;
-    return null;
-  }
-
-  state.profileLoading = true;
-  try {
-    const profile = await fetchProfile();
-    state.profile = profile;
-    state.profileError = null;
-    return profile;
-  } finally {
-    state.profileLoading = false;
-  }
-}
-
-async function submitTerminology(form) {
-  if (!form.checkValidity()) {
-    form.reportValidity();
-    return;
-  }
-  const values = new FormData(form);
-  state.managerSettingsSaving = true;
-  state.managerSettingsError = null;
-  state.managerSettingsNotice = null;
-  render();
-
-  try {
-    const labels = await updateTerminology({
-      manager: String(values.get("manager") || "").trim(),
-      employee: String(values.get("employee") || "").trim(),
-      jobRole: String(values.get("jobRole") || "").trim(),
-      level: String(values.get("level") || "").trim(),
-      characteristics: String(values.get("characteristics") || "").trim(),
-      objective: String(values.get("objective") || "").trim(),
-    });
-    state.managerSettings = { ...state.managerSettings, labels };
-    state.managerSettingsNotice = "Terminologia atualizada.";
-  } catch (error) {
-    state.managerSettingsError = error.message || "Não foi possível salvar a terminologia.";
-  } finally {
-    state.managerSettingsSaving = false;
-    render();
-  }
-}
-
-async function submitJobRole(form) {
-  if (!form.checkValidity()) {
-    form.reportValidity();
-    return;
-  }
-  const values = new FormData(form);
-  const allowedLevelIds = values.getAll("allowedLevelIds").map(String);
-  if (!allowedLevelIds.length) {
-    state.managerSettingsError = "Selecione ao menos um nível permitido.";
-    render();
-    return;
-  }
-
-  state.managerSettingsSaving = true;
-  state.managerSettingsError = null;
-  state.managerSettingsNotice = null;
-  render();
-  try {
-    const payload = {
-      name: String(values.get("name") || "").trim(),
-      description: String(values.get("description") || "").trim(),
-      allowedLevelIds,
-    };
-    if (form.dataset.jobRoleId) {
-      await updateJobRole(form.dataset.jobRoleId, payload);
-      state.managerSettingsNotice = "Cargo atualizado.";
-    } else {
-      await createJobRole(payload);
-      state.managerSettingsNotice = "Cargo criado.";
-    }
-    await refreshManagerSettings();
-  } catch (error) {
-    state.managerSettingsError = error.message || "Não foi possível salvar o cargo.";
-  } finally {
-    state.managerSettingsSaving = false;
-    render();
-  }
-}
-
-async function archiveManagerJobRole(roleId, replacementRoleId) {
-  state.managerSettingsSaving = true;
-  state.managerSettingsError = null;
-  state.managerSettingsNotice = null;
-  render();
-  try {
-    await archiveJobRole(roleId, replacementRoleId);
-    await refreshManagerSettings();
-    state.managerSettingsNotice = "Cargo arquivado.";
-  } catch (error) {
-    state.managerSettingsError = error.message || "Não foi possível arquivar o cargo.";
-  } finally {
-    state.managerSettingsSaving = false;
-    render();
-  }
-}
-
-async function refreshManagerSettings() {
-  const [settings, jobRoles] = await Promise.all([fetchManagerSettings(), fetchJobRoles()]);
-  state.managerSettings = settings;
-  state.jobRoles = jobRoles;
-  state.managerSettingsStatus = "ready";
-}
-
-async function refreshSelectedCareerPlan() {
-  if (!state.selectedEmployeeId) {
-    state.selectedCareerPlan = null;
-    state.careerPlanStatus = "idle";
-    return;
-  }
-  state.careerPlanStatus = "loading";
-  state.careerPlanError = null;
-  try {
-    state.selectedCareerPlan = await fetchEmployeeCareerPlan(state.selectedEmployeeId);
-    state.careerPlanStatus = "ready";
-  } catch (error) {
-    if (error.isUnauthorized || error.status === 401) {
-      return;
-    }
-    state.selectedCareerPlan = null;
-    state.careerPlanStatus = "error";
-    state.careerPlanError = error.message || "Não foi possível carregar o plano de carreira.";
-  }
-}
-
-async function submitCareerPlan(form) {
-  if (!form.checkValidity()) {
-    form.reportValidity();
-    return;
-  }
-  const values = new FormData(form);
-  state.careerPlanSaving = true;
-  state.careerPlanError = null;
-  state.careerPlanNotice = null;
-  render();
-  try {
-    state.selectedCareerPlan = await updateEmployeeCareerPlan(state.selectedEmployeeId, {
-      jobRoleId: Number(values.get("jobRoleId")),
-      currentLevel: String(values.get("currentLevel") || ""),
-      targetLevel: String(values.get("targetLevel") || ""),
-      characteristics: String(values.get("characteristics") || "")
-        .split(/[,\n]/)
-        .map((item) => item.trim())
-        .filter(Boolean),
-    });
-    state.careerPlanNotice = "Plano de carreira atualizado.";
-  } catch (error) {
-    state.careerPlanError = error.message || "Não foi possível salvar o plano de carreira.";
-  } finally {
-    state.careerPlanSaving = false;
-    render();
-  }
-}
-
-async function submitCareerObjective(form) {
-  if (!form.checkValidity()) {
-    form.reportValidity();
-    return;
-  }
-  const values = new FormData(form);
-  const payload = {
-    text: String(values.get("text") || "").trim(),
-    status: String(values.get("status") || "ACTIVE"),
-    targetDate: String(values.get("targetDate") || "") || null,
-  };
-  state.careerPlanSaving = true;
-  state.careerPlanError = null;
-  state.careerPlanNotice = null;
-  render();
-  try {
-    if (form.dataset.objectiveId) {
-      await updateEmployeeObjective(
-        state.selectedEmployeeId,
-        form.dataset.objectiveId,
-        payload,
-      );
-      state.careerPlanNotice = "Objetivo atualizado.";
-    } else {
-      await createEmployeeObjective(state.selectedEmployeeId, payload);
-      state.careerPlanNotice = "Objetivo criado.";
-    }
-    await refreshSelectedCareerPlan();
-  } catch (error) {
-    state.careerPlanError = error.message || "Não foi possível salvar o objetivo.";
-  } finally {
-    state.careerPlanSaving = false;
-    render();
-  }
-}
-
-async function openDashboard() {
-  state.view = "dashboard";
-  state.viewingAsAdmin = false;
-  state.dashboardTab = "dashboard";
-  state.insightsStatus = "loading";
-  state.insightsError = null;
-  render();
-  await refreshUserAnalyses();
-  await refreshInsights();
-  await refreshPendingEvidences();
-  render();
-}
-
-async function openManager() {
-  state.view = "manager";
-  state.viewingAsAdmin = true;
-  state.permissionError = null;
-  state.managerPeopleStatus = "loading";
-  render();
-
-  try {
-    state.managerSettingsStatus = "loading";
-    const [settings, jobRoles] = await Promise.all([
-      fetchManagerSettings(),
-      fetchJobRoles(),
-    ]);
-    state.managerSettings = settings;
-    state.jobRoles = jobRoles;
-    state.managerSettingsStatus = "ready";
-    const linkedEmployeeId = managerEmployeeIdFromLocation();
-    if (linkedEmployeeId) state.selectedEmployeeId = linkedEmployeeId;
-    await refreshManagerEmployees({ preserveSelection: true });
-  } catch (error) {
-    state.error = error;
-    state.managerSettingsStatus = "error";
-    state.managerSettingsError = error.message || "Não foi possível carregar as configurações.";
-    state.managerPeopleStatus = "error";
-    state.managerPeopleError = error.message || "Não foi possível carregar as pessoas.";
-  }
-
-  render();
-}
-
-async function loadEmployeeWorkspace() {
-  state.careerConfiguration = await fetchCareerConfiguration();
-  await refreshProfile();
-  await refreshUserAnalyses();
-  await refreshInsights();
-  await refreshPendingEvidences();
-  await refreshGithubSettings();
-}
-
-async function refreshUserAnalyses() {
-  if (!state.user) {
-    state.evidences = [];
-    return;
-  }
-
-  state.evidences = await loadAnalysesForCurrentUser(state.dashboardFilters);
-  preserveExpandedEvidence([...state.evidences, ...state.pendingEvidences]);
-}
-
-async function refreshInsights() {
-  if (!state.user) {
-    state.insights = null;
-    state.insightsStatus = "idle";
-    state.insightsError = null;
-    return;
-  }
-
-  state.insightsStatus = "loading";
-  state.insightsError = null;
-
-  try {
-    state.insights = await loadInsightsForCurrentUser(state.dashboardFilters);
-    state.insightsStatus = "ready";
-  } catch (error) {
-    if (error.isUnauthorized || error.status === 401) {
-      return;
-    }
-    state.insights = null;
-    state.insightsStatus = "error";
-    state.insightsError = error.message || "Erro inesperado.";
-  }
-}
-
-async function refreshPendingEvidences() {
-  if (!state.user) {
-    state.pendingEvidences = [];
-    state.pendingEvidence = null;
-    return;
-  }
-
-  const dateFilters = buildClearParams(state.dashboardFilters);
-  [state.pendingEvidences, state.dismissedEvidences] = await Promise.all([
-    fetchEvidences({ status: "PENDING", ...dateFilters }),
-    fetchEvidences({ status: "DISMISSED", ...dateFilters }),
-  ]);
-  preserveExpandedEvidence([
-    ...state.evidences,
-    ...state.pendingEvidences,
-    ...state.dismissedEvidences,
-  ]);
-
-  if (state.pendingEvidence) {
-    state.pendingEvidence =
-      state.pendingEvidences.find((item) => String(item.id) === String(state.pendingEvidence.id)) || null;
-  }
-}
-
-function preserveExpandedEvidence(items) {
-  if (
-    state.expandedEvidenceId != null &&
-    !items.some((item) => String(item.id) === String(state.expandedEvidenceId))
-  ) {
-    state.expandedEvidenceId = null;
-  }
-}
-
-async function refreshGithubSettings() {
-  if (!state.user) {
-    state.githubImport = createGithubImportState();
-    return;
-  }
-
-  setGithubSettingsLoading(state.githubImport);
-  try {
-    applyGithubSettings(state.githubImport, await fetchGithubSettings());
-  } catch (error) {
-    if (error.isUnauthorized || error.status === 401) {
-      return;
-    }
-    setGithubSettingsError(
-      state.githubImport,
-      error,
-      "Não foi possível carregar a configuração do GitHub.",
-    );
-  }
-}
-
-async function refreshEmployeeAnalyses() {
-  if (!state.selectedEmployeeId) {
-    state.adminEvidences = [];
-    return;
-  }
-
-  state.adminEvidences = await loadAnalysesForEmployee(state.selectedEmployeeId, state.adminFilters);
-}
-
-async function refreshManagerEvidenceRecords() {
-  if (!state.selectedEmployeeId) {
-    state.managerEvidenceRecords = [];
-    return;
-  }
-  state.managerEvidenceRecords = await fetchEmployeeEvidences(state.selectedEmployeeId);
-}
-
-async function refreshManagerEmployees({ preserveSelection = false } = {}) {
-  state.managerPeopleStatus = "loading";
-  state.managerPeopleError = null;
-  try {
-    const filters = {};
-    if (state.managerFilters.query) filters.query = state.managerFilters.query;
-    if (state.managerFilters.jobRoleId) filters.jobRoleId = state.managerFilters.jobRoleId;
-    if (state.managerFilters.level) filters.level = state.managerFilters.level;
-    state.employees = await fetchEmployees(filters);
-    const selectedExists = state.employees.some(
-      (employee) => employee.id === state.selectedEmployeeId,
-    );
-    if (!preserveSelection || !selectedExists) {
-      state.selectedEmployeeId = state.employees[0]?.id || null;
-    }
-    state.managerPeopleStatus = "ready";
-    state.managerDetailStatus = "loading";
-    state.managerDetailError = null;
-    await Promise.all([
-      refreshEmployeeAnalyses(),
-      refreshManagerEvidenceRecords(),
-      refreshSelectedCareerPlan(),
-    ]);
-    state.managerDetailStatus = "ready";
-    updateManagerDeepLink();
-  } catch (error) {
-    if (error.isUnauthorized || error.status === 401) return;
-    state.employees = [];
-    state.selectedEmployeeId = null;
-    state.managerPeopleStatus = "error";
-    state.managerPeopleError = error.message || "Não foi possível carregar as pessoas.";
-    state.managerDetailStatus = "error";
-    state.managerDetailError = state.managerPeopleError;
-  }
-}
-
-function managerEmployeeIdFromLocation() {
-  if (typeof window === "undefined") return null;
-  const match = String(window.location?.hash || "").match(/^#\/manager\/employees\/(\d+)$/);
-  return match ? Number(match[1]) : null;
-}
-
-function updateManagerDeepLink() {
-  if (typeof window === "undefined" || !window.history?.replaceState) return;
-  const hash = state.selectedEmployeeId
-    ? `#/manager/employees/${state.selectedEmployeeId}`
-    : "#/manager";
-  window.history.replaceState(null, "", hash);
-}
-
-async function refreshSelectedAnalysisReview() {
-  if (!state.selectedAnalysisId) {
-    state.review = { currentStatus: "UNREVIEWED", history: [] };
-    state.reviewStatus = "ready";
-    return;
-  }
-
-  try {
-    state.review = state.viewingAsAdmin
-      ? await loadReviewsForEmployee(state.selectedEmployeeId, state.selectedAnalysisId)
-      : await loadReviewsForCurrentUser(state.selectedAnalysisId);
-    state.reviewStatus = "ready";
-    state.reviewError = null;
-  } catch (error) {
-    if (error.isUnauthorized || error.status === 401) {
-      return;
-    }
-    state.reviewStatus = "error";
-    state.reviewError = error.message || "Não foi possível carregar a revisão.";
-  }
-}
-
-async function submitAnalysisReview(form, submitter) {
-  if (!state.selectedEmployeeId || !state.selectedAnalysisId) {
-    return;
-  }
-
-  const formData = new FormData(form);
-  const status = submitter?.dataset.reviewStatus || String(formData.get("status") || "");
-  const comment = String(formData.get("comment") || "");
-  state.reviewSaving = true;
-  state.reviewError = null;
-  render();
-
-  try {
-    state.review = await submitReviewForEmployee(
-      state.selectedEmployeeId,
-      state.selectedAnalysisId,
-      { status, comment },
-    );
-    state.reviewStatus = "ready";
-  } catch (error) {
-    if (error.isUnauthorized || error.status === 401) {
-      return;
-    }
-    state.reviewStatus = "error";
-    state.reviewError = error.message || "Não foi possível salvar a revisão.";
-  } finally {
-    state.reviewSaving = false;
-    if (state.user) {
-      render();
-    }
-  }
-}
-
-async function applyFilters(scope) {
-  if (scope === "admin") {
-    await refreshEmployeeAnalyses();
-    render();
-    return;
-  }
-
-  await refreshUserAnalyses();
-  await refreshInsights();
-  await refreshPendingEvidences();
-  render();
-}
-
-async function clearAnalyses(scope) {
-  const filters = scope === "admin" ? state.adminFilters : state.dashboardFilters;
-  const hasFilter = filters.dateFrom || filters.dateTo;
-  const message = hasFilter
-    ? "Deseja remover as evidências do período selecionado?"
-    : "Deseja remover todo o histórico de evidências?";
-
-  if (!window.confirm(message)) {
-    return;
-  }
-
-  if (scope === "admin") {
-    render();
-    return;
-  }
-
-  await clearUserAnalyses(buildClearParams(filters));
-  await refreshUserAnalyses();
-  await refreshInsights();
-  render();
-}
-
-function buildClearParams(filters) {
-  const params = {};
-  if (filters.dateFrom) {
-    params.from = new Date(`${filters.dateFrom}T00:00:00`).toISOString();
-  }
-  if (filters.dateTo) {
-    params.to = new Date(`${filters.dateTo}T23:59:59.999`).toISOString();
-  }
-  return params;
-}
-
-async function openCapturedEvidence() {
-  if (!state.pendingEvidence) {
-    await loadPendingEvidence();
-  }
-
-  if (!state.pendingEvidence) {
-    state.view = state.pendingStatus === "error" ? "error" : "empty-evidence";
-    render();
-    return;
-  }
-
-  state.analysisError = null;
-  state.analysisSubmitting = false;
-  state.view = "pending-evidence";
-  render();
-}
-
-async function submitPendingEvidenceAnalysis() {
-  if (!state.pendingEvidence || state.analysisSubmitting) return;
-  state.analysisSubmitting = true;
-  state.analysisError = null;
-  state.view = "loading-evidence";
-  render();
-
-  try {
-    const analyzedEvidence = await analyzeCapturedEvidence(
-      state.pendingEvidence.id,
-      state.userObservation,
-    );
-    state.pendingEvidence = null;
-    state.pendingStatus = "idle";
-    state.result = analyzedEvidence;
-    state.selectedAnalysisId = analyzedEvidence.analysisId || null;
-    state.review = { currentStatus: "UNREVIEWED", history: [] };
-    state.reviewStatus = "ready";
-    state.reviewError = null;
-    state.userObservation = "";
-    state.view = "result";
-    await refreshUserAnalyses();
-    await refreshInsights();
-    await refreshPendingEvidences();
-  } catch (error) {
-    if (error.isUnauthorized || error.status === 401) {
-      return;
-    }
-    state.analysisError = error.message || "Não foi possível analisar a evidência. Tente novamente.";
-    state.view = "pending-evidence";
-  } finally {
-    state.analysisSubmitting = false;
-  }
-
-  if (state.user) {
-    render();
-  }
-}
-
-async function loadPendingEvidence({ force = false } = {}) {
-  if (state.pendingEvidence && !force) {
-    return;
-  }
-
-  state.pendingStatus = "loading";
+async function navigate(destination, { history: historyMode = "push", focus = true } = {}) {
+  const target = new URL(destination, location.href);
+  if (target.origin !== location.origin) return;
+  const next = matchRoute(target);
+  const canonical = canonicalUrl(next);
+  if (["employee", "manager", "resource"].includes(next.access)) state.returnTo = canonical;
+  if (historyMode === "push") window.history.pushState({}, "", canonical);
+  if (historyMode === "replace" && `${location.pathname}${location.search}` !== canonical) window.history.replaceState({}, "", canonical);
+  if (historyMode === "none" && next.access !== "auth" && `${location.pathname}${location.search}` !== canonical) window.history.replaceState({}, "", canonical);
+  state.route = next;
   state.error = null;
-  render();
+  state.data = null;
+  state.epoch += 1;
+  state.controller?.abort();
+  state.controller = new AbortController();
 
-  try {
-    await refreshPendingEvidences();
-    state.pendingEvidence = state.pendingEvidences[0] || null;
-    state.pendingStatus = "ready";
-  } catch (error) {
-    state.error = error;
-    state.pendingEvidence = null;
-    state.pendingStatus = "error";
-  }
-}
-
-async function openPendingEvidence(evidenceId) {
-  state.pendingStatus = "loading";
-  state.error = null;
-  render();
-
-  try {
-    state.pendingEvidence = await fetchEvidence(evidenceId);
-    if (state.pendingEvidence.status !== "PENDING") {
-      throw new Error("Esta evidência não está mais pendente.");
-    }
-    state.pendingStatus = "ready";
-    await openCapturedEvidence();
-  } catch (error) {
-    if (error.isUnauthorized || error.status === 401) {
-      return;
-    }
-    state.error = error;
-    state.pendingEvidence = null;
-    state.pendingStatus = "error";
-    render();
-  }
-}
-
-async function dismissPendingEvidence(evidenceId) {
-  try {
-    await dismissEvidence(evidenceId);
-    state.pendingEvidences = state.pendingEvidences.filter(
-      (item) => String(item.id) !== String(evidenceId),
-    );
-    if (state.pendingEvidence && String(state.pendingEvidence.id) === String(evidenceId)) {
-      state.pendingEvidence = null;
-    }
-    state.pendingStatus = "ready";
-    render();
-  } catch (error) {
-    if (error.isUnauthorized || error.status === 401) {
-      return;
-    }
-    state.error = error;
-    render();
-  }
-}
-
-async function searchGithubPulls() {
-  setGithubImportLoading(state.githubImport);
-  render();
-
-  try {
-    const pullRequests = await findGithubPullRequests(githubImportRequest(state.githubImport));
-    setGithubImportResults(state.githubImport, pullRequests);
-  } catch (error) {
-    setGithubImportError(state.githubImport, error, "Não foi possível buscar PRs no GitHub.");
-  }
-
-  render();
-}
-
-async function saveGithubConnectionSettings() {
-  setGithubSettingsSaving(state.githubImport, true);
-  state.githubImport.testMessage = "";
-  state.githubImport.syncError = "";
-  render();
-
-  try {
-    const settings = await saveGithubSettings({
-      repoSlug: state.githubImport.repoSlug,
-      authorLogin: state.githubImport.authorLogin,
-    });
-    applyGithubSettings(state.githubImport, settings);
-  } catch (error) {
-    if (!error.isUnauthorized && error.status !== 401) {
-      setGithubSettingsError(
-        state.githubImport,
-        error,
-        "Não foi possível salvar a configuração do GitHub.",
-      );
-    }
-  } finally {
-    setGithubSettingsSaving(state.githubImport, false);
-    if (state.user) {
-      render();
-    }
-  }
-}
-
-async function testGithubConnection() {
-  setGithubConnectionTesting(state.githubImport);
-  render();
-
-  try {
-    setGithubConnectionTestResult(state.githubImport, await testGithubSettings());
-  } catch (error) {
-    if (!error.isUnauthorized && error.status !== 401) {
-      setGithubConnectionTestError(
-        state.githubImport,
-        error,
-        "Não foi possível testar o acesso ao GitHub.",
-      );
-    }
-  }
-
-  if (state.user) {
-    render();
-  }
-}
-
-async function clearGithubConnectionSettings() {
-  setGithubSettingsSaving(state.githubImport, true);
-  render();
-  try {
-    applyGithubSettings(state.githubImport, await clearGithubSettings());
-    state.githubImport.testMessage = "Configuração do GitHub removida.";
-    state.githubImport.testStatus = "success";
-    state.githubImport.syncResult = null;
-  } catch (error) {
-    setGithubSettingsError(state.githubImport, error, "Não foi possível desconectar o GitHub.");
-  } finally {
-    setGithubSettingsSaving(state.githubImport, false);
-    render();
-  }
-}
-
-async function syncGithubConnection() {
-  setGithubSyncLoading(state.githubImport);
-  render();
-
-  try {
-    setGithubSyncResult(state.githubImport, await syncGithub());
-    await refreshGithubSettings();
-    await refreshPendingEvidences();
-  } catch (error) {
-    if (!error.isUnauthorized && error.status !== 401) {
-      setGithubSyncError(state.githubImport, error, "Não foi possível sincronizar o GitHub.");
-    }
-  }
-
-  if (state.user) {
-    render();
-  }
-}
-
-async function importGithubPullRequest() {
-  setGithubImportLoading(state.githubImport);
-  render();
-
-  try {
-    const capturedEvidence = await captureEvidenceFromGithubPullRequest(
-      githubImportRequest(state.githubImport),
-    );
-    state.pendingEvidence = capturedEvidence.status === "PENDING" ? capturedEvidence : null;
-    state.pendingStatus = "ready";
-    setGithubImportIdle(state.githubImport);
-    await refreshPendingEvidences();
-    if (state.pendingEvidence) {
-      await openCapturedEvidence();
-    } else {
-      state.view = "dashboard";
-    }
-  } catch (error) {
-    setGithubImportError(state.githubImport, error, "Não foi possível importar o PR como evidência.");
-    state.view = "dashboard";
-  }
-
-  render();
-}
-
-function render() {
-  const viewChanged = lastRenderedView !== state.view;
-  let page;
-
-  if (state.view === "home") {
-    page = landingPage();
-  } else if (state.view === "auth") {
-    page = authPage(state);
-  } else if (state.view === "profile") {
-    page = profilePage(state);
-  } else if (state.view === "manager") {
-    page = managerPage(state);
-  } else if (state.view === "permission-error") {
-    page = permissionPage(state);
-  } else if (state.view === "dashboard") {
-    page = dashboardPage(state);
-  } else if (state.view === "evidence-detail") {
-    page = evidenceDetailPage(state);
-  } else if (state.view === "loading-evidence") {
-    page = evidenceLoadingPage(state);
-  } else if (state.view === "pending-evidence") {
-    page = evidencePendingPage(state);
-  } else if (state.view === "empty-evidence") {
-    page = evidenceEmptyPage(state);
-  } else if (state.view === "error") {
-    page = evidenceErrorPage(state, state.error?.message || "Erro inesperado.");
-  } else {
-    page = evidenceResultPage(state);
-  }
-
-  appRoot.innerHTML = page;
-  lastRenderedView = state.view;
-  syncBrowserLocation();
-
-  if (viewChanged) {
-    resetScrollPosition();
-  }
-}
-
-function syncBrowserLocation() {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  const route = routeForState();
-  if (state.user && isProtectedRoute(route)) {
-    saveAuthRoute(route);
-  }
-
-  try {
-    const currentRoute = `${window.location?.pathname || "/"}${window.location?.search || ""}`;
-    if (currentRoute !== route && typeof window.history?.replaceState === "function") {
-      window.history.replaceState({}, "", route);
-    }
-  } catch {
-    // Embedded browsers can restrict History API access; route persistence still works.
-  }
-}
-
-function routeForState() {
-  if (state.view === "auth") {
-    return "/login";
-  }
-  if (state.view === "profile") {
-    return "/profile";
-  }
-  if (state.view === "manager" || (state.user?.role === "MANAGER" && state.view === "permission-error")) {
-    return state.managerSection === "settings" ? "/manager?section=settings" : "/manager";
-  }
-  if (state.user?.role === "EMPLOYEE" && state.view !== "home") {
-    return state.dashboardTab === "dashboard" ? "/dashboard" : `/dashboard?tab=${state.dashboardTab}`;
-  }
-  return "/";
-}
-
-function browserRoute() {
-  try {
-    return `${window.location?.pathname || "/"}${window.location?.search || ""}`;
-  } catch {
-    return null;
-  }
-}
-
-function isProtectedRoute(route) {
-  return typeof route === "string" && (/^\/dashboard(?:\?|$)/.test(route) || route === "/profile" || /^\/manager(?:\?|$)/.test(route));
-}
-
-function dashboardTabFromRoute(route) {
-  if (typeof route !== "string" || !route.startsWith("/dashboard")) {
-    return "dashboard";
-  }
-  try {
-    const tab = new URL(route, "http://promova.local").searchParams.get("tab");
-    return DASHBOARD_TABS.includes(tab) ? tab : "dashboard";
-  } catch {
-    return "dashboard";
-  }
-}
-
-function isStoredUser(user) {
-  return Boolean(user && Number.isFinite(Number(user.id)) && ["EMPLOYEE", "MANAGER"].includes(user.role));
-}
-
-function resetScrollPosition() {
-  scrollToTop();
-
-  if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
-    window.requestAnimationFrame(scrollToTop);
-  }
-}
-
-function scrollToTop() {
-  if (typeof window !== "undefined" && typeof window.scrollTo === "function") {
+  if (next.access === "auth" && loadAuthToken() && state.user && !state.validated) {
     try {
-      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
-    } catch {
-      try {
-        window.scrollTo(0, 0);
-      } catch {
-        // Some test environments expose scrollTo without implementing it.
+      state.user = await fetchCurrentUser();
+      state.validated = true;
+      return go(roleHome(state.user), "replace");
+    } catch (error) {
+      if (error.status !== 401) {
+        state.error = "Não foi possível validar sua sessão. Você ainda pode entrar novamente.";
       }
     }
   }
 
-  if (typeof document !== "undefined") {
-    document.documentElement.scrollTop = 0;
-    if (document.body) {
-      document.body.scrollTop = 0;
+  if (["employee", "manager", "resource"].includes(next.access)) {
+    if (!loadAuthToken()) return redirectToLogin();
+    if (!state.validated) {
+      state.loading = true; render();
+      try { state.user = await fetchCurrentUser(); state.validated = true; }
+      catch (error) { if (error.status === 401) return redirectToLogin(); state.loading = false; state.error = "Não foi possível validar sua sessão."; render(); return; }
     }
+    if (!canAccess(next, state.user)) { state.loading = false; state.error = "Você não tem permissão para acessar este espaço."; renderForbidden(); return; }
+  }
+  if (next.access === "auth" && state.validated && state.user) return go(roleHome(state.user), "replace");
+
+  state.loading = !["landing", "login", "register", "not-found"].includes(next.id);
+  render();
+  if (state.loading) await loadRoute(state.epoch, state.controller.signal);
+  if (focus) requestAnimationFrame(() => document.querySelector("#route-title")?.focus({ preventScroll: true }));
+}
+
+async function loadRoute(epoch, signal) {
+  try {
+    state.data = await routeData(state.route, signal);
+    if (epoch !== state.epoch) return;
+    state.loading = false; render();
+  } catch (error) {
+    if (error.name === "AbortError" || epoch !== state.epoch) return;
+    state.loading = false; state.error = error.status === 404 ? "Este recurso não existe ou não está disponível para você." : error.message || "Não foi possível carregar esta página."; render();
   }
 }
+
+async function routeData(route, signal) {
+  const q = route.query, p = route.params, manager = state.user?.role === "MANAGER";
+  switch (route.id) {
+    case "overview": return Promise.all([api.analyses({ page:1 }, signal), api.insights({}, signal), api.evidences({ status:"PENDING", page:1 }, signal)]);
+    case "inbox": return api.evidences({ ...q, status:(q.status || "pending").toUpperCase() }, signal);
+    case "analyses": return api.analyses(q, signal);
+    case "reports": case "framework": case "criterion": return Promise.all([api.insights(q, signal), api.framework(false, signal)]);
+    case "career-plan": return api.profile(signal);
+    case "integrations": case "github": return api.githubSettings(signal);
+    case "people": return Promise.all([api.employees(q, signal), api.roles(signal)]);
+    case "person-plan": case "objective-new": case "objective": return Promise.all([api.employee(p.employeeId, signal), api.employeePlan(p.employeeId, signal), api.settings(signal)]);
+    case "person-evidence": return Promise.all([api.employee(p.employeeId, signal), api.employeeEvidences(p.employeeId, { ...q, status:q.status?.toUpperCase() }, signal)]);
+    case "person-analyses": return Promise.all([api.employee(p.employeeId, signal), api.employeeAnalyses(p.employeeId, q, signal)]);
+    case "reviews": return api.reviewQueue(q, signal);
+    case "terminology": return api.settings(signal);
+    case "roles": case "role-new": case "role": return Promise.all([api.roles(signal), api.framework(true, signal)]);
+    case "manager-framework": return api.framework(true, signal);
+    case "evidence-detail": return api.evidence(p.ownerId, p.evidenceId, manager, signal);
+    case "analysis-detail": return Promise.all([api.analysis(p.ownerId, p.analysisId, manager, signal), api.reviews(p.ownerId, p.analysisId, manager, signal)]);
+    default: return null;
+  }
+}
+
+function render() {
+  const mount = document.querySelector("#application-root");
+  if (!mount) return;
+  if (state.route.id === "landing") { document.title="Promova · Evidências para conversas de carreira"; mount.innerHTML=landing(); return; }
+  if (["login","register"].includes(state.route.id)) { document.title=`${state.route.id === "login" ? "Entrar" : "Criar conta"} · Promova`; mount.innerHTML=auth(); return; }
+  if (state.route.id === "not-found") { document.title="Página não encontrada · Promova"; mount.innerHTML=publicState("Página não encontrada", "O endereço não corresponde a uma página do Promova."); return; }
+  if (!state.user && state.error) { mount.innerHTML=publicState("Não foi possível validar a sessão", state.error, true); return; }
+  document.title=`${titles[state.route.id] || "Promova"} · Promova`;
+  mount.innerHTML=shell(workspace());
+  bindDrawerDialog();
+}
+
+function shell(content) {
+  const manager=state.user?.role === "MANAGER", nav=manager?managerNav:employeeNav;
+  return `<div class="app-shell"><aside class="sidebar" id="navigation"><a class="brand" href="${roleHome(state.user)}" data-link><img src="/frontend/assets/promova-symbol.png" alt=""><span>promova</span></a><p class="workspace-label">${manager?"Gestão":"Minha carreira"}</p><nav aria-label="Principal">${nav.map(([href,label])=>`<a href="${href}" data-link ${navActive(href)?'aria-current="page"':''}><span aria-hidden="true">${navIcon(label)}</span>${esc(label)}</a>`).join("")}</nav><div class="sidebar-foot"><a href="/" data-link>Site público</a><button type="button" data-action="logout">Sair</button></div></aside><div class="shell-main"><header class="topbar"><button class="menu-button" type="button" data-action="open-menu" aria-controls="navigation" aria-expanded="false">☰ <span>Menu</span></button><span>${manager?"Espaço da gestão":"Espaço pessoal"}</span><button type="button" class="account" data-action="account">${initials(state.user?.name)} <span>${esc(state.user?.name || "Conta")}</span></button></header><main id="main-content" tabindex="-1">${content}</main></div></div>`;
+}
+
+function workspace() {
+  return `<section class="workspace"><header class="page-head"><div><p class="eyebrow">${state.user?.role === "MANAGER" ? "Gestão de carreira" : "Sua carreira"}</p><h1 id="route-title" tabindex="-1">${esc(titles[state.route.id] || "Promova")}</h1></div>${primaryAction()}</header>${state.loading?loading():state.error?errorState():renderRoute()}</section>`;
+}
+
+function renderRoute() {
+  const id=state.route.id;
+  if (id==="overview") return overview();
+  if (id==="inbox") return inbox();
+  if (id==="analyses") return analyses();
+  if (id==="reports") return reports();
+  if (id==="framework" || id==="criterion") return framework();
+  if (id==="career-plan") return careerPlan(false);
+  if (id==="integrations") return integrations();
+  if (id==="github") return github();
+  if (id==="github-import") return githubImport();
+  if (id==="people") return people();
+  if (["person-plan","objective-new","objective"].includes(id)) return careerPlan(true);
+  if (id==="person-evidence") return personEvidence();
+  if (id==="person-analyses") return personAnalyses();
+  if (id==="reviews") return reviews();
+  if (id==="terminology") return terminology();
+  if (["roles","role-new","role"].includes(id)) return roles();
+  if (id==="manager-framework") return managerFramework();
+  if (id==="evidence-detail") return evidenceDetail();
+  if (id==="analysis-detail") return analysisDetail();
+  return errorState();
+}
+
+function overview() {
+  const [analyses,insights,evidence]=state.data, items=pageItems(analyses), pending=pageItems(evidence);
+  return `<div class="metrics"><article><span>Análises salvas</span><strong>${analyses.total ?? items.length}</strong><small>Todo o período</small></article><article><span>Critérios com apoio</span><strong>${insights.criteriaWithEvidence || 0}<i> / ${insights.criteriaCount || 0}</i></strong><small>Framework atual</small></article><article><span>Pendências</span><strong>${evidence.total ?? pending.length}</strong><small>Para revisar</small></article></div><div class="callout"><div><strong>${pending.length?"Há evidências aguardando sua leitura":"Sua caixa de entrada está em dia"}</strong><p>Leia a fonte e acrescente contexto verificável antes de analisar.</p></div><a class="button primary" data-link href="/app/inbox?status=pending">Abrir caixa de entrada</a></div><div class="grid-two">${panel("Análises recentes", items.length?items.slice(0,2).map(analysisRow).join(""):empty("Nenhuma análise salva ainda."), `<a data-link href="/app/analyses">Todas as análises →</a>`)}${panel("Seu framework", `<p><span class="badge purple">${esc(items[0]?.currentLevel || "Nível atual")}</span></p><p>${insights.criteriaWithEvidence || 0} de ${insights.criteriaCount || 0} critérios possuem evidência de apoio.</p><div class="progress"><span style="width:${insights.criteriaCount?Math.round(insights.criteriaWithEvidence/insights.criteriaCount*100):0}%"></span></div><p class="note">Ausência de evidência não é uma avaliação negativa.</p>`, `<a data-link href="/app/framework">Explorar critérios →</a>`)}</div>`;
+}
+
+function inbox() {
+  const page=state.data, items=pageItems(page), q=state.route.query;
+  const list=panel(`${page.total ?? items.length} ${q.status==="dismissed"?"dispensadas":"pendentes"}`, items.length?`<div class="row-list">${items.map(evidenceRow).join("")}</div>`:empty(q.status==="dismissed"?"Nenhuma evidência dispensada.":"Nenhuma evidência pendente."),pager(page,"/app/inbox"),"fill");
+  const selected=items.find(item=>item.id===Number(q.selected))||items[0];
+  const preview=selected?panel("Prévia da fonte",`<div class="statusline"><span class="badge purple">${labelStatus(selected.status)}</span><span>${esc(selected.sourceMeta||selected.source)}</span></div><div class="reading source-text"><p>${esc(selected.content||"")}</p></div><p class="note">Abra a evidência para incluir uma observação opcional.</p>`,`<a class="button primary" data-link href="/workspace/people/${state.user.id}/evidence/${selected.id}">Abrir evidência</a>`,"fill preview-panel"):"";
+  return `${filterBar(`<label>Status<select name="status"><option value="pending" ${sel(q.status||"pending","pending")}>Pendentes</option><option value="dismissed" ${sel(q.status,"dismissed")}>Dispensadas</option></select></label><label>Fonte<input name="source" value="${esc(q.source||"")}" placeholder="Todas"></label>${dateFields(q)}`,"inbox-filter")}<div class="inbox-split">${list}${preview}</div>`;
+}
+
+function analyses() {
+  const page=state.data,items=pageItems(page),q=state.route.query;
+  return `${filterBar(`${dateFields(q)}<label>Fonte<input name="source" value="${esc(q.source||"")}" placeholder="Todas"></label>`,"analyses-filter")}<div class="section-actions"><a class="button" href="/app/analyses/reports" data-link>Relatórios</a><button type="button" class="button danger" data-action="clear-analyses" ${items.length?"":"disabled"}>Limpar histórico</button></div>${panel(`${page.total ?? items.length} análises salvas`,items.length?`<div class="row-list">${items.map(analysisRow).join("")}</div>`:empty("Nenhuma análise salva neste período."),pager(page,"/app/analyses"),"fill")}`;
+}
+
+function reports() {
+  const [insights]=state.data,q=state.route.query,view=q.view||"sources";
+  const values=view==="levels"?insights.estimatedLevelDistribution:view==="trend"?insights.recentTrend:insights.sourceDistribution;
+  return `${filterBar(`<label>Visualização<select name="view"><option value="sources" ${sel(view,"sources")}>Fontes</option><option value="levels" ${sel(view,"levels")}>Níveis estimados</option><option value="trend" ${sel(view,"trend")}>Tendência</option></select></label>${dateFields(q)}`,"reports-filter")}${panel("Distribuição no período", values?.length?`<div class="report-list">${values.map(x=>`<div><div><strong>${esc(x.label)}</strong><span>${x.count} análises · ${x.percentage ?? 0}%</span></div><div class="progress"><span style="width:${x.percentage ?? 0}%"></span></div></div>`).join("")}</div>`:empty("Ainda não há análises para este relatório."),"","fill")}`;
+}
+
+function framework() {
+  const [insights,framework]=state.data,q=state.route.query,levels=framework.levels||[],level=q.level||levels[0]?.id||levels[0]?.key, coverage=(insights.criterionCoverage||[]).filter(c=>c.level===level),support=q.support||"all",shown=coverage.filter(c=>support==="all"||(support==="supported"?c.status==="SUPPORTED":c.status!=="SUPPORTED"));
+  if(state.route.id==="criterion") { const c=(insights.criterionCoverage||[]).find(x=>x.criterionId===state.route.params.criterionId); return c?`${breadcrumbs([["/app/framework", "Framework"]])}${panel(esc(c.criterion),`<div class="statusline"><span class="badge purple">${esc(c.level)}</span><span class="badge">${c.status==="SUPPORTED"?"Com evidência":"Sem evidência"}</span></div><div class="reading"><p>${esc(c.description||"Sem descrição.")}</p><h3>Evidências de apoio</h3>${c.supportingEvidence?.length?c.supportingEvidence.map(ref=>`<a class="row" data-link href="/workspace/people/${state.user.id}/analyses/${ref.analysisId}"><span>${esc(ref.title||ref.id)}</span><span>›</span></a>`).join(""):empty("Nenhuma evidência associada. Isso não é uma avaliação negativa.")}</div>`,"","fill")}`:empty("Critério não encontrado no framework atual."); }
+  return `${filterBar(`<label>Nível<select name="level">${levels.map(l=>`<option value="${esc(l.id||l.key)}" ${sel(level,l.id||l.key)}>${esc(l.id||l.key)} · ${esc(l.title||"")}</option>`).join("")}</select></label><label>Apoio<select name="support"><option value="all" ${sel(support,"all")}>Todos</option><option value="missing" ${sel(support,"missing")}>Sem evidência</option><option value="supported" ${sel(support,"supported")}>Com evidência</option></select></label>${dateFields(q)}`,"framework-filter")}${panel(`${shown.length} critérios`,shown.length?`<div class="row-list">${shown.map(c=>`<a class="row" data-link href="/app/framework/criteria/${c.criterionId}?level=${c.level}"><div><strong>${esc(c.criterion)}</strong><small>${c.evidenceCount||0} evidências de apoio</small></div><span class="badge ${c.status==="SUPPORTED"?"green":""}">${c.status==="SUPPORTED"?"Com evidência":"Sem evidência"}</span><span>›</span></a>`).join("")}</div>`:empty("Nenhum critério corresponde ao filtro."),`<span class="note">Ausência de evidência não é avaliação negativa.</span>`,"fill")}`;
+}
+
+function careerPlan(manager) {
+  const person=manager?state.data[0]:null, profile=manager?state.data[1]:state.data, view=state.route.query.view||"objectives";
+  if(manager&&["objective-new","objective"].includes(state.route.id)) return objectiveEditor(person,profile);
+  const base=manager?`/manage/people/${person.id}/career-plan`:"/app/career-plan";
+  return `${manager?personHeader(person)+personTabs(person,"career-plan"):""}${tabs([[`${base}?view=objectives`,"Objetivos"],[`${base}?view=context`,"Contexto"]],view)}${view==="context"?careerContext(profile,manager):objectives(profile,manager,person)}`;
+}
+
+function objectives(profile,manager,person) { const rows=(profile.objectives||[]).map(o=>manager?`<a class="row" data-link href="/manage/people/${person.id}/career-plan/objectives/${o.id}">${objectiveText(o)}<span>›</span></a>`:`<div class="row">${objectiveText(o)}</div>`).join(""); return panel("Objetivos de carreira",rows||empty("Nenhum objetivo definido."),manager?`<a class="button primary" data-link href="/manage/people/${person.id}/career-plan/objectives/new">Novo objetivo</a>`:`<span class="note">Seu gestor mantém este plano.</span>`,"fill"); }
+function objectiveText(o){return `<div><strong>${esc(o.text)}</strong><small>${labelStatus(o.status)}${o.targetDate?` · Data alvo: ${date(o.targetDate)}`:""}</small></div><span class="badge">${labelStatus(o.status)}</span>`;}
+
+function careerContext(profile,manager) { const role=profile.jobRole; if(!manager) return panel("Contexto de carreira",`<dl class="details"><div><dt>Cargo</dt><dd>${esc(role?.name||"Não definido")}</dd></div><div><dt>Progressão</dt><dd>${esc(profile.currentLevel||"—")} → ${esc(profile.targetLevel||"—")}</dd></div><div><dt>Características</dt><dd>${(profile.characteristics||[]).map(x=>`<span class="tag">${esc(x)}</span>`).join(" ")||"Não definidas"}</dd></div></dl><p class="note">Contexto atual do plano. Resultados históricos preservam o contexto do momento da análise.</p>`,"","fill");const saved=draft(planDraftKey())||{},characteristics=saved.characteristics??(profile.characteristics||[]).join("\n");return panel("Editar contexto",`<form id="plan-form" class="form-grid"><label>Cargo<select name="jobRoleId">${(state.data[2].activeRoles||[]).map(r=>`<option value="${r.id}" ${sel(saved.jobRoleId??role?.id,r.id)}>${esc(r.name)}</option>`).join("")}</select></label><label>Nível atual<select name="currentLevel">${levelOptions(profile,saved.currentLevel??profile.currentLevel)}</select></label><label>Nível alvo<select name="targetLevel">${levelOptions(profile,saved.targetLevel??profile.targetLevel)}</select></label><label class="wide">Características<textarea name="characteristics" rows="6" maxlength="1209">${esc(characteristics)}</textarea><small>Até 10 linhas, com no máximo 120 caracteres cada.</small></label><input type="hidden" name="expectedUpdatedAt" value="${esc(profile.updatedAt||"")}"></form>`,`<button class="button primary" type="submit" form="plan-form">Salvar contexto</button>`,"fill"); }
+
+function objectiveEditor(person,profile){ const current=state.route.id==="objective"?(profile.objectives||[]).find(o=>o.id===state.route.params.objectiveId):null,key=objectiveDraftKey(),saved=draft(key)||{};if(state.route.id==="objective"&&!current)return `${breadcrumbs([[`/manage/people/${person.id}/career-plan`,person.name]])}${panel("Objetivo indisponível",empty("Este objetivo não existe ou não está mais disponível."),`<a class="button primary" data-link href="/manage/people/${person.id}/career-plan">Voltar ao plano</a>`,"fill")}`;return `${breadcrumbs([[`/manage/people/${person.id}/career-plan`,person.name]])}${panel(current?"Editar objetivo":"Novo objetivo",`<form id="objective-form" class="form-grid"><label class="wide">Objetivo<textarea name="text" rows="6" maxlength="1000" required>${esc(saved.text??current?.text??"")}</textarea><small>Máximo de 1.000 caracteres</small></label><label>Status<select name="status">${["ACTIVE","COMPLETED","ARCHIVED"].map(s=>`<option ${sel(saved.status??current?.status??"ACTIVE",s)} value="${s}">${labelStatus(s)}</option>`).join("")}</select></label><label>Data alvo<input type="date" name="targetDate" value="${esc(saved.targetDate??current?.targetDate??"")}"></label><input type="hidden" name="expectedUpdatedAt" value="${esc(current?.updatedAt||"")}"></form>`,`<a class="button" data-link href="/manage/people/${person.id}/career-plan">Cancelar</a><button class="button primary" type="submit" form="objective-form">Salvar objetivo</button>`,"fill")}`; }
+
+function people(){const [page,roles]=state.data,items=pageItems(page),q=state.route.query;return `${filterBar(`<label>Nome ou e-mail<input name="q" value="${esc(q.q||"")}" placeholder="Buscar pessoa"></label><label>Cargo<select name="role"><option value="">Todos</option>${roles.filter(r=>r.status==="ACTIVE").map(r=>`<option value="${r.id}" ${sel(q.role,r.id)}>${esc(r.name)}</option>`).join("")}</select></label><label>Nível<input name="level" value="${esc(q.level||"")}" placeholder="Todos"></label>`,"people-filter")}${panel(`${page.total??items.length} pessoas`,items.length?`<div class="row-list">${items.map(p=>`<a class="row" data-link href="/manage/people/${p.id}/career-plan"><div><strong>${esc(p.name)}</strong><small>${esc(p.email)} · ${esc(p.jobRoleName||"Cargo não definido")} · ${esc(p.currentLevel||"—")} → ${esc(p.targetLevel||"—")}</small></div><span>›</span></a>`).join("")}</div>`:empty("Nenhuma pessoa encontrada."),pager(page,"/manage/people"),"fill")}`;}
+function personEvidence(){const [person,page]=state.data,items=pageItems(page),q=state.route.query;return `${personHeader(person)}${personTabs(person,"evidence")}${filterBar(`<label>Status<select name="status"><option value="">Todos</option>${["pending","dismissed","analyzed"].map(value=>`<option value="${value}" ${sel(q.status,value)}>${labelStatus(value.toUpperCase())}</option>`).join("")}</select></label><label>Fonte<input name="source" value="${esc(q.source||"")}" placeholder="Todas"></label>${dateFields(q)}`,"person-evidence-filter")}${panel(`${page.total??items.length} evidências`,items.length?`<div class="row-list">${items.map(e=>evidenceRow(e,person.id)).join("")}</div>`:empty("Nenhuma evidência encontrada."),pager(page,`/manage/people/${person.id}/evidence`),"fill")}`;}
+function personAnalyses(){const [person,page]=state.data,items=pageItems(page),q=state.route.query;return `${personHeader(person)}${personTabs(person,"analyses")}${filterBar(`<label>Revisão<select name="review"><option value="">Todas</option>${["unreviewed","needs-context","accepted"].map(value=>`<option value="${value}" ${sel(q.review,value)}>${labelStatus(value.replace("needs-context","NEEDS_CONTEXT").toUpperCase())}</option>`).join("")}</select></label><label>Fonte<input name="source" value="${esc(q.source||"")}" placeholder="Todas"></label>${dateFields(q)}`,"person-analyses-filter")}${panel(`${page.total??items.length} análises`,items.length?`<div class="row-list">${items.map(a=>analysisRow(a,person.id)).join("")}</div>`:empty("Nenhuma análise encontrada."),pager(page,`/manage/people/${person.id}/analyses`),"fill")}`;}
+function reviews(){const page=state.data,items=pageItems(page),q=state.route.query,counts=page.counts||{};return `${filterBar(`<label>Status<select name="status"><option value="unreviewed" ${sel(q.status||"unreviewed","unreviewed")}>Não revisadas (${counts.UNREVIEWED||0})</option><option value="needs-context" ${sel(q.status,"needs-context")}>Precisam de contexto (${counts.NEEDS_CONTEXT||0})</option><option value="accepted" ${sel(q.status,"accepted")}>Aceitas (${counts.ACCEPTED||0})</option></select></label><label>Pessoa<input name="employee" inputmode="numeric" value="${esc(q.employee||"")}" placeholder="ID"></label>`,"reviews-filter")}${panel(`${page.total??items.length} revisões`,items.length?`<div class="row-list">${items.map(i=>`<a class="row" data-link href="/workspace/people/${i.ownerId}/analyses/${i.analysisId}?view=review"><div><strong>${esc(i.employeeName)} · ${esc(i.sourceMeta||i.source)}</strong><small>${dateTime(i.createdAt)} · ${labelStatus(i.currentStatus)}</small></div><span class="badge">${labelStatus(i.currentStatus)}</span><span>›</span></a>`).join("")}</div>`:empty("Não há análises nesta fila."),pager(page,"/manage/reviews"),"fill")}`;}
+
+function terminology(){const s=state.data,l=s.labels||{},saved=draft("terminology")||{};return `${configTabs("terminology")}${panel("Seis termos da organização",`<form id="terminology-form" class="form-grid">${Object.entries(l).map(([k,v])=>`<label>${esc(k)}<input name="${esc(k)}" value="${esc(saved[k]??v)}" maxlength="80" required></label>`).join("")}</form><aside class="note"><strong>Prévia</strong><p>${Object.values({...l,...saved}).map(esc).join(" · ")}</p></aside>`,`<button class="button primary" type="submit" form="terminology-form">Salvar terminologia</button>`,"fill")}`;}
+function roles(){const [roles,framework]=state.data;if(state.route.id==="roles")return `${configTabs("roles")}${panel("Catálogo de cargos",`<div class="row-list">${roles.map(r=>`<a class="row" data-link href="/manage/career/roles/${r.id}"><div><strong>${esc(r.name)}</strong><small>${esc(r.description||"")} · ${(r.allowedLevelIds||[]).map(esc).join(", ")}</small></div><span class="badge">${r.status==="ACTIVE"?"Ativo":"Arquivado"}</span><span>›</span></a>`).join("")}</div>`,`<a class="button primary" data-link href="/manage/career/roles/new">Novo cargo</a>`,"fill")}`;const current=state.route.id==="role"?roles.find(r=>r.id===state.route.params.roleId):null;if(state.route.id==="role"&&!current)return empty("Cargo não encontrado.");const levels=framework.levels||[],saved=draft(roleDraftKey())||{},allowed=saved.allowedLevelIds??current?.allowedLevelIds??[];return `${configTabs("roles")}${panel(current?esc(current.name):"Novo cargo",`<form id="role-form" class="form-grid"><label>Nome<input name="name" value="${esc(saved.name??current?.name??"")}" maxlength="120" required ${current?.status==="ARCHIVED"?"disabled":""}></label><label class="wide">Descrição<textarea name="description" rows="5" maxlength="1000" ${current?.status==="ARCHIVED"?"disabled":""}>${esc(saved.description??current?.description??"")}</textarea></label><fieldset class="wide"><legend>Níveis permitidos</legend><div class="checks">${levels.map(l=>`<label><input type="checkbox" name="allowedLevelIds" value="${esc(l.key)}" ${allowed.includes(l.key)?"checked":""} ${current?.status==="ARCHIVED"?"disabled":""}>${esc(l.key)} · ${esc(l.title)}</label>`).join("")}</div></fieldset></form>`,current?.status==="ARCHIVED"?`<span class="note">Cargo arquivado: somente leitura.</span>`:`${current?'<button class="button danger" data-action="archive-role">Arquivar</button>':""}<button class="button primary" type="submit" form="role-form">Salvar cargo</button>`,"fill")}`;}
+function managerFramework(){const f=state.data;return `${configTabs("framework")}${panel("Estrutura oficial",`<p class="note">Versão ${esc(f.version||"atual")} · somente leitura</p>${(f.levels||[]).map(l=>`<details><summary><strong>${esc(l.key)} · ${esc(l.title)}</strong> <span>${l.criteria?.length||0} critérios</span></summary><div class="reading">${(l.criteria||[]).map(c=>`<article><h3>${esc(c.key)}</h3><p>${esc(c.description||"")}</p><small>${esc(c.id)}</small></article>`).join("")}</div></details>`).join("")}`,"","fill")}`;}
+
+function github(){const s=state.data,view=state.route.query.view||"connection",saved=draft("github-settings")||{};return `${tabs([["/app/integrations/github?view=connection","Conexão"],["/app/integrations/github?view=sync","Sincronização"]],view)}${view==="connection"?panel("Conexão com o GitHub",`<form id="github-form" class="form-grid"><label>Repositório<input name="repoSlug" value="${esc(saved.repoSlug??s.repoSlug??"")}" placeholder="organizacao/repositorio" required></label><label>Autor<input name="authorLogin" value="${esc(saved.authorLogin??s.authorLogin??"")}" placeholder="login-github" required></label></form><p class="note">A configuração é pessoal e usada apenas para localizar pull requests do autor informado.</p>`,`<button class="button danger" data-action="disconnect-github" ${s.configured?"":"disabled"}>Desconectar</button><button class="button" data-action="test-github">Testar conexão</button><button class="button primary" type="submit" form="github-form">Salvar</button>`,"fill"):panel("Sincronização do GitHub",`<dl class="details"><div><dt>Repositório</dt><dd>${esc(s.repoSlug||"Não configurado")}</dd></div><div><dt>Última sincronização</dt><dd>${s.lastSyncAt?dateTime(s.lastSyncAt):"Ainda não executada"}</dd></div><div><dt>Resultado</dt><dd>${esc(s.lastSyncOutcome||"Não informado")}</dd></div></dl>`,`<a class="button" data-link href="/app/inbox?status=pending">Ver caixa de entrada</a><button class="button primary" data-action="sync-github" ${s.configured?"":"disabled"}>Sincronizar agora</button>`,"fill")}`;}
+function integrations(){const s=state.data;return panel("Integrações disponíveis",`<a class="integration-row" data-link href="/app/integrations/github"><div class="integration-mark">GH</div><div><strong>GitHub</strong><small>${s.configured?`Conectado a ${esc(s.repoSlug)}`:"Configuração pendente"}</small><p>Capture e sincronize pull requests do seu repositório.</p></div><span>›</span></a><p class="note">Registros históricos de Slack e Jira continuam legíveis; novas capturas integradas são feitas pelo GitHub.</p>`,"","fill");}
+function githubImport(){const saved=draft("github-import")||{};return panel("Localizar pull requests",`<form id="github-import-form" class="form-grid"><label>Repositório<input name="repoSlug" value="${esc(saved.repoSlug||"")}" placeholder="organizacao/repositorio" required></label><label>Autor<input name="authorLogin" value="${esc(saved.authorLogin||"")}" placeholder="login-github" required></label></form><div id="github-results">${empty("Informe um repositório e autor para pesquisar.")}</div>`,`<button class="button primary" type="submit" form="github-import-form">Pesquisar</button>`,"fill");}
+
+function evidenceDetail(){
+  const e=state.data,owner=Number(state.route.params.ownerId)===Number(state.user.id)&&state.user.role==="EMPLOYEE";
+  const observation=owner?draft("evidence:"+e.id)?.observation||"":"";
+  const sourceLink=e.sourceUrl?`<p><a href="${safeExternal(e.sourceUrl)}" target="_blank" rel="noopener noreferrer">Abrir fonte original ↗</a></p>`:"";
+  const ownerField=owner?`<label>Observação opcional<textarea id="observation" rows="10" maxlength="2000">${esc(observation)}</textarea><small data-count-for="observation">${observation.length}/2000</small><span class="note">Separada da fonte original.</span></label>`:`<aside class="note">Visualização gerencial somente leitura.</aside>`;
+  const body=`<div class="statusline"><span class="badge purple">${labelStatus(e.status)}</span><span>Fonte imutável · ${dateTime(e.occurredAt||e.capturedAt)}</span></div><div class="grid-two"><div class="reading source-text"><h3>Conteúdo capturado</h3><p>${esc(e.content||"")}</p>${sourceLink}</div>${ownerField}</div>`;
+  const footer=owner&&e.status==="PENDING"?`<button class="button danger" data-action="dismiss-evidence">Dispensar</button><button class="button primary" data-action="analyze-evidence">Analisar evidência</button>`:e.analysisId?`<a class="button primary" data-link href="/workspace/people/${e.ownerId}/analyses/${e.analysisId}">Abrir análise</a>`:`<span class="note">Nenhuma ação disponível.</span>`;
+  return `${breadcrumbs([[owner?"/app/inbox?status=pending":`/manage/people/${e.ownerId}/evidence`,owner?"Caixa de entrada":"Evidências"]])}${panel(esc(e.sourceMeta||e.source),body,footer,"fill")}`;
+}
+function analysisDetail(){
+  const [a,reviews]=state.data,view=state.route.query.view||"summary",manager=state.user.role==="MANAGER";
+  const base=`/workspace/people/${a.ownerId}/analyses/${a.analysisId}`,history=reviews.history||[];
+  let body;
+  if(view==="source") body=`<div class="reading source-text"><h3>Fonte preservada</h3><p>${esc(a.evidence||"")}</p><h3>Observação no momento da análise</h3><p>${esc(a.userObservation||"Nenhuma observação registrada.")}</p></div>`;
+  else if(view==="history") body=history.length?`<ol class="timeline">${history.map(r=>`<li><span class="badge">${labelStatus(r.status)}</span><small>${esc(r.reviewerName)} · ${dateTime(r.createdAt)}</small><p>${esc(r.comment||"Sem comentário.")}</p></li>`).join("")}</ol>`:empty("Esta análise ainda não foi revisada.");
+  else if(view==="review"&&manager){const reviewDraft=draft("review:"+a.analysisId)?.comment||"";body=`<form id="review-form"><p>Esta decisão cria um novo evento; o histórico anterior não é editado.</p><label>Comentário opcional<textarea name="comment" rows="8" maxlength="2000">${esc(reviewDraft)}</textarea><small>${reviewDraft.length}/2.000 caracteres</small></label><input type="hidden" name="expectedLatestReviewId" value="${history.at(-1)?.id||0}"></form>`;}
+  else body=`<div class="summary"><div><small>Impacto estimado</small><strong>${esc(a.impactLevel||"Não informado")}</strong></div><div><span class="badge">Confiança ${confidence(a.confidence)}</span><p>Contexto histórico: ${esc(a.currentLevel||"—")} → ${esc(a.targetLevel||"—")}</p></div></div><div class="reading"><h3>Justificativa</h3><p>${esc(a.justification||"Não informada.")}</p><h3>Competências identificadas</h3><div>${(a.competencies||[]).map(x=>`<span class="tag">${esc(x)}</span>`).join(" ")||"Não informadas"}</div><h3>Sugestões</h3><ul>${(a.suggestions||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul><p class="note">A análise organiza sinais de impacto. Ela não decide uma promoção.</p></div>`;
+  const views=[[`${base}?view=summary`,"Resumo"],[`${base}?view=source`,"Fonte"],[`${base}?view=history`,"Histórico"]];
+  if(manager) views.push([`${base}?view=review`,"Revisar"]);
+  const footer=view==="review"&&manager?`<button class="button" data-review="NEEDS_CONTEXT">Solicitar contexto</button><button class="button primary" data-review="ACCEPTED">Aceitar análise</button>`:`<span class="badge">${labelStatus(reviews.currentStatus)}</span>`;
+  return `${breadcrumbs([[manager?`/manage/people/${a.ownerId}/analyses`:"/app/analyses",manager?"Análises da pessoa":"Análises"]])}${tabs(views,view)}${panel(esc(a.sourceMeta||a.source),body,footer,"fill")}`;
+}
+
+async function onClick(event){const link=event.target.closest("a[data-link]");if(link&&!event.defaultPrevented&&!event.metaKey&&!event.ctrlKey&&!event.shiftKey&&event.button===0){event.preventDefault();if(await allowNavigation())go(link.href);return;}const button=event.target.closest("button[data-action],button[data-review]");if(!button)return;const action=button.dataset.action,reviewButtons=button.dataset.review?[...document.querySelectorAll("button[data-review]")]:[];try{if(action==="open-menu")return openMenu(button);if(action==="close-menu")return closeMenu();if(action==="logout"){await logoutUser();clearAuthSession();state.user=null;state.returnTo=null;state.expiring=false;state.drafts.clear();return go("/", "replace");}if(action==="retry")return navigate(location.href,{history:"none"});if(action==="account")return showDialog("Sua conta",`<p><strong>${esc(state.user.name)}</strong><br>${esc(state.user.email)}<br>${state.user.role==="MANAGER"?"Gestor":"Funcionário"}</p>`,[{label:"Fechar"}]);if(action==="clear-analyses")return confirmAction("Limpar histórico", "As análises salvas e suas revisões serão removidas. As evidências capturadas serão preservadas.", async()=>{await api.clearAnalyses(state.route.query);toast("Histórico removido.");navigate(location.href,{history:"none"});});if(action==="dismiss-evidence")return confirmAction("Dispensar evidência", "A fonte será preservada e sairá das pendências. O fluxo atual não oferece restauração.", async()=>{await api.dismissEvidence(state.data.id);state.drafts.delete(`evidence:${state.data.id}`);go("/app/inbox?status=pending","replace");});if(action==="analyze-evidence"){disable(button,"Analisando…");const result=await api.analyzeEvidence(state.data.id,document.querySelector("#observation")?.value);state.drafts.delete(`evidence:${state.data.id}`);return go(`/workspace/people/${state.user.id}/analyses/${result.analysisId}`,"replace");}if(action==="sync-github"){disable(button,"Sincronizando…");const result=await api.syncGithub();toast(`${result.created} novas; ${result.existing} já existentes.`);return navigate(location.href,{history:"none"});}if(action==="test-github"){disable(button,"Testando…");await api.testGithub();toast("Conexão validada.");button.disabled=false;button.textContent="Testar conexão";}if(action==="disconnect-github")return confirmAction("Desconectar GitHub", "A configuração será removida. Evidências já capturadas permanecem.",async()=>{await api.clearGithub();state.drafts.delete("github-settings");navigate(location.href,{history:"none"});});if(action==="archive-role")return confirmAction("Arquivar cargo", "Se houver pessoas atribuídas, o servidor exigirá um cargo substituto compatível.",async()=>{await api.archiveRole(state.route.params.roleId,null);go("/manage/career/roles","replace");});if(button.dataset.review){reviewButtons.forEach(candidate=>disable(candidate,"Registrando…"));const form=new FormData(document.querySelector("#review-form"));await api.review(state.route.params.ownerId,state.route.params.analysisId,{status:button.dataset.review,comment:form.get("comment")||null,expectedLatestReviewId:Number(form.get("expectedLatestReviewId")),idempotencyKey:crypto.randomUUID()});state.drafts.delete(`review:${state.route.params.analysisId}`);toast("Revisão registrada.");return go(`${location.pathname}?view=history`,"replace");}}catch(error){(reviewButtons.length?reviewButtons:[button]).forEach(restoreButton);toast(error.message||"A operação não foi concluída.",true);}}
+
+async function onSubmit(event){const form=event.target;if(form.method==="dialog")return;event.preventDefault();if(form.id==="plan-form"&&!validateCharacteristics(form.elements.characteristics))return;if(form.id==="role-form"&&!validateRoleLevels(form))return;const fd=new FormData(form);try{setFormBusy(form,true);if(form.dataset.authForm){const response=form.dataset.authForm==="login"?await loginUser({email:fd.get("email"),password:fd.get("password")}):await registerUser({name:fd.get("name"),email:fd.get("email"),password:fd.get("password")});saveAuthSession(response.token,response.user);state.user=response.user;state.validated=true;state.expiring=false;const requested=safeReturnTo(new URLSearchParams(location.search).get("returnTo"));state.returnTo=null;return go(requested&&canAccess(matchRoute(requested),state.user)?requested:roleHome(state.user),"replace");}if(["inbox-filter","analyses-filter","reports-filter","framework-filter","people-filter","reviews-filter","person-evidence-filter","person-analyses-filter"].includes(form.id))return applyFilters(form);if(form.id==="plan-form"){await api.updatePlan(state.route.params.employeeId,{jobRoleId:Number(fd.get("jobRoleId")),currentLevel:fd.get("currentLevel"),targetLevel:fd.get("targetLevel"),characteristics:String(fd.get("characteristics")||"").split("\n").map(x=>x.trim()).filter(Boolean),expectedUpdatedAt:fd.get("expectedUpdatedAt")||null});state.drafts.delete(planDraftKey());toast("Contexto salvo.");return navigate(location.href,{history:"none"});}if(form.id==="objective-form"){const body={text:fd.get("text"),status:fd.get("status"),targetDate:fd.get("targetDate")||null,expectedUpdatedAt:fd.get("expectedUpdatedAt")||null};if(state.route.id==="objective-new")await api.createObjective(state.route.params.employeeId,body);else await api.updateObjective(state.route.params.employeeId,state.route.params.objectiveId,body);state.drafts.delete(objectiveDraftKey());toast("Objetivo salvo.");return go(`/manage/people/${state.route.params.employeeId}/career-plan`,'replace');}if(form.id==="terminology-form"){await api.terminology(Object.fromEntries(fd));state.drafts.delete("terminology");toast("Terminologia salva.");return navigate(location.href,{history:"none"});}if(form.id==="role-form"){const body={name:fd.get("name"),description:fd.get("description"),allowedLevelIds:fd.getAll("allowedLevelIds")};if(state.route.id==="role-new")await api.createRole(body);else await api.updateRole(state.route.params.roleId,body);state.drafts.delete(roleDraftKey());toast("Cargo salvo.");return go("/manage/career/roles","replace");}if(form.id==="github-form"){await api.saveGithub({repoSlug:fd.get("repoSlug"),authorLogin:fd.get("authorLogin")});state.drafts.delete("github-settings");toast("Configuração salva.");return navigate(location.href,{history:"none"});}if(form.id==="github-import-form")return searchGithub(form,fd);}catch(error){toast(error.message||"Não foi possível salvar. Seus dados permanecem no formulário.",true);}finally{setFormBusy(form,false);}}
+
+function onInput(event){const el=event.target,form=el.form;if(el.id==="observation"){state.drafts.set(`evidence:${state.data.id}`,{observation:el.value});count(el);}if(form?.id==="review-form")state.drafts.set(`review:${state.route.params.analysisId}`,{comment:form.elements.comment.value});if(form?.id==="objective-form")captureDraft(objectiveDraftKey(),form);if(form?.id==="plan-form"){el.setCustomValidity("");captureDraft(planDraftKey(),form);}if(form?.id==="terminology-form")captureDraft("terminology",form);if(form?.id==="role-form"){form.querySelector('input[name="allowedLevelIds"]')?.setCustomValidity("");captureDraft(roleDraftKey(),form);}if(form?.id==="github-form")captureDraft("github-settings",form);if(form?.id==="github-import-form")captureDraft("github-import",form);}
+function applyFilters(form){const url=new URL(location.href);url.search="";new FormData(form).forEach((v,k)=>{if(v)url.searchParams.set(k,v)});url.searchParams.set("page","1");go(url.pathname+url.search);}
+function go(path,history="push"){return navigate(new URL(path,location.href).href,{history});}
+function redirectToLogin(destination=state.returnTo){const preserved=safeReturnTo(destination),target=`/login${preserved?`?returnTo=${encodeURIComponent(preserved)}`:""}`;if(`${location.pathname}${location.search}`!==target)history.replaceState({},"",target);state.route=matchRoute(location);state.loading=false;render();}
+function expireSession(){if(state.expiring)return;state.expiring=true;state.epoch+=1;state.controller?.abort();state.user=null;state.validated=false;state.data=null;state.drafts.clear();redirectToLogin();}
+function renderForbidden(){const mount=document.querySelector("#application-root");mount.innerHTML=shell(`<section class="workspace">${publicState("Permissão necessária",state.error,false,"section")}</section>`);bindDrawerDialog();requestAnimationFrame(()=>document.querySelector("#route-title")?.focus({preventScroll:true}));}
+
+function landing(){return `<div class="public-page"><header class="public-nav"><a class="brand" href="/" data-link><img src="/frontend/assets/promova-symbol.png" alt=""><span>promova</span></a><nav><a href="#how">Como funciona</a><a class="button" href="/login" data-link>Entrar</a></nav></header><main><section class="public-hero"><div><p class="eyebrow">Evidências para conversas melhores</p><h1>Transforme trabalho real em contexto de carreira.</h1><p>Capture pull requests do GitHub, organize evidências e conecte resultados ao framework da sua organização.</p><div class="actions"><a class="button primary" href="/register" data-link>Criar conta</a><a class="button" href="#how">Conhecer o fluxo</a></div></div><div class="hero-preview" aria-label="Prévia do produto"><span class="badge purple">PR #7 · GitHub</span><h2>Evidência pronta para revisar</h2><p>Fonte preservada, observação separada e análise vinculada ao framework.</p><div class="progress"><span style="width:68%"></span></div></div></section><section id="how" class="public-section"><h2>Do trabalho à conversa de carreira</h2><div class="grid-three"><article><strong>1 · Capture</strong><p>Importe pull requests sem reescrever o trabalho.</p></article><article><strong>2 · Contextualize</strong><p>Acrescente sua observação sem alterar a fonte.</p></article><article><strong>3 · Converse</strong><p>Compartilhe análises e histórico de revisão.</p></article></div><p class="note">Hoje, a captura integrada disponível é GitHub. Registros históricos de outras fontes permanecem legíveis.</p></section></main><footer>Promova · Evidências com contexto, não decisões automáticas.</footer></div>`;}
+function auth(){const login=state.route.id==="login",returnTo=safeReturnTo(new URLSearchParams(location.search).get("returnTo"));return `<div class="auth-page"><a class="brand" href="/" data-link><img src="/frontend/assets/promova-symbol.png" alt=""><span>promova</span></a><main><section class="auth-card"><p class="eyebrow">${login?"Bem-vindo de volta":"Comece com seu trabalho real"}</p><h1 id="route-title" tabindex="-1">${login?"Entrar":"Criar conta"}</h1><p>${login?"Acesse seu espaço pessoal ou de gestão.":"Crie seu acesso para organizar evidências de carreira."}</p><form data-auth-form="${login?"login":"register"}">${login?"":'<label>Nome completo<input name="name" autocomplete="name" required></label>'}<label>E-mail<input type="email" name="email" autocomplete="email" required></label><label>Senha<input type="password" name="password" autocomplete="${login?"current-password":"new-password"}" minlength="6" required></label><button class="button primary" type="submit">${login?"Entrar":"Criar conta"}</button></form><p>${login?"Ainda não tem uma conta?":"Já tem uma conta?"} <a data-link href="/${login?"register":"login"}${returnTo?`?returnTo=${encodeURIComponent(returnTo)}`:""}">${login?"Criar conta":"Entrar"}</a></p></section></main></div>`;}
+
+function primaryAction(){if(state.route.id==="inbox")return `<a class="button primary" data-link href="/app/integrations/github/import">Importar PR</a>`;if(state.route.id==="roles")return `<a class="button primary" data-link href="/manage/career/roles/new">Novo cargo</a>`;return "";}
+function panel(title,body,footer="",cls=""){return `<section class="panel ${cls}"><header><h2>${title}</h2></header><div class="panel-body">${body}</div>${footer?`<footer>${footer}</footer>`:""}</section>`;}
+function filterBar(fields,id){return `<form class="filters" id="${id}">${fields}<button class="button" type="submit">Aplicar filtros</button></form>`;}
+function dateFields(q){return `<label>De<input type="date" name="from" value="${esc(q.from||"")}"></label><label>Até<input type="date" name="to" value="${esc(q.to||"")}"></label>`;}
+function evidenceRow(e,ownerId=state.user.id){return `<a class="row" data-link href="/workspace/people/${ownerId}/evidence/${e.id}"><div><strong>${esc(e.sourceMeta||e.externalId||e.source)}</strong><small>${esc(e.source)} · ${dateTime(e.occurredAt||e.capturedAt)}</small></div><span class="badge ${e.status==="PENDING"?"purple":""}">${labelStatus(e.status)}</span><span>›</span></a>`;}
+function analysisRow(a,ownerId=state.user.id){return `<a class="row" data-link href="/workspace/people/${ownerId}/analyses/${a.analysisId||a.id}"><div><strong>${esc(a.sourceMeta||a.source)}</strong><small>${esc(a.source)} · Confiança ${confidence(a.confidence)} · Impacto ${esc(a.impactLevel||"não informado")} · ${dateTime(a.createdAt)}</small></div><span class="badge">${labelStatus(a.currentReviewStatus||"UNREVIEWED")}</span><span>›</span></a>`;}
+function personHeader(p){return `<section class="person-head"><span class="avatar">${initials(p.name)}</span><div><strong>${esc(p.name)}</strong><small>${esc(p.email)}</small></div><div><span class="tag">${esc(p.jobRoleName||"Cargo não definido")}</span><span class="tag">${esc(p.currentLevel||"—")} → ${esc(p.targetLevel||"—")}</span></div></section>`;}
+function personTabs(p,active){const b=`/manage/people/${p.id}`;return tabs([[`${b}/career-plan`,"Plano de carreira"],[`${b}/evidence`,"Evidências"],[`${b}/analyses`,"Análises"]],active);}
+function configTabs(active){return tabs([["/manage/career/roles","Cargos"],["/manage/career/terminology","Terminologia"],["/manage/career/framework","Framework"]],active);}
+function tabs(items,active){return `<nav class="tabs" aria-label="Seções">${items.map(([href,label])=>`<a data-link href="${href}" ${href.includes(active)||label.toLowerCase().startsWith(active)?'aria-current="page"':''}>${esc(label)}</a>`).join("")}</nav>`;}
+function breadcrumbs(items){return `<nav class="breadcrumbs" aria-label="Navegação estrutural">${items.map(([href,label])=>`<a data-link href="${href}">← ${esc(label)}</a>`).join("")}</nav>`;}
+function pager(page,base){if(!page||page.total===undefined)return "";const q=new URLSearchParams(state.route.query);const current=page.page||1,max=Math.max(1,Math.ceil(page.total/page.pageSize));const linkTo=n=>{q.set("page",n);return `${base}?${q}`};return `<span>${page.total?`${(current-1)*page.pageSize+1}–${Math.min(current*page.pageSize,page.total)} de ${page.total}`:"0 resultados"}</span><div class="actions"><a class="button ${current<=1?"disabled":""}" ${current>1?'data-link':''} href="${linkTo(current-1)}" aria-disabled="${current<=1}">Anterior</a><a class="button ${current>=max?"disabled":""}" ${current<max?'data-link':''} href="${linkTo(current+1)}" aria-disabled="${current>=max}">Próxima</a></div>`;}
+function loading(){return `<section class="panel fill" aria-busy="true" aria-live="polite"><div class="loading"><span class="spinner"></span><h2>Carregando conteúdo</h2><p>Validando dados desta página…</p></div></section>`;}
+function errorState(){return panel("Não foi possível carregar",`<div class="state"><div aria-hidden="true">!</div><h2>Tente novamente</h2><p>${esc(state.error)}</p><button class="button primary" data-action="retry">Tentar novamente</button></div>`,"","fill");}
+function empty(message){return `<div class="empty"><span aria-hidden="true">◇</span><p>${esc(message)}</p></div>`;}
+function publicState(title,message,retry=false,tag="main"){return `<${tag} class="public-state"><a class="brand" href="/" data-link><img src="/frontend/assets/promova-symbol.png" alt=""><span>promova</span></a><section><h1 id="route-title" tabindex="-1">${esc(title)}</h1><p>${esc(message)}</p>${retry?'<button class="button primary" data-action="retry">Tentar novamente</button>':'<a class="button primary" href="/" data-link>Voltar ao início</a>'}</section></${tag}>`;}
+
+function dialogMarkup(){return `<dialog id="action-dialog"><form method="dialog"><header><h2 id="dialog-title">Confirmar</h2><button type="submit" value="cancel" aria-label="Fechar">×</button></header><div id="dialog-body"></div><footer id="dialog-actions"></footer></form></dialog>`;}
+function showDialog(title,body,actions){const d=document.querySelector("#action-dialog");state.dialogTrigger=document.activeElement;d.querySelector("#dialog-title").textContent=title;d.querySelector("#dialog-body").innerHTML=body;const foot=d.querySelector("#dialog-actions");foot.innerHTML="";actions.forEach(({label,value="cancel",className="button"})=>{const b=document.createElement("button");b.value=value;b.textContent=label;b.className=className;foot.append(b)});d.showModal();return d;}
+function confirmAction(title,message,callback){const d=showDialog(title,`<p>${esc(message)}</p>`,[{label:"Cancelar"},{label:"Confirmar",value:"confirm",className:"button danger"}]);d.addEventListener("close",async function once(){d.removeEventListener("close",once);if(d.returnValue==="confirm")try{await callback();}catch(error){toast(error.message||"A operação não foi concluída.",true);}},{once:true});}
+function onArchiveRole(event){const button=event.target.closest('[data-action="archive-role"]');if(!button)return;event.preventDefault();event.stopImmediatePropagation();showArchiveDialog(false);}
+function showArchiveDialog(required,affectedCount){const [roles]=state.data;const currentId=state.route.params.roleId;const candidates=roles.filter(role=>role.status==="ACTIVE"&&role.id!==currentId);const explanation=required?`<p class="note">${affectedCount||"Uma ou mais"} pessoas usam este cargo. Selecione um cargo ativo compatível para substituí-lo.</p>`:"<p>O cargo ficará somente leitura e não poderá ser atribuído novamente. Se houver pessoas vinculadas, escolha uma substituição.</p>";const options=`<label>Cargo substituto<select id="replacement-role" ${required?"required":""}><option value="">${required?"Selecione um cargo":"Nenhum, se não houver pessoas"}</option>${candidates.map(role=>`<option value="${role.id}">${esc(role.name)}</option>`).join("")}</select></label>`;const dialog=showDialog("Arquivar cargo",explanation+options,[{label:"Cancelar"},{label:"Arquivar",value:"confirm",className:"button danger"}]);dialog.addEventListener("close",async()=>{if(dialog.returnValue!=="confirm")return;const replacement=numberOrNull(document.querySelector("#replacement-role")?.value);if(required&&!replacement){toast("Selecione um cargo substituto.",true);return showArchiveDialog(true,affectedCount);}try{await api.archiveRole(currentId,replacement);toast("Cargo arquivado.");go("/manage/career/roles","replace");}catch(error){if(error.status===409&&!replacement)return showArchiveDialog(true,error.details?.affectedCount);toast(error.message||"Não foi possível arquivar o cargo.",true);}},{once:true});}
+async function allowNavigation(){if(!state.drafts.size)return true;return new Promise(resolve=>{const d=showDialog("Alterações não salvas","<p>Há texto não salvo nesta página. Continue editando ou descarte para sair.</p>",[{label:"Continuar editando"},{label:"Descartar e sair",value:"discard",className:"button danger"}]);d.addEventListener("close",()=>{if(d.returnValue==="discard")state.drafts.clear();resolve(d.returnValue==="discard")},{once:true});});}
+async function onPopState(){const destination=location.href,previous=state.route?canonicalUrl(state.route):"/";if(await allowNavigation())return navigate(destination,{history:"none"});history.pushState({},"",previous);}
+function bindDrawerDialog(){const sidebar=document.querySelector("#navigation");if(!sidebar)return;sidebar.addEventListener("keydown",event=>{if(event.key==="Escape")closeMenu();if(event.key==="Tab"&&matchMedia("(max-width: 899px)").matches){const nodes=[...sidebar.querySelectorAll("a,button")];const first=nodes[0],last=nodes.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}}});}
+function bindActionDialog(){const dialog=document.querySelector("#action-dialog");dialog.addEventListener("keydown",event=>{if(event.key!=="Tab")return;const nodes=[...dialog.querySelectorAll("button:not(:disabled),input:not(:disabled),select:not(:disabled),textarea:not(:disabled),a[href]")];const first=nodes[0],last=nodes.at(-1);if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus();}else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus();}});dialog.addEventListener("close",()=>state.dialogTrigger?.focus());}
+function openMenu(trigger){const sidebar=document.querySelector("#navigation");sidebar.classList.add("open");sidebar.setAttribute("role","dialog");sidebar.setAttribute("aria-modal","true");document.querySelector(".shell-main")?.setAttribute("inert","");trigger.setAttribute("aria-expanded","true");state.menuTrigger=trigger;sidebar.querySelector("a")?.focus();document.body.classList.add("drawer-open");}
+function closeMenu(returnFocus=true){const sidebar=document.querySelector("#navigation");sidebar?.classList.remove("open");sidebar?.removeAttribute("role");sidebar?.removeAttribute("aria-modal");document.querySelector(".shell-main")?.removeAttribute("inert");state.menuTrigger?.setAttribute("aria-expanded","false");if(returnFocus)state.menuTrigger?.focus();document.body.classList.remove("drawer-open");}
+function onDrawerNavigation(event){if(event.target.closest("#navigation.open a[data-link]"))closeMenu(false);}
+function toast(message,error=false){const el=document.querySelector("#toast");el.textContent=message;el.classList.toggle("error",error);el.classList.add("visible");clearTimeout(state.toastTimer);state.toastTimer=setTimeout(()=>el.classList.remove("visible"),5000);}
+function disable(button,label){button.disabled=true;button.dataset.original=button.textContent;button.textContent=label;}
+function restoreButton(button){button.disabled=false;if(button.dataset.original){button.textContent=button.dataset.original;delete button.dataset.original;}}
+function setFormBusy(form,busy){if(form.classList.contains("filters"))return;form.querySelectorAll("button,input,select,textarea").forEach(el=>{if(el.type!=="hidden")el.disabled=busy});}
+function count(el){const c=document.querySelector(`[data-count-for="${el.id}"]`);if(c)c.textContent=`${el.value.length}/2000`;}
+function draft(key){return state.drafts.get(key);}
+function captureDraft(key,form){const data={};for(const [name,value] of new FormData(form)){if(name==="expectedUpdatedAt")continue;if(name==="allowedLevelIds"){(data[name]??=[]).push(value);}else data[name]=value;}if(form.id==="role-form"&&!data.allowedLevelIds)data.allowedLevelIds=[];state.drafts.set(key,data);}
+function objectiveDraftKey(){return `objective:${state.route.params.employeeId}:${state.route.params.objectiveId||"new"}`;}
+function planDraftKey(){return `plan:${state.route.params.employeeId}`;}
+function roleDraftKey(){return `role:${state.route.params.roleId||"new"}`;}
+function validateCharacteristics(textarea){const lines=textarea.value.split("\n").map(value=>value.trim()).filter(Boolean);const message=lines.length>10?"Informe no máximo 10 características.":lines.some(value=>value.length>120)?"Cada característica deve ter no máximo 120 caracteres.":"";textarea.setCustomValidity(message);if(message){textarea.reportValidity();return false;}return true;}
+function validateRoleLevels(form){const first=form.querySelector('input[name="allowedLevelIds"]'),valid=form.querySelectorAll('input[name="allowedLevelIds"]:checked').length>=2;first?.setCustomValidity(valid?"":"Selecione ao menos dois níveis permitidos.");if(!valid)first?.reportValidity();return valid;}
+function pageItems(value){return Array.isArray(value)?value:value?.items||[];}
+function sel(a,b){return String(a??"")===String(b??"")?"selected":"";}
+function confidence(v){return ({HIGH:"alta",MEDIUM:"média",LOW:"baixa"}[String(v||"").toUpperCase()]||"não informada");}
+function labelStatus(v){return ({PENDING:"Pendente",DISMISSED:"Dispensada",ANALYZED:"Analisada",UNREVIEWED:"Não revisada",ACCEPTED:"Aceita",NEEDS_CONTEXT:"Precisa de contexto",ACTIVE:"Ativo",COMPLETED:"Concluído",ARCHIVED:"Arquivado"}[v]||"Não informado");}
+function date(v){return v?new Intl.DateTimeFormat("pt-BR",{dateStyle:"medium"}).format(new Date(`${v}T12:00:00`)):"—";}
+function dateTime(v){return v?new Intl.DateTimeFormat("pt-BR",{dateStyle:"medium",timeStyle:"short"}).format(new Date(v)):"Data não informada";}
+function initials(name=""){return name.split(/\s+/).slice(0,2).map(x=>x[0]).join("").toUpperCase()||"P";}
+function safeExternal(value){try{const u=new URL(value);return ["http:","https:"].includes(u.protocol)?esc(u.href):"#";}catch{return "#";}}
+function navActive(href){const route=matchRoute(new URL(href,location.href));if(route.id==="people")return state.route.id.startsWith("person-")||state.route.id.startsWith("objective")||state.route.id==="people";if(route.id==="roles")return ["roles","role","role-new","terminology","manager-framework"].includes(state.route.id);if(route.id==="integrations")return ["integrations","github","github-import"].includes(state.route.id);if(route.id==="analyses")return ["analyses","reports","analysis-detail"].includes(state.route.id)&&state.user?.role==="EMPLOYEE";return route.id===state.route.id;}
+function navIcon(label){return ({"Visão geral":"◈","Caixa de entrada":"▤","Análises":"▥","Framework":"▦","Plano de carreira":"↗","Integrações":"⌘","Pessoas":"◉","Revisões":"▤","Configuração de carreira":"▦"}[label]||"·");}
+function levelOptions(profile,selected){return (profile.levels||[]).map(l=>`<option value="${esc(l.id||l.key)}" ${sel(selected,l.id||l.key)}>${esc(l.id||l.key)} · ${esc(l.title)}</option>`).join("");}
+function numberOrNull(v){return v?Number(v):null;}
+async function searchGithub(form,fd,page=1){const parts=String(fd.get("repoSlug")).split("/").filter(Boolean);if(parts.length!==2)throw new Error("Use o formato organização/repositório.");const result=await api.searchGithub(parts[0],parts[1],`author:${fd.get("authorLogin")}`,page);const root=document.querySelector("#github-results"),items=result.items||[],current=result.page||page,pageSize=result.page_size||8,total=result.total_count??items.length,max=Math.max(1,Math.ceil(total/pageSize));root.innerHTML=items.length?`<div class="row-list">${items.map(pr=>`<button class="row" type="button" data-import-pr="${pr.number}" data-repo="${esc(fd.get("repoSlug"))}"><div><strong>PR #${pr.number} · ${esc(pr.title)}</strong><small>${esc(pr.user?.login||pr.authorLogin||"")}</small></div><span>Importar</span></button>`).join("")}</div><div class="pager"><span>${(current-1)*pageSize+1}–${Math.min(current*pageSize,total)} de ${total}</span><div class="actions"><button class="button" type="button" data-search-page="${current-1}" ${current<=1?"disabled":""}>Anterior</button><button class="button" type="button" data-search-page="${current+1}" ${current>=max?"disabled":""}>Próxima</button></div></div>`:empty("Nenhum pull request encontrado.");root.querySelectorAll("[data-search-page]").forEach(b=>b.addEventListener("click",()=>searchGithub(form,new FormData(form),Number(b.dataset.searchPage)).catch(error=>toast(error.message,true))));root.querySelectorAll("[data-import-pr]").forEach(b=>b.addEventListener("click",async()=>{disable(b,"Importando…");try{const e=await api.captureGithub({repo:b.dataset.repo,pullNumber:Number(b.dataset.importPr),usernameHint:fd.get("authorLogin")});state.drafts.delete("github-import");go(`/workspace/people/${state.user.id}/evidence/${e.id}`);}catch(error){restoreButton(b);toast(error.message,true);}}));}

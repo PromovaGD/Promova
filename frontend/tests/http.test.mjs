@@ -70,6 +70,20 @@ test("authenticated 401 responses still clear the session and notify the app", a
   }
 });
 
+test("read requests forward AbortSignal so stale route loads can be cancelled", async () => {
+  const originalFetch = globalThis.fetch;
+  const controller = new AbortController();
+  globalThis.fetch = async (_url, options) => {
+    assert.equal(options.signal, controller.signal);
+    return new Response(JSON.stringify({ ok: true }), { status: 200 });
+  };
+  try {
+    assert.deepEqual(await apiGet("/resource", null, { auth: false, signal: controller.signal }), { ok: true });
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
 function createStorage(initialValues = {}) {
   const values = new Map(Object.entries(initialValues));
 

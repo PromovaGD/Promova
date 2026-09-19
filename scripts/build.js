@@ -38,6 +38,9 @@ function copyDirectory(source, destination) {
   fs.mkdirSync(destination, { recursive: true });
 
   for (const entry of fs.readdirSync(source, { withFileTypes: true })) {
+    if (entry.isDirectory() && entry.name === "tests") {
+      continue;
+    }
     const sourcePath = path.join(source, entry.name);
     const destinationPath = path.join(destination, entry.name);
 

@@ -1,6 +1,5 @@
-import { API_BASE_URL } from "../config.mjs";
 import { loadAuthToken } from "./auth-store.mjs";
-import { apiDelete, apiGet, apiPost } from "./http.mjs";
+import { apiGet, apiPost } from "./http.mjs";
 
 export async function registerUser(payload) {
   return apiPost("/auth/register", payload, { auth: false });
@@ -25,26 +24,4 @@ export async function logoutUser() {
 
 export async function fetchCurrentUser() {
   return apiGet("/auth/me", null, { auth: true });
-}
-
-export async function fetchEmployees(params = {}) {
-  return apiGet("/manager/employees", params, { auth: true });
-}
-
-export async function fetchEmployeeEvidences(userId, params = {}) {
-  return apiGet(`/manager/employees/${encodeURIComponent(userId)}/evidences`, params, {
-    auth: true,
-  });
-}
-
-export async function fetchEmployeeAnalyses(userId, params) {
-  return apiGet(`/manager/employees/${userId}/analyses`, params, { auth: true });
-}
-
-export async function fetchUserAnalyses(params) {
-  return apiGet("/analyses", params, { auth: true });
-}
-
-export async function clearUserAnalyses(params) {
-  return apiDelete("/analyses", params, { auth: true });
 }

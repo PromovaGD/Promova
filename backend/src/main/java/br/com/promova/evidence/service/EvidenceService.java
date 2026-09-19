@@ -4,11 +4,15 @@ import br.com.promova.evidence.Evidence;
 import br.com.promova.evidence.EvidenceRepository;
 import br.com.promova.evidence.EvidenceStatus;
 import br.com.promova.evidence.dto.EvidenceResponse;
+import br.com.promova.evidence.dto.EvidenceItemResponse;
+import br.com.promova.analysis.persistence.SavedAnalysisRepository;
+import br.com.promova.common.PageResponse;
 import br.com.promova.user.User;
 import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,9 +21,12 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class EvidenceService {
   private final EvidenceRepository evidenceRepository;
+  private final SavedAnalysisRepository savedAnalysisRepository;
 
-  public EvidenceService(EvidenceRepository evidenceRepository) {
+  public EvidenceService(
+      EvidenceRepository evidenceRepository, SavedAnalysisRepository savedAnalysisRepository) {
     this.evidenceRepository = evidenceRepository;
+    this.savedAnalysisRepository = savedAnalysisRepository;
   }
 
   @Transactional(readOnly = true)
@@ -42,6 +49,30 @@ public class EvidenceService {
         .map(EvidenceResponse::from)
         .orElseThrow(
             () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Evidência não encontrada."));
+  }
+
+  @Transactional(readOnly = true)
+  public EvidenceItemResponse getCanonicalForUser(User user, Long evidenceId) {
+    Evidence evidence = findOwnedEntity(user, evidenceId);
+    return toCanonical(evidence);
+  }
+
+  @Transactional(readOnly = true)
+  public PageResponse<EvidenceItemResponse> listForUserPaged(
+      User user,
+      String statusValue,
+      String source,
+      Instant from,
+      Instant to,
+      Pageable pageable) {
+    if (from != null && to != null && from.isAfter(to)) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "from must be before to");
+    }
+    EvidenceStatus status = parseStatus(statusValue);
+    var page =
+        evidenceRepository.findForUserPaged(
+            user.getId(), status, normalizeOptional(source), from, to, pageable);
+    return PageResponse.from(page.map(this::toCanonical));
   }
 
   @Transactional(readOnly = true)
@@ -184,5 +215,18 @@ public class EvidenceService {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, field + " is required");
     }
     return value.trim();
+  }
+
+  private String normalizeOptional(String value) {
+    return value == null || value.isBlank() ? null : value.trim();
+  }
+
+  private EvidenceItemResponse toCanonical(Evidence evidence) {
+    Long analysisId =
+        savedAnalysisRepository
+            .findByEvidenceIdAndUserId(evidence.getId(), evidence.getUser().getId())
+            .map(analysis -> analysis.getId())
+            .orElse(null);
+    return EvidenceItemResponse.from(evidence, analysisId);
   }
 }

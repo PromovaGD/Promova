@@ -2,6 +2,10 @@ package br.com.promova.manager.controller;
 
 import br.com.promova.analysis.dto.SavedAnalysisResponse;
 import br.com.promova.analysis.service.SavedAnalysisService;
+import br.com.promova.analysis.review.service.AnalysisReviewService;
+import br.com.promova.analysis.review.ReviewStatus;
+import br.com.promova.common.PageRequestFactory;
+import br.com.promova.common.PageResponse;
 import br.com.promova.auth.AuthService;
 import br.com.promova.auth.AuthTokenResolver;
 import br.com.promova.evidence.dto.EvidenceResponse;
@@ -39,6 +43,7 @@ public class ManagerController {
   private final CareerProfileRepository careerProfileRepository;
   private final CareerObjectiveRepository careerObjectiveRepository;
   private final EvidenceService evidenceService;
+  private final AnalysisReviewService analysisReviewService;
 
   public ManagerController(
       AuthService authService,
@@ -47,7 +52,8 @@ public class ManagerController {
       SavedAnalysisService savedAnalysisService,
       CareerProfileRepository careerProfileRepository,
       CareerObjectiveRepository careerObjectiveRepository,
-      EvidenceService evidenceService) {
+      EvidenceService evidenceService,
+      AnalysisReviewService analysisReviewService) {
     this.authService = authService;
     this.authTokenResolver = authTokenResolver;
     this.userRepository = userRepository;
@@ -55,18 +61,31 @@ public class ManagerController {
     this.careerProfileRepository = careerProfileRepository;
     this.careerObjectiveRepository = careerObjectiveRepository;
     this.evidenceService = evidenceService;
+    this.analysisReviewService = analysisReviewService;
   }
 
   @GetMapping("/employees")
   @Transactional(readOnly = true)
-  public List<ManagerEmployeeSummaryResponse> employees(
+  public Object employees(
       @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
       @RequestParam(required = false) String query,
       @RequestParam(required = false) Long jobRoleId,
-      @RequestParam(required = false) String level) {
+      @RequestParam(required = false) String level,
+      @RequestParam(required = false) Integer page,
+      @RequestParam(required = false) Integer pageSize) {
     requireManager(authorization);
     String normalizedQuery = normalize(query);
     String normalizedLevel = normalize(level);
+    if (page != null || pageSize != null) {
+      var result =
+          userRepository.searchByRole(
+              UserRole.EMPLOYEE,
+              normalizedQuery,
+              jobRoleId,
+              normalizedLevel,
+              PageRequestFactory.create(page, pageSize));
+      return PageResponse.from(result.map(this::employeeSummary));
+    }
     return userRepository.findByRoleOrderByNameAsc(UserRole.EMPLOYEE).stream()
         .map(this::employeeSummary)
         .filter(
@@ -83,31 +102,99 @@ public class ManagerController {
         .toList();
   }
 
+  @GetMapping("/employees/{userId}")
+  @Transactional(readOnly = true)
+  public ManagerEmployeeSummaryResponse employee(
+      @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+      @PathVariable Long userId) {
+    requireManager(authorization);
+    return employeeSummary(requireEmployee(userId));
+  }
+
   @GetMapping("/employees/{userId}/evidences")
   @Transactional(readOnly = true)
-  public List<EvidenceResponse> employeeEvidences(
+  public Object employeeEvidences(
       @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
       @PathVariable Long userId,
       @RequestParam(required = false) String status,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
           Instant from,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-          Instant to) {
+          Instant to,
+      @RequestParam(required = false) String source,
+      @RequestParam(required = false) Integer page,
+      @RequestParam(required = false) Integer pageSize) {
     requireManager(authorization);
-    return evidenceService.listForUser(requireEmployee(userId), status, from, to);
+    User employee = requireEmployee(userId);
+    if (page != null || pageSize != null || (source != null && !source.isBlank())) {
+      return evidenceService.listForUserPaged(
+          employee, status, source, from, to, PageRequestFactory.create(page, pageSize));
+    }
+    return evidenceService.listForUser(employee, status, from, to);
+  }
+
+  @GetMapping("/employees/{userId}/evidences/{evidenceId}")
+  @Transactional(readOnly = true)
+  public Object employeeEvidence(
+      @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+      @PathVariable Long userId,
+      @PathVariable Long evidenceId) {
+    requireManager(authorization);
+    return evidenceService.getCanonicalForUser(requireEmployee(userId), evidenceId);
   }
 
   @GetMapping("/employees/{userId}/analyses")
   @Transactional(readOnly = true)
-  public List<SavedAnalysisResponse> employeeAnalyses(
+  public Object employeeAnalyses(
       @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
       @PathVariable Long userId,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
           Instant from,
       @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
-          Instant to) {
+          Instant to,
+      @RequestParam(required = false) String source,
+      @RequestParam(required = false) String review,
+      @RequestParam(required = false) Integer page,
+      @RequestParam(required = false) Integer pageSize) {
     requireManager(authorization);
-    return savedAnalysisService.listForUser(requireEmployee(userId), from, to);
+    User employee = requireEmployee(userId);
+    if (page != null || pageSize != null || (source != null && !source.isBlank())) {
+      ReviewStatus reviewStatus = parseReviewStatus(review);
+      return savedAnalysisService.listForUserPaged(
+          employee, source, from, to, reviewStatus, PageRequestFactory.create(page, pageSize));
+    }
+    return savedAnalysisService.listForUser(employee, from, to);
+  }
+
+  @GetMapping("/employees/{userId}/analyses/{analysisId}")
+  @Transactional(readOnly = true)
+  public Object employeeAnalysis(
+      @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+      @PathVariable Long userId,
+      @PathVariable Long analysisId) {
+    requireManager(authorization);
+    return savedAnalysisService.getForUser(requireEmployee(userId), analysisId);
+  }
+
+  @GetMapping("/reviews")
+  @Transactional(readOnly = true)
+  public Object reviewQueue(
+      @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+      @RequestParam(required = false) String status,
+      @RequestParam(required = false) Long employee,
+      @RequestParam(required = false) String source,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+          Instant from,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+          Instant to,
+      @RequestParam(required = false) Integer page,
+      @RequestParam(required = false) Integer pageSize) {
+    requireManager(authorization);
+    if (employee != null) {
+      requireEmployee(employee);
+    }
+    return analysisReviewService.queue(
+        status, employee, source, from, to, PageRequestFactory.create(page, pageSize));
   }
 
   private ManagerEmployeeSummaryResponse employeeSummary(User employee) {
@@ -130,6 +217,17 @@ public class ManagerController {
 
   private String normalize(String value) {
     return value == null || value.isBlank() ? null : value.trim().toLowerCase(Locale.ROOT);
+  }
+
+  private ReviewStatus parseReviewStatus(String value) {
+    if (value == null || value.isBlank()) {
+      return null;
+    }
+    try {
+      return ReviewStatus.valueOf(value.trim().replace('-', '_').toUpperCase(Locale.ROOT));
+    } catch (IllegalArgumentException exception) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status de revisão inválido.");
+    }
   }
 
   private User requireManager(String authorization) {

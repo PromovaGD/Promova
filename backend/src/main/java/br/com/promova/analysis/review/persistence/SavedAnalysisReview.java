@@ -15,12 +15,17 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.Instant;
 
 /** Immutable, append-only audit event for a saved analysis review. */
 @Entity
 @Table(
     name = "saved_analysis_reviews",
+    uniqueConstraints =
+        @UniqueConstraint(
+            name = "uk_review_idempotency",
+            columnNames = {"saved_analysis_id", "reviewer_user_id", "idempotency_key"}),
     indexes =
         @Index(
             name = "ix_saved_analysis_reviews_history",
@@ -49,6 +54,9 @@ public class SavedAnalysisReview {
   @Column(nullable = false)
   private Instant createdAt;
 
+  @Column(name = "idempotency_key", length = 80)
+  private String idempotencyKey;
+
   protected SavedAnalysisReview() {}
 
   public SavedAnalysisReview(
@@ -57,11 +65,22 @@ public class SavedAnalysisReview {
       ReviewStatus status,
       String comment,
       Instant createdAt) {
+    this(analysis, reviewer, status, comment, createdAt, null);
+  }
+
+  public SavedAnalysisReview(
+      SavedAnalysis analysis,
+      User reviewer,
+      ReviewStatus status,
+      String comment,
+      Instant createdAt,
+      String idempotencyKey) {
     this.analysis = analysis;
     this.reviewer = reviewer;
     this.status = status;
     this.comment = comment;
     this.createdAt = createdAt;
+    this.idempotencyKey = idempotencyKey;
   }
 
   public Long getId() {
@@ -86,5 +105,9 @@ public class SavedAnalysisReview {
 
   public Instant getCreatedAt() {
     return createdAt;
+  }
+
+  public String getIdempotencyKey() {
+    return idempotencyKey;
   }
 }

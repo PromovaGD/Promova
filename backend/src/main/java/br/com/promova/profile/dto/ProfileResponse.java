@@ -4,6 +4,7 @@ import br.com.promova.framework.CareerFramework;
 import br.com.promova.profile.CareerProfile;
 import br.com.promova.organization.dto.JobRoleResponse;
 import java.util.List;
+import java.time.Instant;
 
 public record ProfileResponse(
     Long userId,
@@ -12,10 +13,11 @@ public record ProfileResponse(
     String targetLevel,
     List<String> characteristics,
     List<CareerObjectiveResponse> objectives,
-    List<FrameworkLevelResponse> levels) {
+    List<FrameworkLevelResponse> levels,
+    Instant updatedAt) {
   public ProfileResponse(
       String currentLevel, String targetLevel, List<FrameworkLevelResponse> levels) {
-    this(null, null, currentLevel, targetLevel, List.of(), List.of(), levels);
+    this(null, null, currentLevel, targetLevel, List.of(), List.of(), levels, null);
   }
 
   public static ProfileResponse from(
@@ -38,6 +40,7 @@ public record ProfileResponse(
         profile.getTargetLevel(),
         profile.getCharacteristics(),
         objectives,
-        levels);
+        levels,
+        profile.getUpdatedAt());
   }
 }

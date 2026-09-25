@@ -18,6 +18,18 @@ A aplicação captura evidências de fontes conectadas, transforma essas informa
 
 O output gerado do frontend fica em `dist/` e não deve ser versionado.
 
+## Interface
+
+A interface de produção mantém a arquitetura nativa de ES modules e usa rotas reais para os espaços
+de funcionário e gestor. Existe um único entrypoint (`frontend/app.mjs`), um único stylesheet
+(`styles.css`) e uma única camada de API da aplicação (`frontend/services/api.mjs`); a interface
+anterior e o seletor de build foram removidos.
+
+O histórico de implementação e as evidências de aceitação ficam em
+`artifacts/frontend-modernization-2026-09-07/IMPLEMENTATION_STATUS.md`. O procedimento atual de
+rollout e rollback por artefato/versionamento fica em
+`artifacts/frontend-modernization-2026-09-07/ROLLOUT.md`.
+
 ## Requisitos
 
 - Java 21
@@ -142,22 +154,23 @@ Frontend:
 npm run check
 ```
 
-Regressão E2E de sessão (inicia backend e frontend locais, usa Chrome e um banco H2 temporário):
+Regressão E2E da aplicação (inicia backend e frontend de produção locais, usa Chrome, um banco
+H2 temporário e um stub GitHub local):
 
 ```powershell
 npm install
 npm run test:e2e
 ```
 
-No macOS, o teste usa o Google Chrome em `/Applications` por padrão. Em outros ambientes,
-defina `PROMOVA_E2E_CHROME` com o caminho do executável de Chrome/Chromium. As portas padrão
-são `14173` (frontend) e `18080` (backend), configuráveis por `PROMOVA_E2E_FRONTEND_PORT` e
-`PROMOVA_E2E_BACKEND_PORT`. O teste cobre reload de gestor e funcionário, navegação direta ao
-perfil, persistência da sessão após reinício do backend e rejeição de token inválido.
+No macOS, o teste usa o Google Chrome em `/Applications` por padrão. Em outros ambientes, defina
+`PROMOVA_E2E_CHROME` com o caminho do executável de Chrome/Chromium. As portas padrão são `14175`
+(frontend) e `18082` (backend), configuráveis por `PROMOVA_E2E_FRONTEND_PORT` e
+`PROMOVA_E2E_BACKEND_PORT`. O teste cobre ambos os papéis, rotas canônicas, reload,
+back/forward, retorno seguro de autenticação, sessão expirada, autorização, paginação com 500
+registros, texto longo, teclado, reflow e os 20 mapeamentos visuais auditados.
 
-As rotas autenticadas usam URLs como `/dashboard`, `/profile` e `/manager`. O servidor local já
-faz fallback dessas rotas para `index.html`; o servidor estático de produção deve aplicar o mesmo
-fallback de SPA para que a navegação direta funcione.
+O servidor de `dist/` aplica fallback somente às rotas HTML conhecidas; assets inexistentes
+continuam retornando 404. Em produção, o host de arquivos estáticos deve reproduzir essa regra.
 
 Backend:
 
@@ -195,11 +208,19 @@ Endpoints principais:
 GET  /evidences?status=PENDING
 GET  /evidences/{evidenceId}
 POST /evidences/{evidenceId}/analysis
-GET  /evidences/github/pull-request?repo=owner/repo&pullNumber=123
+POST /evidences/github/pull-request
+GET  /analyses/{analysisId}
+GET  /manager/employees/{employeeId}
+GET  /manager/employees/{employeeId}/evidences/{evidenceId}
+GET  /manager/employees/{employeeId}/analyses/{analysisId}
+GET  /manager/reviews
 ```
 
-A analise e solicitada pelo endpoint autenticado `POST /evidences/{evidenceId}/analysis`, sem
-corpo de requisicao. O servidor carrega a Evidence PENDING pertencente ao usuario autenticado,
+As coleções aceitam paginação opt-in com `page` e `pageSize` e retornam
+`{items,page,pageSize,total}`; sem esses parâmetros, os contratos antigos permanecem disponíveis.
+
+A análise é solicitada pelo endpoint autenticado `POST /evidences/{evidenceId}/analysis`; o corpo
+pode conter somente a observação opcional do funcionário. O servidor carrega a Evidence PENDING pertencente ao usuário autenticado,
 o perfil e o career framework, executa o engine e persiste o resultado. A evidencia, os niveis e a
 classificacao nao sao enviados nem definidos pelo navegador.
 

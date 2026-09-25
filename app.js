@@ -1,3 +1,3 @@
-import("./frontend/app.mjs").then(({ startApp }) => {
-  startApp(document.querySelector("#app"));
-});
+import { startApp } from "./frontend/app.mjs";
+
+startApp(document.querySelector("#app"));

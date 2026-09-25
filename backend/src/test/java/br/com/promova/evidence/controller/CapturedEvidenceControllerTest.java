@@ -111,7 +111,7 @@ class CapturedEvidenceControllerTest {
 
   @Test
   void returnsNotFoundWhenAnotherUserOwnsTheRequestedEvidence() throws Exception {
-    when(evidenceService.getForUser(eq(employee), eq(41L)))
+    when(evidenceService.getCanonicalForUser(eq(employee), eq(41L)))
         .thenThrow(new ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "Evidência não encontrada."));
 
     mockMvc

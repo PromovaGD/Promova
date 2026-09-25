@@ -12,6 +12,12 @@ import jakarta.validation.constraints.Size;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record SavedAnalysisReviewRequest(
     @NotBlank String status,
-    @Size(max = MAX_COMMENT_LENGTH) String comment) {
+    @Size(max = MAX_COMMENT_LENGTH) String comment,
+    Long expectedLatestReviewId,
+    @Size(max = 80) String idempotencyKey) {
   public static final int MAX_COMMENT_LENGTH = 2_000;
+
+  public SavedAnalysisReviewRequest(String status, String comment) {
+    this(status, comment, null, null);
+  }
 }

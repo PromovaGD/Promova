@@ -92,7 +92,9 @@ public class GithubPullRequestService {
     return new GithubPullRequestSearchResponse(
         response.path("total_count").asInt(items.size()),
         response.path("incomplete_results").asBoolean(false),
-        items);
+        items,
+        normalizedPage,
+        normalizedPerPage);
   }
 
   /**

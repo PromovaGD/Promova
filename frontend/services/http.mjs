@@ -4,6 +4,7 @@ import { clearAuthSession, loadAuthToken } from "./auth-store.mjs";
 export async function apiGet(path, params, options = {}) {
   const response = await fetch(`${API_BASE_URL}${path}${queryString(params)}`, {
     headers: buildHeaders(options),
+    signal: options.signal,
   });
   return parseApiResponse(response, options);
 }
@@ -13,6 +14,7 @@ export async function apiPost(path, body, options = {}) {
     method: "POST",
     headers: buildHeaders(options, true),
     body: JSON.stringify(body ?? {}),
+    signal: options.signal,
   });
 
   return parseApiResponse(response, options);
@@ -23,6 +25,7 @@ export async function apiPut(path, body, options = {}) {
     method: "PUT",
     headers: buildHeaders(options, true),
     body: JSON.stringify(body ?? {}),
+    signal: options.signal,
   });
 
   return parseApiResponse(response, options);
@@ -32,6 +35,7 @@ export async function apiDelete(path, params, options = {}) {
   const response = await fetch(`${API_BASE_URL}${path}${queryString(params)}`, {
     method: "DELETE",
     headers: buildHeaders(options),
+    signal: options.signal,
   });
 
   return parseApiResponse(response, options);
@@ -40,9 +44,11 @@ export async function apiDelete(path, params, options = {}) {
 async function parseApiResponse(response, options = {}) {
   if (!response.ok) {
     let message = `Request failed: ${response.status}`;
+    let details = null;
 
     try {
       const payload = await response.json();
+      details = payload;
       if (payload?.message) {
         message = payload.message;
       }
@@ -52,6 +58,7 @@ async function parseApiResponse(response, options = {}) {
 
     const error = new Error(message);
     error.status = response.status;
+    error.details = details;
     error.isUnauthorized = response.status === 401;
     error.isForbidden = response.status === 403;
 

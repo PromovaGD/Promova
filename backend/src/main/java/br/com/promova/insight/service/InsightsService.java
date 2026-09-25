@@ -6,6 +6,7 @@ import br.com.promova.evidence.Evidence;
 import br.com.promova.framework.CareerFramework;
 import br.com.promova.framework.CareerLevel;
 import br.com.promova.framework.FrameworkProvider;
+import br.com.promova.framework.FrameworkIdentity;
 import br.com.promova.insight.dto.InsightsResponse;
 import br.com.promova.insight.dto.InsightsResponse.CoverageStatus;
 import br.com.promova.user.User;
@@ -78,6 +79,7 @@ public class InsightsService {
             .sorted(analysisOrder())
             .toList();
     CareerFramework framework = frameworkProvider.load();
+    String frameworkVersion = FrameworkIdentity.version(framework);
     List<FrameworkCriterion> criteria = frameworkCriteria(framework);
 
     List<InsightsResponse.CriterionCoverage> coverage = new ArrayList<>();
@@ -95,6 +97,9 @@ public class InsightsService {
 
       coverage.add(
           new InsightsResponse.CriterionCoverage(
+              frameworkVersion,
+              FrameworkIdentity.criterionId(
+                  frameworkVersion, criterion.level(), criterion.criterion()),
               criterion.level(),
               criterion.levelTitle(),
               criterion.criterion(),
@@ -106,6 +111,9 @@ public class InsightsService {
       if (status == CoverageStatus.NO_EVIDENCE) {
         gaps.add(
             new InsightsResponse.Gap(
+                frameworkVersion,
+                FrameworkIdentity.criterionId(
+                    frameworkVersion, criterion.level(), criterion.criterion()),
                 criterion.level(),
                 criterion.levelTitle(),
                 criterion.criterion(),
@@ -240,6 +248,7 @@ public class InsightsService {
           id,
           new InsightsResponse.EvidenceReference(
               id,
+              analysis.getId(),
               linkedEvidenceId(analysis, owner),
               displayValue(analysis.getSourceMeta(), "Evidência salva"),
               displayValue(analysis.getSource(), "Fonte desconhecida"),

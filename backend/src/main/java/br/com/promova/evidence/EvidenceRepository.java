@@ -4,6 +4,8 @@ import jakarta.persistence.LockModeType;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -27,6 +29,24 @@ public interface EvidenceRepository extends JpaRepository<Evidence, Long> {
       @Param("status") EvidenceStatus status,
       @Param("from") Instant from,
       @Param("to") Instant to);
+
+  @Query(
+      """
+      SELECT e FROM Evidence e
+      WHERE e.user.id = :userId
+        AND (:status IS NULL OR e.status = :status)
+        AND (:source IS NULL OR LOWER(e.source) = LOWER(:source))
+        AND (:from IS NULL OR e.occurredAt >= :from)
+        AND (:to IS NULL OR e.occurredAt <= :to)
+      ORDER BY e.occurredAt DESC, e.id DESC
+      """)
+  Page<Evidence> findForUserPaged(
+      @Param("userId") Long userId,
+      @Param("status") EvidenceStatus status,
+      @Param("source") String source,
+      @Param("from") Instant from,
+      @Param("to") Instant to,
+      Pageable pageable);
 
   @Query("SELECT e FROM Evidence e WHERE e.id = :id AND e.user.id = :userId")
   Optional<Evidence> findByIdAndUserId(@Param("id") Long id, @Param("userId") Long userId);

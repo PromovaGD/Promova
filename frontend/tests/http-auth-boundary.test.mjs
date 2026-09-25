@@ -2,11 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { loadAuthToken, loadAuthUser, saveAuthSession } from "../services/auth-store.mjs";
-import { fetchEmployeeAnalyses, fetchEmployees } from "../services/auth-api.mjs";
-import {
-  loadReviewsForEmployee,
-  submitReviewForEmployee,
-} from "../services/analyses-api.mjs";
+import { api } from "../services/api.mjs";
 import { apiGet } from "../services/http.mjs";
 
 function installBrowserFakes() {
@@ -108,10 +104,10 @@ test("supported manager API calls use only the manager namespace", async () => {
     });
   };
 
-  await fetchEmployees();
-  await fetchEmployeeAnalyses(2, { from: "2026-01-01T00:00:00.000Z" });
-  await loadReviewsForEmployee(2, 7);
-  await submitReviewForEmployee(2, 7, { status: "ACCEPTED" });
+  await api.employees({});
+  await api.employeeAnalyses(2, { from: "2026-01-01" });
+  await api.reviews(2, 7, true);
+  await api.review(2, 7, { status: "ACCEPTED" });
 
   assert.equal(urls.length, 4);
   assert.ok(urls.every((url) => url.includes("/manager/")));

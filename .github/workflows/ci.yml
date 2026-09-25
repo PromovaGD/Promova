@@ -64,8 +64,8 @@ jobs:
         working-directory: backend
         run: ./gradlew bootJar --no-daemon --no-configuration-cache --stacktrace
 
-  authentication-browser-regression:
-    name: Authentication Browser Regression
+  application-browser-regression:
+    name: Application Browser Regression
     runs-on: ubuntu-latest
 
     steps:
@@ -88,7 +88,7 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
-      - name: Run session reload E2E test
+      - name: Run production application E2E test
         env:
           PROMOVA_E2E_CHROME: /usr/bin/google-chrome
         run: npm run test:e2e

@@ -12,6 +12,7 @@ import com.sun.net.httpserver.HttpServer;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -132,17 +133,19 @@ class GithubSyncPersistenceIntegrationTest {
   }
 
   private static String pull(int number) {
+    String updatedAt = Instant.now().minusSeconds(3600).toString();
+    String createdAt = Instant.now().minusSeconds(7200).toString();
     return
         "{"
             + "\"number\":"
             + number
             + ",\"title\":\"Improve service "
             + number
-            + "\",\"state\":\"closed\",\"merged_at\":\"2026-08-08T10:00:00Z\","
-            + "\"closed_at\":\"2026-08-08T10:00:00Z\",\"html_url\":\"https://github.com/acme/project/pull/"
+            + "\",\"state\":\"closed\",\"merged_at\":\"" + updatedAt + "\","
+            + "\"closed_at\":\"" + updatedAt + "\",\"html_url\":\"https://github.com/acme/project/pull/"
             + number
-            + "\",\"user\":{\"login\":\"octocat\"},\"updated_at\":\"2026-08-08T10:00:00Z\","
-            + "\"created_at\":\"2026-08-07T10:00:00Z\",\"body\":\"Added tests "
+            + "\",\"user\":{\"login\":\"octocat\"},\"updated_at\":\"" + updatedAt + "\","
+            + "\"created_at\":\"" + createdAt + "\",\"body\":\"Added tests "
             + SERVER_SECRET
             + "\""
             + "}";

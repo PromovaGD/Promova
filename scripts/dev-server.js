@@ -40,7 +40,14 @@ function createServer() {
       return;
     }
 
-    sendFile(response, path.join(root, "index.html"));
+    const acceptsHtml = !request.headers.accept || request.headers.accept.includes("text/html") || request.headers.accept.includes("*/*");
+    const isRoute = /^\/(app|manage|workspace|login|register)(\/|$)/.test(urlPath);
+    if (request.method === "GET" && acceptsHtml && isRoute) {
+      sendFile(response, path.join(root, "index.html"));
+      return;
+    }
+    response.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+    response.end("Not found");
   });
 }
 

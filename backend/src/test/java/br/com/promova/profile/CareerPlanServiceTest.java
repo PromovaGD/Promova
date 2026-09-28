@@ -38,6 +38,7 @@ class CareerPlanServiceTest {
   @Mock private UserRepository userRepository;
   @Mock private CareerProfileRepository profileRepository;
   @Mock private CareerObjectiveRepository objectiveRepository;
+  @Mock private CareerObjectiveEventRepository objectiveEventRepository;
   @Mock private JobRoleRepository jobRoleRepository;
   @Mock private FrameworkProvider frameworkProvider;
   @Mock private ProfileService profileService;
@@ -54,6 +55,7 @@ class CareerPlanServiceTest {
             userRepository,
             profileRepository,
             objectiveRepository,
+            objectiveEventRepository,
             jobRoleRepository,
             frameworkProvider,
             profileService);

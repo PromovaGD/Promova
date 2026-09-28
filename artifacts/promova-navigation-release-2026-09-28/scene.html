@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Promova — da evidência à análise</title>
+<style>
+  *{box-sizing:border-box}
+  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#eae8e4;font-family:Arial,Helvetica,sans-serif}
+  #stage{position:relative;width:1600px;height:900px;overflow:hidden;background:#eae8e4;color:#19152d}
+  #grain{position:absolute;inset:0;pointer-events:none;opacity:.22;background-image:radial-gradient(#85818d 0.45px,transparent .45px);background-size:5px 5px}
+  #window{position:absolute;overflow:hidden;background:#fff;box-shadow:0 30px 90px #1c17332a,0 2px 6px #1c17331a;will-change:left,top,width,height,border-radius}
+  #screenScale{position:absolute;left:0;top:0;width:776px;height:490px;transform-origin:top left;transform:scale(1.75);opacity:0}
+  .screen{position:absolute;inset:0;width:776px;height:490px;object-fit:fill;display:block;will-change:opacity,transform}
+  #screenDim{position:absolute;inset:0;background:#eeeaf8;opacity:0;pointer-events:none}
+  #typedObservation{position:absolute;left:510px;top:166px;width:220px;height:82px;padding:6px 7px;background:#fff;color:#3b3753;font:8px/1.47 Arial,Helvetica,sans-serif;white-space:normal;overflow:hidden;opacity:0}
+  #typedObservation::after{content:'▍';color:#6338e6;animation:blink .55s steps(1) infinite}
+  #savedObservation{position:absolute;left:151px;top:263px;width:570px;height:18px;background:#fff;color:#777286;font:8px/18px Arial,Helvetica,sans-serif;opacity:0;white-space:nowrap}
+  @keyframes blink{50%{opacity:0}}
+  #focus{position:absolute;border:2px solid #673cec;border-radius:5px;box-shadow:0 0 0 5px #673cec20;opacity:0;pointer-events:none}
+  #loadingCard{position:absolute;left:198px;top:143px;width:380px;height:200px;border:1px solid #e4e0ed;border-radius:15px;background:#fff;box-shadow:0 18px 42px #20193828;padding:25px 27px;opacity:0;transform:translateY(12px) scale(.97);pointer-events:none}
+  #loadingBrand{display:flex;align-items:center;gap:10px;font-size:11px;font-weight:700;color:#211a3a}
+  #loadingBrand img{width:19px;height:19px;object-fit:contain}
+  #loadingTitle{margin:22px 0 7px;font-size:19px;letter-spacing:-.04em;font-weight:750;color:#171330}
+  #loadingLine{height:18px;font:11px/18px Arial,Helvetica,sans-serif;color:#6d6684;white-space:nowrap}
+  #loadingLine::after{content:'▍';color:#673cec;animation:blink .55s steps(1) infinite}
+  #loadingTrack{position:absolute;left:27px;right:27px;bottom:30px;height:4px;border-radius:9px;background:#eeeafa;overflow:hidden}
+  #loadingFill{height:100%;width:0;background:#673cec;border-radius:9px}
+  #loadingSteps{position:absolute;left:27px;bottom:45px;font-size:8px;letter-spacing:.06em;text-transform:uppercase;color:#aaa3bd}
+  #brandIntro{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:15px;opacity:1}
+  #brandIntro img{width:150px;height:150px;object-fit:contain}
+  #brandIntro strong{font-size:55px;letter-spacing:-.07em;line-height:1;color:#17152e}
+  #brandEnd{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:24px;opacity:0;white-space:nowrap}
+  #brandEnd img{width:95px;height:95px;object-fit:contain}
+  #brandEnd strong{font-size:64px;letter-spacing:-.07em;color:#17152e}
+  #brandEnd span{display:block;margin-top:5px;color:#6f6980;font-size:21px;letter-spacing:-.02em}
+  #cursor{position:absolute;width:29px;height:40px;left:0;top:0;pointer-events:none;z-index:20;filter:drop-shadow(0 2px 2px #0006);transform-origin:4px 4px}
+  #clickRing{position:absolute;width:32px;height:32px;border:2px solid #673cec;border-radius:50%;pointer-events:none;z-index:19;opacity:0}
+  #caption{position:absolute;left:49px;top:34px;color:#463293;font-size:15px;letter-spacing:.19em;font-weight:800;opacity:0}
+  #chapter{position:absolute;right:49px;top:34px;color:#9289a6;font-size:14px;letter-spacing:.15em;font-weight:700;opacity:0}
+  #progressTrack{position:absolute;left:120px;bottom:10px;width:1360px;height:3px;background:#d7d1dc;opacity:0}
+  #progressFill{height:100%;width:0;background:#673cec}
+  .render #stage{transform:none!important}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="grain"></div>
+  <div id="caption">PROMOVA / RELEASE</div><div id="chapter">01 / 04</div>
+  <div id="window">
+    <div id="screenScale">
+      <img class="screen" id="overview" src="assets/overview.png" alt="">
+      <img class="screen" id="inbox" src="assets/inbox.png" alt="">
+      <img class="screen" id="evidence" src="assets/evidence.png" alt="">
+      <img class="screen" id="saved" src="assets/saved.png" alt="">
+      <div id="typedObservation"></div>
+      <div id="savedObservation">A entrega consolidou validação, rollback e rastreabilidade da análise.</div>
+      <div id="focus"></div>
+      <div id="screenDim"></div>
+      <div id="loadingCard">
+        <div id="loadingBrand"><img src="assets/logo.png" alt="">promova</div>
+        <div id="loadingTitle">Analisando evidência</div>
+        <div id="loadingLine"></div>
+        <div id="loadingSteps">Fonte · contexto · framework</div>
+        <div id="loadingTrack"><div id="loadingFill"></div></div>
+      </div>
+    </div>
+    <div id="brandIntro"><img src="assets/logo.png" alt=""><strong>promova</strong></div>
+    <div id="brandEnd"><img src="assets/logo.png" alt=""><div><strong>promova</strong><span>O trabalho aparece. A carreira avança.</span></div></div>
+  </div>
+  <svg id="cursor" viewBox="0 0 40 56"><path d="M3 3 L3 41 L12.5 32 L19 47 L25.5 44.2 L19.2 29.8 L32 29.8 Z" fill="#0b0b0b" stroke="#fff" stroke-width="2.6" stroke-linejoin="round"/></svg>
+  <div id="clickRing"></div>
+  <div id="progressTrack"><div id="progressFill"></div></div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
+const smooth=x=>{x=clamp(x);return x*x*(3-2*x)};
+const mix=(a,b,p)=>a+(b-a)*p;
+const range=(t,a,b)=>smooth((t-a)/(b-a));
+const lerpPoint=(a,b,p)=>[mix(a[0],b[0],p),mix(a[1],b[1],p)];
+const pages=[['overview',2.02,5.55],['inbox',5.55,9.03],['evidence',9.03,17.52],['saved',17.52,22.75]];
+const cursorKeys=[[2.15,710,420],[3.0,710,420],[5.35,187,177],[5.61,187,177],[6.5,340,335],[7.5,517,346],[8.78,1352,810],[9.05,1352,810],[10.25,1180,410],[10.8,1070,355],[13.42,1070,355],[13.78,1365,658],[14.03,1365,658],[15.5,1320,658],[17.7,1060,420],[19.1,325,270],[20.8,1080,510],[22.65,1080,510]];
+function cursorAt(t){if(t<=cursorKeys[0][0])return cursorKeys[0].slice(1);for(let i=0;i<cursorKeys.length-1;i++){let a=cursorKeys[i],b=cursorKeys[i+1];if(t<=b[0])return lerpPoint(a.slice(1),b.slice(1),range(t,a[0],b[0]));}return cursorKeys.at(-1).slice(1)}
+const observation='A entrega consolidou validação, rollback e rastreabilidade da análise.';
+const status=[
+  [14.16,14.9,'Lendo a fonte original…'],
+  [14.9,15.7,'Separando sua observação…'],
+  [15.7,16.55,'Relacionando ao framework…'],
+  [16.55,17.4,'Salvando a análise…']
+];
+const clicks=[5.55,8.98,10.67,14.02];
+function seek(t){
+  t=clamp(t,0,25.6);
+  let open=range(t,.2,2.28),close=range(t,22.7,24.9);
+  let intro={x:656,y:293,w:288,h:314,r:77},full={x:120,y:20,w:1360,h:858,r:16},end={x:465,y:320,w:670,h:260,r:55};
+  let geom={};for(const k of ['x','y','w','h','r'])geom[k]=mix(intro[k],full[k],open);
+  for(const k of ['x','y','w','h','r'])geom[k]=mix(geom[k],end[k],close);
+  let win=$('window');win.style.left=geom.x+'px';win.style.top=geom.y+'px';win.style.width=geom.w+'px';win.style.height=geom.h+'px';win.style.borderRadius=geom.r+'px';
+  $('brandIntro').style.opacity=String(1-range(t,1.03,1.7));
+  $('brandIntro').style.transform=`scale(${mix(1,.72,open)})`;
+  $('brandEnd').style.opacity=String(range(t,23.1,24.15));
+  $('screenScale').style.opacity=String(range(t,1.45,2.1)*(1-range(t,22.6,23.45)));
+  for(const [id,start,endTime] of pages){let fadeIn=range(t,start-.13,start+.27),fadeOut=1-range(t,endTime-.12,endTime+.29);let value=fadeIn*fadeOut;$(id).style.opacity=String(value);$(id).style.transform=`translateX(${Math.round((1-fadeIn)*14-fadeIn*(1-fadeOut)*13)}px)`;}
+  $('caption').style.opacity=String(.85*(1-range(t,1.2,1.9)));
+  $('chapter').style.opacity=String(.85*(1-range(t,1.2,1.9)));
+  $('chapter').textContent=t<5.55?'01 / 04':t<9.03?'02 / 04':t<17.52?'03 / 04':'04 / 04';
+  $('progressTrack').style.opacity=String(range(t,2.0,2.45)*(1-range(t,22.5,23.25)));
+  $('progressFill').style.width=(100*clamp((t-2.2)/20.5))+'%';
+  let writing=range(t,10.89,13.53),typedCount=Math.floor(observation.length*writing);
+  $('typedObservation').style.opacity=String(range(t,10.78,10.98)*(1-range(t,17.28,17.58)));
+  $('typedObservation').textContent=observation.slice(0,typedCount);
+  $('savedObservation').style.opacity=String(range(t,17.5,17.84)*(1-range(t,22.5,22.8)));
+  const fields=[
+    [3.85,5.66,[13,89,96,24]],
+    [6.55,8.13,[137,181,211,58]],
+    [8.30,9.10,[664,458,73,28]],
+    [10.6,13.66,[508,163,223,85]],
+    [13.78,14.15,[650,351,83,25]],
+    [18.65,20.48,[152,132,578,53]]
+  ];
+  let active=fields.find(([a,b])=>t>=a&&t<=b),f=$('focus');
+  f.style.opacity=active?String(Math.min(.82,range(t,active[0],active[0]+.24)*(1-range(t,active[1]-.21,active[1])))): '0';
+  if(active){let [x,y,w,h]=active[2];Object.assign(f.style,{left:x+'px',top:y+'px',width:w+'px',height:h+'px'});}
+  const loading=range(t,14.12,14.47)*(1-range(t,17.24,17.63));
+  $('screenDim').style.opacity=String(.58*loading);
+  $('loadingCard').style.opacity=String(loading);
+  $('loadingCard').style.transform=`translateY(${Math.round((1-loading)*12)}px) scale(${(0.97+0.03*loading).toFixed(3)})`;
+  $('loadingFill').style.width=(100*clamp((t-14.17)/(17.36-14.17)))+'%';
+  let s=status.find(([a,b])=>t>=a&&t<b)||status.at(-1),part=clamp((t-s[0])/(s[1]-s[0]));
+  $('loadingLine').textContent=s[2].slice(0,Math.ceil(s[2].length*part));
+  let [cx,cy]=cursorAt(t);let cursor=$('cursor');cursor.style.opacity=String(range(t,2.05,2.4)*(1-range(t,22.48,23.0)));
+  let clicked=clicks.some(c=>Math.abs(t-c)<.12);cursor.style.transform=`translate(${cx}px,${cy}px) scale(${clicked?.83:1})`;
+  let ring=$('clickRing');let nearest=clicks.reduce((best,c)=>Math.abs(c-t)<Math.abs(best-t)?c:best,clicks[0]);let age=t-nearest;ring.style.opacity=age>=0&&age<.35?String((1-age/.35)*.75):'0';ring.style.left=(cx-13)+'px';ring.style.top=(cy-13)+'px';ring.style.transform=`scale(${1+Math.max(0,age)*1.4})`;
+}
+window.seek=seek;window.DURATION=25.6;
+seek(0);
+if(!location.search.includes('render')){
+  let start=performance.now();const fit=()=>{$('stage').style.transform=`scale(${Math.min(innerWidth/1600,innerHeight/900)})`;$('stage').style.transformOrigin='top left'};fit();addEventListener('resize',fit);
+  function loop(){seek(((performance.now()-start)/1000)%26.4);requestAnimationFrame(loop)}requestAnimationFrame(loop);
+}else document.body.classList.add('render');
+</script>
+</body></html>

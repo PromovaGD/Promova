@@ -12,6 +12,7 @@ import br.com.promova.auth.AuthTokenResolver;
 import br.com.promova.config.ApiExceptionHandler;
 import br.com.promova.config.WebConfig;
 import br.com.promova.profile.CareerPlanService;
+import br.com.promova.manager.team.ManagerTeamService;
 import br.com.promova.profile.dto.CareerPlanUpdateRequest;
 import br.com.promova.profile.dto.ProfileResponse;
 import br.com.promova.user.User;
@@ -34,6 +35,7 @@ class ManagerCareerPlanControllerTest {
   @MockitoBean private AuthService authService;
   @MockitoBean private AuthTokenResolver authTokenResolver;
   @MockitoBean private CareerPlanService careerPlanService;
+  @MockitoBean private ManagerTeamService managerTeamService;
 
   @Test
   void employeesCannotReadOrMutateAnotherUsersPlan() throws Exception {

@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="pt-BR">
+<meta charset="utf-8">
+<title>Promova — lançamento</title>
+<style>
+  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080b23}
+  canvas{display:block;width:100vw;height:100vh;object-fit:contain}
+  img{display:none}
+</style>
+<canvas id="film" width="1600" height="900"></canvas>
+<img id="logo" src="assets/logo.png" alt="">
+<img id="inbox" src="assets/inbox.png" alt="">
+<img id="analysis" src="assets/analysis.png" alt="">
+<img id="review" src="assets/review.png" alt="">
+<img id="plan" src="assets/plan.png" alt="">
+<img id="dashboard" src="assets/dashboard.png" alt="">
+<script>
+const W=1600,H=900,DURATION=36,FPS=30;
+const canvas=document.querySelector('#film'),ctx=canvas.getContext('2d');
+const assets=Object.fromEntries(['logo','inbox','analysis','review','plan','dashboard'].map(id=>[id,document.getElementById(id)]));
+const C={navy:'#090c28',deep:'#11143c',violet:'#6d3df5',violetLight:'#a18aff',orange:'#ffad7d',white:'#f8f7ff',muted:'#aaa9c6'};
+const clamp=(x,a=0,b=1)=>Math.max(a,Math.min(b,x));
+const ease=x=>{x=clamp(x);return x*x*(3-2*x)};
+const out=x=>1-Math.pow(1-clamp(x),3);
+const lerp=(a,b,x)=>a+(b-a)*x;
+function rr(x,y,w,h,r){ctx.beginPath();ctx.roundRect(x,y,w,h,r)}
+function fill(x,y,w,h,color,r=0){ctx.fillStyle=color;if(r){rr(x,y,w,h,r);ctx.fill()}else ctx.fillRect(x,y,w,h)}
+function text(s,x,y,size=30,color=C.white,weight=500,align='left',tracking=0){ctx.fillStyle=color;ctx.font=`${weight} ${size}px Inter,Arial,sans-serif`;ctx.textAlign=align;ctx.letterSpacing=`${tracking}px`;ctx.fillText(s,x,y);ctx.letterSpacing='0px';ctx.textAlign='left'}
+function gradientBackground(t){
+  let g=ctx.createLinearGradient(0,0,W,H);g.addColorStop(0,'#080b21');g.addColorStop(.56,'#151244');g.addColorStop(1,'#101d50');fill(0,0,W,H,g);
+  const glow=(x,y,r,color)=>{let q=ctx.createRadialGradient(x,y,0,x,y,r);q.addColorStop(0,color);q.addColorStop(1,'#00000000');fill(x-r,y-r,r*2,r*2,q)};
+  glow(1220+Math.sin(t*.25)*90,220,640,'#723efe53');glow(270+Math.sin(t*.19)*60,790,560,'#244bad49');glow(1450,850,420,'#e8855d2a');
+  ctx.strokeStyle='#ffffff0b';ctx.lineWidth=1;
+  for(let x=0;x<W;x+=80){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+  for(let y=0;y<H;y+=80){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+}
+function topbar(index){
+  text('P R O M O V A',80,67,16,'#d6ccff',750,'left',4);
+  text('CARREIRA BASEADA EM EVIDÊNCIAS',1520,67,14,'#bdbbd3',500,'right',1.8);
+  fill(80,89,1440,1,'#ffffff2b');
+  if(index>=0){fill(80,88,1440*(index+1)/5,3,C.orange)}
+}
+function vignette(){let g=ctx.createRadialGradient(800,430,320,800,430,1000);g.addColorStop(0,'#00000000');g.addColorStop(1,'#0103138e');fill(0,0,W,H,g)}
+function roundedImage(img,x,y,w,h,r=20){ctx.save();rr(x,y,w,h,r);ctx.clip();ctx.drawImage(img,x,y,w,h);ctx.restore()}
+function uiWindow(img,t,opts={}){
+  const phase=opts.phase||0,zoom=1+.022*Math.sin(t*.8),x=opts.x??635,y=opts.y??174,w=opts.w??1255,h=opts.h??855;
+  const slide=(1-out(phase))*165;
+  ctx.save();ctx.translate(x+w/2+slide,y+h/2);ctx.scale(zoom,zoom);ctx.translate(-w/2,-h/2);
+  ctx.shadowColor='#020316c0';ctx.shadowBlur=72;ctx.shadowOffsetY=30;
+  fill(0,0,w,h,'#f8f9ff',22);ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetY=0;
+  roundedImage(img,0,56,w,h-56,0);
+  fill(0,0,w,56,'#f6f5fb',22);fill(0,39,w,17,'#f6f5fb');
+  ['#ff645f','#ffbe50','#3bc66d'].forEach((c,i)=>{ctx.fillStyle=c;ctx.beginPath();ctx.arc(25+i*23,28,7,0,Math.PI*2);ctx.fill()});
+  fill(113,11,430,34,'#ffffff',9);text('promova.app  /  espaço de carreira',132,34,15,'#79788d',550);
+  ctx.restore();
+}
+function pill(s,x,y){fill(x,y,Math.max(190,s.length*10+47),40,'#ffffff16',20);text(s.toUpperCase(),x+21,y+26,13,'#c9bcff',750,'left',1.3)}
+function feature(t,start,end,index,eyebrow,lines,body,img,accent){
+  const p=clamp((t-start)/.7),exit=clamp((end-t)/.55),alpha=ease(p)*ease(exit);
+  ctx.save();ctx.globalAlpha=alpha;
+  gradientBackground(t);topbar(index);uiWindow(img,t,{phase:p});
+  let left=ctx.createLinearGradient(0,0,745,0);left.addColorStop(0,'#080b25');left.addColorStop(.74,'#0a0c29ee');left.addColorStop(1,'#0a0c2900');fill(0,90,800,810,left);
+  const dx=(1-out(p))*-56;
+  ctx.save();ctx.translate(dx,0);pill(eyebrow,80,191);
+  const titleY=330;
+  lines.forEach((line,i)=>text(line,80,titleY+i*81,64,i===lines.length-1?accent:C.white,800));
+  fill(80,titleY+lines.length*81-32,70,4,accent,2);
+  body.forEach((line,i)=>text(line,80,titleY+lines.length*81+31+i*33,25,'#dedbed',430));
+  text(`0${index+1} / 05`,80,805,17,'#9895b9',700,'left',2);
+  ctx.restore();ctx.restore();
+}
+function floatingCard(x,y,w,h,theta,label,sub,accent,alpha=1){ctx.save();ctx.globalAlpha=alpha;ctx.translate(x+w/2,y+h/2);ctx.rotate(theta);ctx.translate(-w/2,-h/2);ctx.shadowColor='#000a';ctx.shadowBlur=42;fill(0,0,w,h,'#f8f7ff',16);ctx.shadowColor='transparent';fill(0,0,6,h,accent,3);text(label,27,56,24,'#111538',750);text(sub,27,93,17,'#636783',500);fill(27,h-46,w-54,1,'#dfe1eb');fill(27,h-30,w*.43,8,'#e8e7f1',4);ctx.restore()}
+function opening(t){
+  gradientBackground(t);topbar(-1);
+  let p=out(t/1.05),fade=ease((4.8-t)/.6);
+  ctx.save();ctx.globalAlpha=fade;
+  const ghost=ease((t-.65)/1.1);
+  floatingCard(1010,180,395,235,-.09,'PR #1492','O trabalho aconteceu.',C.violet,ghost*.87);
+  floatingCard(1160,490,330,212,.11,'Feedback','O contexto se perdeu.',C.orange,ghost*.85);
+  floatingCard(822,565,340,190,-.08,'Evidência','Onde ela ficou?',C.violetLight,ghost*.8);
+  let x=80-(1-p)*95;
+  text('O TRABALHO ACONTECE.',x,300,21,'#d0c1ff',780,'left',2.4);
+  text('Mas a evolução',x,407,74,C.white,790);
+  text('precisa aparecer.',x,495,74,C.white,790);
+  fill(x,535,570*out((t-1.05)/1.2),5,C.orange,3);
+  text('Da evidência ao próximo passo de carreira.',x,603,28,'#d7d3e9',450);
+  ctx.restore();
+}
+function brandReveal(t){
+  const p=ease((t-4.55)/.7),outro=ease((8.25-t)/.65);
+  ctx.save();ctx.globalAlpha=p*outro;gradientBackground(t);topbar(-1);
+  const z=lerp(.77,1,out((t-4.5)/1.2));
+  ctx.translate(800,435);ctx.scale(z,z);ctx.translate(-800,-435);
+  ctx.shadowColor='#714aff8a';ctx.shadowBlur=90;fill(625,190,350,350,'#ffffff',86);ctx.shadowColor='transparent';
+  roundedImage(assets.logo,651,216,298,298,70);
+  text('promova',800,671,99,C.white,820,'center',-3);
+  text('O que você faz. O que você desenvolve.',800,730,28,'#c4b9f1',500,'center');
+  ctx.restore();
+}
+function montage(t){
+  const p=ease((t-28.15)/.7),leave=ease((32.1-t)/.5);ctx.save();ctx.globalAlpha=p*leave;
+  gradientBackground(t);topbar(4);
+  let x=650+(1-p)*130,y=172;
+  uiWindow(assets.dashboard,t,{x,y,w:1280,h:880,phase:p});
+  let fade=ctx.createLinearGradient(0,0,850,0);fade.addColorStop(0,'#090c28');fade.addColorStop(1,'#090c2800');fill(0,93,850,807,fade);
+  text('UMA VISÃO MAIS CLARA',80,185,22,'#bcaaff',760,'left',2.3);
+  text('Para cada pessoa.',80,287,66,C.white,790);text('Para cada gestão.',80,363,66,C.orange,790);
+  text('Evidências · análises · revisões · objetivos',80,507,25,'#d8d6e8',480);
+  fill(80,539,77,4,C.orange,2);text('05 / 05',80,805,17,'#9895b9',700,'left',2);
+  ctx.restore();
+}
+function ending(t){
+  const p=ease((t-31.65)/.7);ctx.save();ctx.globalAlpha=p;gradientBackground(t);
+  let halo=ctx.createRadialGradient(800,420,0,800,420,580);halo.addColorStop(0,'#8350ff66');halo.addColorStop(1,'#00000000');fill(220,-140,1160,1160,halo);
+  const scale=lerp(.87,1,out((t-31.6)/1.25));ctx.translate(800,410);ctx.scale(scale,scale);ctx.translate(-800,-410);
+  fill(755,173,90,90,'#ffffff',23);roundedImage(assets.logo,762,180,76,76,18);
+  text('promova',800,395,117,C.white,840,'center',-3);
+  text('Carreira baseada em evidências.',800,485,43,'#dcd5ff',520,'center');
+  fill(626,559,348,58,C.violet,29);text('Conheça a Promova',800,597,22,C.white,730,'center');
+  text('CAPTURE  ·  ANALISE  ·  EVOLUA',800,766,18,'#aaa4ce',670,'center',2);
+  ctx.restore();
+}
+function drawAt(t){
+  ctx.clearRect(0,0,W,H);gradientBackground(t);
+  if(t<4.85)opening(t);
+  if(t>=4.5&&t<8.3)brandReveal(t);
+  if(t>=8&&t<13.45)feature(t,8,13.45,0,'01  /  CAPTURE',['O trabalho','vira evidência.'],['GitHub, origem e contexto','em um só lugar.'],assets.inbox,C.orange);
+  if(t>=13.1&&t<18.65)feature(t,13.1,18.65,1,'02  /  ANALISE',['Contexto','vira clareza.'],['A análise organiza o que foi feito','e preserva a fonte.'],assets.analysis,C.violetLight);
+  if(t>=18.3&&t<23.55)feature(t,18.3,23.55,2,'03  /  REVISE',['A gestão','participa.'],['Revisão humana com comentário,','histórico e decisão.'],assets.review,C.orange);
+  if(t>=23.2&&t<28.55)feature(t,23.2,28.55,3,'04  /  EVOLUA',['A conversa','vira plano.'],['Objetivos conectados à','evolução de carreira.'],assets.plan,C.violetLight);
+  if(t>=28.2&&t<32.15)montage(t);
+  if(t>=31.65)ending(t);
+  vignette();
+}
+window.ready=async()=>{await Promise.all(Object.values(assets).map(img=>img.decode()));drawAt(0);return{duration:DURATION,width:W,height:H}};
+window.preview=t=>drawAt(clamp(t,0,DURATION));
+function scheduleAudio(ac,destination){
+  const start=ac.currentTime+.07;
+  function tone(time,duration,freq,volume,type='sine',pan=0){
+    const osc=ac.createOscillator(),gain=ac.createGain(),panner=ac.createStereoPanner();
+    osc.type=type;osc.frequency.setValueAtTime(freq,start+time);panner.pan.value=pan;
+    gain.gain.setValueAtTime(.0001,start+time);gain.gain.exponentialRampToValueAtTime(volume,start+time+.022);
+    gain.gain.exponentialRampToValueAtTime(.0001,start+time+duration);
+    osc.connect(gain).connect(panner).connect(destination);osc.start(start+time);osc.stop(start+time+duration+.02);
+  }
+  const roots=[146.83,116.54,174.61,130.81];
+  for(let beat=0;beat<72;beat++){
+    let tm=beat*.5,root=roots[Math.floor(tm/4)%4],section=tm<8?.35:tm<31?1:.58;
+    if(beat%8===0){tone(tm,3.85,root/2,.058*section,'sine',-.26);tone(tm,3.5,root*1.5,.027*section,'triangle',.32)}
+    tone(tm,.16,root/2,.036*section,'sine');
+    if(beat%2===1)tone(tm,.11,460,.009*section,'triangle',.38);
+    if(beat%4===2){tone(tm,.12,220,.014*section,'triangle',-.12)}
+    if(tm>=8&&tm<32&&beat%2===0){let note=[1,1.5,2,1.5,2.5,2,1.5,1][beat%8];tone(tm+.08,.37,root*note,.015,'sine',beat%4?-0.2:.25)}
+  }
+  for(const tm of [4.55,8,13.1,18.3,23.2,28.2,31.65]){
+    tone(tm,.52,88,.13,'sine');tone(tm+.03,.42,440,.018,'triangle',.6);
+  }
+  return start;
+}
+window.renderMp4=async()=>{
+  await window.ready();
+  const media=await import('/node_modules/mediabunny/dist/bundles/mediabunny.min.mjs');
+  const output=new media.Output({format:new media.Mp4OutputFormat({fastStart:'in-memory'}),target:new media.BufferTarget()});
+  const video=new media.CanvasSource(canvas,{codec:'avc',quality:new media.Quality('high'),keyFrameInterval:2});
+  const audio=new media.AudioBufferSource({codec:'aac',quality:new media.Quality('high')});
+  output.addVideoTrack(video);output.addAudioTrack(audio);await output.start();
+  const offline=new OfflineAudioContext(2,Math.ceil((DURATION+.1)*48000),48000);
+  scheduleAudio(offline,offline.destination);
+  const sound=await offline.startRendering();
+  const audioTask=audio.add(sound);
+  for(let frame=0;frame<DURATION*FPS;frame++){
+    drawAt(frame/FPS);
+    await video.add(frame/FPS,1/FPS);
+    if(frame%120===0)console.log(`Encoded ${frame}/${DURATION*FPS} frames`);
+  }
+  video.close();await audioTask;audio.close();await output.finalize();
+  const buffer=new Uint8Array(output.target.buffer),parts=[];
+  for(let i=0;i<buffer.length;i+=32768)parts.push(String.fromCharCode(...buffer.subarray(i,i+32768)));
+  return{base64:btoa(parts.join('')),bytes:buffer.length};
+};
+</script>
+</html>

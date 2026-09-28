@@ -45,6 +45,10 @@ public interface SavedAnalysisRepository extends JpaRepository<SavedAnalysis, Lo
   Optional<SavedAnalysis> findByEvidenceIdAndUserId(
       @Param("evidenceId") Long evidenceId, @Param("userId") Long userId);
 
+  @Query("SELECT a FROM SavedAnalysis a WHERE a.user.id = :userId AND a.evidenceEntity.id IN :evidenceIds")
+  List<SavedAnalysis> findForEvidenceIds(
+      @Param("userId") Long userId, @Param("evidenceIds") List<Long> evidenceIds);
+
   @Query(
       """
       SELECT a FROM SavedAnalysis a

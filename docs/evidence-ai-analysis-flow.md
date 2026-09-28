@@ -17,7 +17,7 @@ sequenceDiagram
     API->>API: Load career framework and build prompt
 
     API->>AI: POST /chat/completions<br/>Evidence + levels + framework
-    AI-->>API: JSON analysis<br/>Level, confidence, reasoning and suggestions
+    AI-->>API: JSON analysis<br/>Title, level, confidence, reasoning and suggestions
 
     API->>API: Validate AI response
     API->>DB: Save analysis and mark evidence ANALYZED
@@ -26,4 +26,4 @@ sequenceDiagram
     UI-->>User: Display evidence review
 ```
 
-The AI provider request occurs when `PROMOVA_ANALYSIS_ENGINE=openrouter`. Otherwise, the backend uses the local mock engine.
+The AI provider request occurs when `PROMOVA_ANALYSIS_ENGINE=openrouter`. The same response includes a short title, saved with the analysis and exposed on analyzed evidence. Pending and legacy records use a source-derived fallback. The local mock engine remains available for development and tests.

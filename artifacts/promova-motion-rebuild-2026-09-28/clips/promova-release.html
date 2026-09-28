@@ -1,0 +1,116 @@
+<title>Promova — lançamento em movimento</title>
+<style>
+html,body{background:#EDEBE6}
+#stage{background:#EDEBE6;color:#101026}
+#shape{box-shadow:0 2px 5px #15152912,0 30px 90px #15152925}
+.violet{color:#673CEC}.ink{color:#101026}.muted{color:#77778A}.small{font-size:17px;font-weight:650;letter-spacing:.09em;text-transform:uppercase}
+.mark{width:54px;height:54px;border-radius:17px;background:#673CEC;color:white;display:flex;align-items:center;justify-content:center;font-size:37px;font-weight:800;line-height:1}
+.rule{height:1px;background:#E5E3EA}
+.chip{display:inline-flex;align-items:center;gap:8px;border-radius:99px;padding:9px 16px;background:#F1EDFF;color:#5B31D8;font-size:18px;font-weight:700}
+.button{border-radius:14px;background:#673CEC;color:white;padding:16px 25px;font-size:21px;font-weight:700;white-space:nowrap}
+.skeleton{height:11px;background:#E6E5EF;border-radius:8px}
+.rowline{height:1px;background:#E8E7EF}
+.head{position:absolute;left:-344px;top:29px;width:688px;height:66px;display:flex;align-items:center;gap:17px;font-size:29px;font-weight:750;letter-spacing:-.025em}
+.eyebrow{font-size:18px;font-weight:700;letter-spacing:.04em;color:#6A6880}
+.title{font-size:50px;font-weight:780;line-height:1.1;letter-spacing:-.048em;color:#14132B}
+.label{font-size:19px;font-weight:680;color:#626176}
+.value{font-size:22px;font-weight:680;color:#1D1C33}
+.little{font-size:17px;color:#76758A}
+#topline{position:absolute;left:72px;top:54px;font-size:18px;letter-spacing:.24em;font-weight:780;color:#4E3C96}
+#bottomline{position:absolute;left:72px;top:823px;width:1456px;height:2px;background:#D5D2CD}
+#progress{position:absolute;left:72px;top:823px;height:3px;background:#673CEC;width:0}
+#chapter{position:absolute;right:73px;top:51px;font-size:17px;letter-spacing:.15em;font-weight:700;color:#8A8896}
+#tagline{position:absolute;left:72px;top:850px;font-size:16px;color:#8A8896;letter-spacing:.09em}
+#logoRow{position:absolute;left:-197px;top:-33px;display:flex;align-items:center;gap:17px;color:#fff;font-size:61px;font-weight:800;letter-spacing:-.065em}
+#evidenceBody{position:absolute;left:-344px;top:108px;width:688px;height:315px}
+#analysisBody{position:absolute;left:-344px;top:102px;width:688px;height:405px}
+#reviewBody{position:absolute;left:-344px;top:104px;width:688px;height:348px}
+#planBody{position:absolute;left:-386px;top:104px;width:772px;height:330px}
+.iconbox{display:flex;align-items:center;justify-content:center;width:49px;height:49px;border-radius:14px;background:#F1EDFF}
+</style>
+<div data-slot="fixed">
+  <div id="topline">PROMOVA / LANÇAMENTO</div>
+  <div id="chapter">01 — 05</div>
+  <div id="bottomline"></div><div id="progress"></div>
+  <div id="tagline">O TRABALHO ACONTECE. A EVOLUÇÃO APARECE.</div>
+</div><!--/fixed-->
+<div data-slot="shape">
+  <div class="L" id="Llogo"><div id="logoRow"><div style="width:61px;height:61px;background:#fff;border-radius:19px;color:#673CEC;display:flex;align-items:center;justify-content:center;font-size:44px;letter-spacing:-.12em;padding-right:7px;box-sizing:border-box">↗</div>promova</div></div>
+  <div class="L" id="Levidence">
+    <div class="head"><div class="mark">↗</div><span>Evidência</span><span class="chip" style="margin-left:auto">GitHub</span></div>
+    <div id="evidenceBody">
+      <div class="rule"></div>
+      <div class="eyebrow" style="position:absolute;top:36px">CAPTURA COM FONTE</div>
+      <div class="title" style="position:absolute;top:77px;width:660px">O trabalho deixa<br>de se perder.</div>
+      <div class="rowline" style="position:absolute;top:214px;width:688px"></div>
+      <div id="evSource" style="position:absolute;top:243px;display:flex;align-items:center;gap:15px;opacity:0"><span class="iconbox" id="icFile"></span><div><div class="value">PR #1492</div><div class="little">Origem preservada · GitHub</div></div></div>
+      <div class="button" style="position:absolute;right:0;top:250px" id="evButton">Analisar ↗</div>
+    </div>
+  </div>
+  <div class="L" id="Lanalysis">
+    <div class="head"><div class="mark">↗</div><span>Análise salva</span><span class="chip" style="margin-left:auto">Fonte vinculada</span></div>
+    <div id="analysisBody">
+      <div class="rule"></div>
+      <div class="eyebrow" style="position:absolute;top:32px">DA EVIDÊNCIA À CLAREZA</div>
+      <div class="title" style="position:absolute;top:68px">Contexto organiza<br>contribuições.</div>
+      <div id="analysisSections" style="position:absolute;top:194px;width:688px;opacity:0">
+        <div style="display:flex;gap:20px"><div class="iconbox" id="icSpark"></div><div><div class="value">Resumo da análise</div><div class="little" style="margin-top:4px">O que foi feito e por quê.</div></div></div>
+        <div class="skeleton" style="width:575px;margin-top:27px"></div><div class="skeleton" style="width:492px;margin-top:13px"></div>
+        <div class="rowline" style="width:688px;margin-top:25px"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:22px"><div class="little">A fonte permanece acessível.</div><div class="button" id="analysisButton">Enviar para revisão ↗</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="L" id="Lreview">
+    <div class="head"><div class="mark">↗</div><span>Revisão da gestão</span><span class="chip" style="margin-left:auto" id="reviewStatus">Pendente</span></div>
+    <div id="reviewBody">
+      <div class="rule"></div>
+      <div class="eyebrow" style="position:absolute;top:34px">DECISÃO HUMANA</div>
+      <div class="title" style="position:absolute;top:69px">O contexto ganha<br>uma conversa.</div>
+      <div id="comment" style="position:absolute;top:211px;width:688px;height:116px;border:2px solid #E4E0EE;border-radius:17px;background:#FAFAFD;opacity:0">
+        <div class="label" style="position:absolute;top:18px;left:22px">Comentário da gestão</div>
+        <div class="skeleton" style="position:absolute;top:57px;left:22px;width:565px"></div><div class="skeleton" style="position:absolute;top:79px;left:22px;width:410px"></div>
+      </div>
+      <div class="button" style="position:absolute;right:0;top:346px" id="reviewButton">Aceitar análise ✓</div>
+    </div>
+  </div>
+  <div class="L" id="Lplan">
+    <div class="head" style="left:-386px;width:772px"><div class="mark">↗</div><span>Plano de carreira</span><span class="chip" style="margin-left:auto">Em andamento</span></div>
+    <div id="planBody">
+      <div class="rule"></div>
+      <div class="eyebrow" style="position:absolute;top:34px">DO REGISTRO AO PRÓXIMO PASSO</div>
+      <div class="title" style="position:absolute;top:67px">Evolução com direção.</div>
+      <div id="objective" style="position:absolute;top:164px;width:772px;height:148px;border:2px solid #E4E0EE;border-radius:18px;background:#FAFAFD;opacity:0">
+        <div class="iconbox" id="icArrow" style="position:absolute;left:25px;top:25px"></div>
+        <div class="value" style="position:absolute;left:91px;top:27px">Ampliar impacto técnico</div>
+        <div class="little" style="position:absolute;left:91px;top:61px">Objetivo de carreira</div>
+        <div class="skeleton" style="position:absolute;left:27px;top:105px;width:455px"></div>
+        <div class="chip" id="linked" style="position:absolute;right:21px;top:89px;opacity:0">Evidência vinculada ✓</div>
+      </div>
+    </div>
+  </div>
+  <div class="L" id="Lend"><div style="position:absolute;left:-240px;top:-58px;width:480px;text-align:center;color:#fff"><div style="font-size:70px;font-weight:800;letter-spacing:-.065em">promova</div><div style="font-size:22px;font-weight:500;letter-spacing:-.01em;margin-top:7px;color:#DDD5FF">Carreira baseada em evidências.</div></div></div>
+</div><!--/shape-->
+<script>
+const $=id=>document.getElementById(id);
+$('icFile').innerHTML=M.icon('file',28,'#673CEC',2.7);
+$('icSpark').innerHTML=M.icon('sparkle',28,'#673CEC',2.7);
+$('icArrow').innerHTML=M.icon('arrow',28,'#673CEC',2.7);
+const evOn=M.track(0,[[3.28,1,M.SOFT]]),analysisOn=M.track(0,[[7.06,1,M.SOFT]]),commentOn=M.track(0,[[10.78,1,M.SOFT]]),objectiveOn=M.track(0,[[14.25,1,M.SOFT]]),linkOn=M.track(0,[[16.12,1,M.SOFT]]);
+const progress=M.track(0,[[2.7,.2,M.SOFT],[6.4,.4,M.SOFT],[10,.6,M.SOFT],[13.6,.8,M.SOFT],[17.1,1,M.SOFT]]);
+M.scene({
+  W:1600,H:900,T:21.4,bg:'#EDEBE6',intro:0.08,
+  SH:{logo:{w:470,h:122,r:61,bg:'#17152E',cam:1.34},evidence:{w:780,h:445,r:33,bg:'#FFFFFF',cam:1.18},analysis:{w:790,h:555,r:33,bg:'#FFFFFF',cam:1.12},review:{w:790,h:545,r:33,bg:'#FFFFFF',cam:1.12},plan:{w:870,h:505,r:33,bg:'#FFFFFF',cam:1.1},end:{w:650,h:210,r:58,bg:'#17152E',cam:1.17}},
+  start:'logo',SEQ:[[2.7,'evidence'],[6.4,'analysis'],[10,'review'],[13.6,'plan'],[17.1,'end']],
+  layers:[
+    {el:'Llogo',tin:0.08,tout:2.7},
+    {el:'Levidence',tin:2.7,tout:6.4,anchor:'t',update:t=>{const v=evOn(t);$('evSource').style.opacity=Math.min(1,v);$('evSource').style.transform=`translateY(${(1-v)*15}px)`;}},
+    {el:'Lanalysis',tin:6.4,tout:10,anchor:'t',update:t=>{const v=analysisOn(t);$('analysisSections').style.opacity=Math.min(1,v);$('analysisSections').style.transform=`translateY(${(1-v)*15}px)`;}},
+    {el:'Lreview',tin:10,tout:13.6,anchor:'t',update:t=>{const v=commentOn(t);$('comment').style.opacity=Math.min(1,v);$('comment').style.transform=`translateY(${(1-v)*13}px)`;const done=t>=12.48;$('reviewStatus').textContent=done?'Aceita':'Pendente';$('reviewStatus').style.background=done?'#E9F8ED':'#F1EDFF';$('reviewStatus').style.color=done?'#277747':'#5B31D8';}},
+    {el:'Lplan',tin:13.6,tout:17.1,anchor:'t',update:t=>{const v=objectiveOn(t);$('objective').style.opacity=Math.min(1,v);$('objective').style.transform=`translateY(${(1-v)*16}px)`;$('linked').style.opacity=Math.min(1,linkOn(t));}},
+    {el:'Lend',tin:17.1,tout:null},
+  ],
+  cursor:{size:37,clicks:[5.47,9.15,12.42,16.08],keys:[[0,580,320],[2.2,580,320],[3.3,380,190],[5.33,275,145],[5.52,275,145],[6.9,370,200],[8.95,235,194],[9.2,235,194],[10.8,345,228],[12.28,260,180],[12.46,260,180],[14.3,395,210],[15.9,310,188],[16.11,310,188],[17.8,510,260],[21.4,510,260]]},
+  extra:(t)=>{let ch=t<2.7?'01':t<6.4?'02':t<10?'03':t<13.6?'04':t<17.1?'05':'05';$('chapter').textContent=`${ch} — 05`;$('progress').style.width=(1456*progress(t))+'px';}
+});
+</script>

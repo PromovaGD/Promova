@@ -1,6 +1,11 @@
 import { apiDelete, apiGet, apiPost, apiPut } from "./http.mjs";
 
 export const api = {
+  inbox: (params, signal) => apiGet("/evidences/inbox", {
+    ...dateParams(params), bucket: params?.status || "pending", q: params?.q,
+    source: params?.source, sort: params?.sort || "newest",
+    page: params?.page || 1, pageSize: 25,
+  }, { signal }),
   evidences: (params, signal) => apiGet("/evidences", { ...dateParams(params), status: params?.status, source: params?.source, page: params?.page || 1, pageSize: 25 }, { signal }),
   evidence: (ownerId, id, manager, signal) => apiGet(manager ? `/manager/employees/${ownerId}/evidences/${id}` : `/evidences/${id}`, null, { signal }),
   dismissEvidence: (id) => reconcileEvidenceMutation(id, () => apiPost(`/evidences/${id}/dismiss`, {}), evidence => evidence.status === "DISMISSED"),
@@ -13,6 +18,22 @@ export const api = {
   insights: (params, signal) => apiGet("/insights", dateParams(params), { signal }),
   framework: (manager, signal) => apiGet(manager ? "/manager/settings/framework" : "/career-configuration/framework", null, { signal }),
   profile: (signal) => apiGet("/profile", null, { signal }),
+  managerDashboard: (params, signal) => apiGet("/manager/dashboard", {
+    period: params?.period || "30", from: params?.from, to: params?.to,
+    teamId: params?.team, jobRoleId: params?.role, employeeId: params?.member,
+  }, { signal }),
+  dashboardPeople: (params, signal) => apiGet("/manager/dashboard/people", {
+    teamId: params?.team, jobRoleId: params?.role, employeeId: params?.member,
+    page: params?.page || 1, pageSize: 25,
+  }, { signal }),
+  refreshPullReviews: (limit = 10) => apiPost(`/manager/dashboard/pr-reviews/refresh?limit=${limit}`, {}),
+  managerTeams: (signal) => apiGet("/manager/teams", null, { signal }),
+  teamVisibleMembers: (signal) => apiGet("/manager/teams/members", null, { signal }),
+  teamCandidates: (signal) => apiGet("/manager/teams/candidates", null, { signal }),
+  teamMembers: (teamId, signal) => apiGet("/manager/teams/" + teamId + "/members", null, { signal }),
+  createTeam: (name) => apiPost("/manager/teams", { name }),
+  assignTeamMember: (teamId, employeeId) => apiPost("/manager/teams/" + teamId + "/members", { employeeId }),
+  removeTeamMember: (teamId, employeeId) => apiDelete("/manager/teams/" + teamId + "/members/" + employeeId),
   employees: (params, signal) => apiGet("/manager/employees", { query: params?.q, jobRoleId: params?.role, level: params?.level, page: params?.page || 1, pageSize: 25 }, { signal }),
   employee: (id, signal) => apiGet(`/manager/employees/${id}`, null, { signal }),
   employeePlan: (id, signal) => apiGet(`/manager/employees/${id}/career-plan`, null, { signal }),

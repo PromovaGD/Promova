@@ -29,6 +29,7 @@ class OpenRouterAnalysisEngineTest {
         (messages) ->
             """
             {
+              "title": "Refatorou o checkout e reduziu a latência",
               "estimatedLevel": "L4",
               "confidence": "high",
               "reasoning": "Evidence shows measurable system improvement.",
@@ -45,6 +46,7 @@ class OpenRouterAnalysisEngineTest {
             careerFramework);
 
     assertThat(response.estimatedLevel()).isEqualTo("L4");
+    assertThat(response.title()).isEqualTo("Refatorou o checkout e reduziu a latência");
     assertThat(response.confidence()).isEqualTo(Confidence.HIGH);
     assertThat(response.competencies()).containsExactly("Ownership", "Code Quality");
     assertThat(response.suggestions()).containsExactly("Add business impact.");
@@ -56,6 +58,7 @@ class OpenRouterAnalysisEngineTest {
         (messages) ->
             """
             {
+              "title": "Apoiou tarefas de backend",
               "estimatedLevel": "L9",
               "confidence": "low",
               "reasoning": "Evidence is vague.",
@@ -76,11 +79,13 @@ class OpenRouterAnalysisEngineTest {
   @Test
   void sendsSourceAndEmployeeObservationAsSeparateNamedFields() {
     AtomicReference<String> prompt = new AtomicReference<>();
+    AtomicReference<String> instructions = new AtomicReference<>();
     AiChatClient client =
         messages -> {
+          instructions.set(messages.get(0).content());
           prompt.set(messages.get(1).content());
           return """
-              {"estimatedLevel":"L3","confidence":"medium","reasoning":"Supported","competencies":[],"suggestions":[]}
+              {"title":"Apoiou o trabalho da equipe","estimatedLevel":"L3","confidence":"medium","reasoning":"Supported","competencies":[],"suggestions":[]}
               """;
         };
     OpenRouterAnalysisEngine engine = new OpenRouterAnalysisEngine(client, new ObjectMapper());
@@ -91,6 +96,7 @@ class OpenRouterAnalysisEngineTest {
 
     assertThat(prompt.get()).contains("\"sourceEvidence\" : \"Source body\"");
     assertThat(prompt.get()).contains("\"employeeObservation\" : \"Employee context\"");
+    assertThat(instructions.get()).contains("Brazilian Portuguese").contains("\"title\"");
   }
 
   @Test
@@ -98,7 +104,7 @@ class OpenRouterAnalysisEngineTest {
     AiChatClient invalidConfidence =
         messages ->
             """
-            {"estimatedLevel":"L3","confidence":"certain","reasoning":"Text","competencies":[],"suggestions":[]}
+            {"title":"Descreveu uma tarefa","estimatedLevel":"L3","confidence":"certain","reasoning":"Text","competencies":[],"suggestions":[]}
             """;
     OpenRouterAnalysisEngine confidenceEngine =
         new OpenRouterAnalysisEngine(invalidConfidence, new ObjectMapper());
@@ -111,7 +117,7 @@ class OpenRouterAnalysisEngineTest {
     AiChatClient oversized =
         messages ->
             """
-            {"estimatedLevel":"L3","confidence":"low","reasoning":"Text","competencies":["1","2","3","4","5","6","7","8","9","10","11"],"suggestions":[]}
+            {"title":"Descreveu uma tarefa","estimatedLevel":"L3","confidence":"low","reasoning":"Text","competencies":["1","2","3","4","5","6","7","8","9","10","11"],"suggestions":[]}
             """;
     OpenRouterAnalysisEngine listEngine = new OpenRouterAnalysisEngine(oversized, new ObjectMapper());
     assertThatThrownBy(
@@ -119,5 +125,22 @@ class OpenRouterAnalysisEngineTest {
                 listEngine.analyze(
                     new EvidenceAnalysisRequest("Evidence", "L3", "L4"), careerFramework))
         .hasMessageContaining("exceeds its bounds");
+  }
+
+  @Test
+  void rejectsMissingOrOversizedAiTitle() {
+    for (String titleField : new String[] {"", "\"title\":\"" + "x".repeat(101) + "\","}) {
+      AiChatClient client =
+          messages ->
+              "{"
+                  + titleField
+                  + "\"estimatedLevel\":\"L3\",\"confidence\":\"low\",\"reasoning\":\"Text\",\"competencies\":[],\"suggestions\":[]}";
+      OpenRouterAnalysisEngine engine = new OpenRouterAnalysisEngine(client, new ObjectMapper());
+      assertThatThrownBy(
+              () ->
+                  engine.analyze(
+                      new EvidenceAnalysisRequest("Evidence", "L3", "L4"), careerFramework))
+          .hasMessageContaining("title");
+    }
   }
 }

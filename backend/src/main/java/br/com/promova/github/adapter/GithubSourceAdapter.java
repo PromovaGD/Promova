@@ -124,6 +124,11 @@ public class GithubSourceAdapter implements SourceAdapter {
             "Link publico do PR: " + htmlUrl,
             "Leitura preparada automaticamente para revisao no Promova.");
 
+    Map<String, String> providerMetadata = metadata(repository.value(), pullRequest);
+    if (bundle.commitsCount() != null) {
+      providerMetadata.put("commitCount", Integer.toString(bundle.commitsCount()));
+    }
+    providerMetadata.put("changedFilesCount", Integer.toString(bundle.changedFilesCount()));
     return new NormalizedEvidence(
         SOURCE,
         externalId(repository, pullNumber),
@@ -132,7 +137,7 @@ public class GithubSourceAdapter implements SourceAdapter {
         htmlUrl,
         pullRequest.authorLogin(),
         occurredAt(pullRequest),
-        metadata(repository.value(), pullRequest)
+        providerMetadata
     );
   }
 

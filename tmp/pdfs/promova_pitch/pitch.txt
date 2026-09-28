@@ -1,0 +1,246 @@
+                         PROMOVA
+            Gestão de equipes orientada por evidências
+
+Decisões de promoção mais justas, transparentes e baseadas no trabalho real.
+
+
+
+
+                              B2B SaaS • People Tech
+
+
+
+
+                                                                               2026
+PROBLEMA                                                                                                                                                         02
+
+
+Promoções ainda dependem demais da percepção.
+
+                                                  01   Viés e recência                                 02    Informação fragmentada
+    Decisões de                                        Avaliações influenciadas por                          Dados de trabalho espalhados em
+                                                       percepção pessoal e pelo que foi feito                diferentes ferramentas sem centralização.
+    promoção                                           recentemente.
+
+
+    baseadas em
+    percepção,                                    03   Critérios opacos
+
+    não em dados.                                      Critérios de promoção pouco claros para gestores e colaboradores.
+
+
+
+    O trabalho acontece todos os dias.
+    A avaliação, muitas vezes, acontece olhando
+    para uma fotografia.
+                                                  Resultado
+
+                                                  Talentos podem ser avaliados pelo que é mais lembrado — e não pelo
+          O problema
+                                                  que foi construído.
+
+
+
+
+PROMOVA                                                                                                                    Gestão de equipes orientada por evidências
+SOLUÇÃO                                                                                                                                                                                  03
+
+
+Do trabalho disperso à evidência organizada.
+O Promova conecta o cotidiano de trabalho aos critérios de carreira.
+
+
+
+
+    01                                     02                           03                                        04                                     05
+
+
+
+  FERRAMENTAS                            EVIDÊNCIAS                   IA                                        COMPETÊNCIAS                          GESTOR
+                                 →                            →                                       →                                       →
+  Dados do trabalho                      Informações                  Análise e                                 Evolução por                          Visão clara para
+  no dia a dia                           organizadas                  contextualização                          critérios do cargo                    tomar decisões
+
+
+
+
+   Integração com o cotidiano                             Critérios mais claros                                             Apoio à decisão
+
+   Conecta fontes de trabalho sem depender de registros   Competências e expectativas dão contexto aos dados.               O gestor recebe evidências organizadas — não uma
+   manuais.                                                                                                                 decisão automática.
+
+
+
+
+PROMOVA                                                                                                                                            Gestão de equipes orientada por evidências
+PRODUTO                                                                                                                                                             04
+
+
+Como o Promova funciona na prática.
+Um fluxo contínuo entre trabalho, evidências e decisão.
+
+
+
+             01                           02                                03                         04                                           05
+                             →                            →                                →                               →
+
+    TRABALHO REAL                     COLETA                            ANÁLISE                COMPETÊNCIAS                                   DECISÃO
+
+     Atividades e entregas         GitHub, Jira, Slack                IA contextualiza          Critérios do cargo                            Gestor avalia
+
+
+
+
+   EXEMPLO DE EVIDÊNCIA
+
+
+   Entrega de uma funcionalidade         → relacionada à competência “Autonomia Técnica”                         Evidência contextualizada
+
+   crítica
+
+
+
+
+PROMOVA                                                                                                                       Gestão de equipes orientada por evidências
+MERCADO                                                                                                                                 05
+
+
+Quem usa — e quem se beneficia.
+PÚBLICO-ALVO INICIAL
+
+                                                  PROPOSTA DE VALOR
+    A     Empresas de tecnologia
+
+          Equipes onde o trabalho já gera dados
+                                                  Transformar o trabalho diário
+          digitais.
+                                                  em evidências para uma
+                                                  gestão de pessoas mais objetiva.
+    B     Gestores e líderes de
+          squads
+          Usuário principal da plataforma.
+                                                   01   Mais contexto        para o gestor
+
+
+
+                                                   02   Mais transparência   para o colaborador
+    C     Colaboradores e RH
+
+          Beneficiários da maior transparência.    03   Mais consistência    para a empresa
+
+
+
+
+PROMOVA                                                                                           Gestão de equipes orientada por evidências
+NEGÓCIO                                                                                                                                        06
+
+
+Modelo B2B SaaS pensado para crescer com a equipe.
+Planos por usuário + expansão para novas fontes de trabalho.
+
+
+
+   PLANO BASE                                 PLANO PREMIUM                       EXPANSÃO
+
+
+                                                                                       GitHub            Código
+   R$ 29,99                                   R$ 45,36
+   / usuário / mês                            / usuário / mês                          Jira              Projetos
+
+
+
+                                                                                       Slack             Comunicação
+          Entrada                                 Expansão
+
+
+
+
+MÉTRICAS DE SUCESSO
+
+
+
+  01       Adesão                   02    Recorrência           03   Evidências                   04     Avaliações
+
+
+
+                                                                                                Decisão humana apoiada por evidências.
+
+PROMOVA                                                                                                  Gestão de equipes orientada por evidências
+GO-TO-MARKET                                                                                                                                                  07
+
+
+Entrar por squads, provar valor e expandir.
+Estratégia inicial focada em empresas de tecnologia e parceiros de People/RH.
+
+
+
+
+     01   PROSPECÇÃO                   02   PILOTOS                       03     DEMONSTRAÇÃO                     04      PARCERIAS
+
+
+                               →                                    →                                   →
+  Empresas de tecnologia             Squads selecionados                Produto + evidências                 RH / People
+
+
+
+
+    SUPORTE                                                                                                            Relacionamento contínuo
+
+
+    Onboarding estruturado         Documentação e suporte técnico              Acompanhamento com gestores e RH
+
+
+
+
+PROMOVA                                                                                                                 Gestão de equipes orientada por evidências
+VALUATION                                                                                                                                                                08
+
+
+Uma projeção inicial e conservadora.
+Objetivo: demonstrar a lógica econômica do SaaS — não tratar a estimativa como valor definitivo.
+
+
+PREMISSAS                                          LÓGICA DA PROJEÇÃO
+
+
+
+           35                   15 / 20
+                                                             35                  ≈ 613                 R$ 21,2 mil                       R$ 254,3 mil
+          Empresas            Usuários / empresa                         ×                         ×                               ×
+                                                           empresas                usuários            receita recorrente mensal         receita recorrente anualizada
+
+
+
+
+       ≈ 613                    70 / 30
+      Usuários totais          Base / Premium
+
+
+
+
+    VALUATION DE REFERÊNCIA
+
+                                                                                                                                       2× – 4× RRA
+
+                        ≈ R$ 762,9 mil                                R$ 508,6 mil – R$ 1,02 mi
+                                                                                                                                   referência central
+
+
+
+
+PROMOVA                                                                                                                            Gestão de equipes orientada por evidências
+ Promoção não deveria
+depender de quem é mais
+      lembrado.
+
+   Deveria ser apoiada por evidências.
+
+
+
+                        PROMOVA
+
+
+
+
+        Gestão de equipes orientada por evidências
+

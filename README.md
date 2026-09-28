@@ -30,6 +30,9 @@ O histórico de implementação e as evidências de aceitação ficam em
 rollout e rollback por artefato/versionamento fica em
 `artifacts/frontend-modernization-2026-09-07/ROLLOUT.md`.
 
+A revisão da caixa de entrada e o inventário das demais páginas na `main` atual estão em
+`docs/frontend-main-layout-review.md`.
+
 ## Requisitos
 
 - Java 21
@@ -98,7 +101,7 @@ sequenceDiagram
     API->>API: Load career framework and build prompt
 
     API->>AI: POST /chat/completions<br/>Evidence + levels + framework
-    AI-->>API: JSON analysis<br/>Level, confidence, reasoning and suggestions
+    AI-->>API: JSON analysis<br/>Title, level, confidence, reasoning and suggestions
 
     API->>API: Validate AI response
     API->>DB: Save analysis and mark evidence ANALYZED
@@ -108,6 +111,8 @@ sequenceDiagram
 ```
 
 O request ao AI provider acontece quando `PROMOVA_ANALYSIS_ENGINE=openrouter`. O mock existe apenas nos perfis `dev` e `test`; produção força OpenRouter e falha na inicialização sem `OPENROUTER_API_KEY`. Evidência de origem e observação opcional do funcionário são enviadas em campos separados. O diagrama também está disponível em [`docs/evidence-ai-analysis-flow.md`](docs/evidence-ai-analysis-flow.md).
+
+O título curto é gerado nessa mesma resposta da IA, validado e salvo com a análise. Evidências pendentes e análises antigas sem título gerado continuam exibindo um título derivado da fonte. Para testar a resposta real do provider em QA, configure `PROMOVA_ANALYSIS_ENGINE=openrouter` e `OPENROUTER_API_KEY`; o mock não valida a qualidade do texto gerado.
 
 ## Editar o Career Framework
 
@@ -165,7 +170,8 @@ npm run test:e2e
 No macOS, o teste usa o Google Chrome em `/Applications` por padrão. Em outros ambientes, defina
 `PROMOVA_E2E_CHROME` com o caminho do executável de Chrome/Chromium. As portas padrão são `14175`
 (frontend) e `18082` (backend), configuráveis por `PROMOVA_E2E_FRONTEND_PORT` e
-`PROMOVA_E2E_BACKEND_PORT`. O teste cobre ambos os papéis, rotas canônicas, reload,
+`PROMOVA_E2E_BACKEND_PORT`. Use `PROMOVA_E2E_SCREENSHOT_DIR` para gravar as capturas fora da pasta
+de referência versionada. O teste cobre ambos os papéis, rotas canônicas, reload,
 back/forward, retorno seguro de autenticação, sessão expirada, autorização, paginação com 500
 registros, texto longo, teclado, reflow e os 20 mapeamentos visuais auditados.
 
@@ -280,6 +286,24 @@ esse token da empresa tenha acesso; a tela nao representa autorizacao GitHub por
 OAuth e nao armazena tokens pessoais.
 
 ## Observações
+
+### Dashboard da gestão
+
+O login de `MANAGER` abre `/manage/dashboard`; **Pessoas** continua disponível em `/manage/people`. O painel traz filtros de período, equipe, cargo e pessoa, indicadores de evidências, análises, revisões, objetivos e PRs capturados. As contagens e tendências são calculadas no backend, respeitando os membros ativos das equipes do gestor. **Equipes** (`/manage/teams`) permite criar equipes e mover funcionários. A seção de PRs cobre apenas registros capturados/sincronizados pelo Promova; revisões de código do GitHub podem ser atualizadas pela ação no painel.
+
+No perfil `dev`, `PROMOVA_DEMO_DATA_ENABLED=true` cria uma amostra identificada na interface somente em bases novas sem evidências. Use `PROMOVA_DEMO_DATA_ENABLED=false` para desativá-la. O limiar de atenção do dashboard usa `promova.dashboard.attention-days=7` (de 1 a 90 dias). Contratos e limites dos dados estão em [docs/manager-dashboard-plan.md](docs/manager-dashboard-plan.md).
+
+```text
+GET    /manager/dashboard
+GET    /manager/dashboard/people
+POST   /manager/dashboard/pr-reviews/refresh?limit=10
+GET    /manager/teams
+GET    /manager/teams/members
+GET    /manager/teams/{teamId}/members
+POST   /manager/teams
+POST   /manager/teams/{teamId}/members
+DELETE /manager/teams/{teamId}/members/{employeeId}
+```
 
 O motor de análise está isolado atrás da interface `AnalysisEngine`. O mock segue disponível para desenvolvimento local, enquanto o provider `openrouter` usa um LLM real com prompt de sistema orientado pelo career framework enviado pelo backend.
 

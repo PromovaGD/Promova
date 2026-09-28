@@ -13,6 +13,7 @@ public record SavedAnalysisDetailResponse(
     String source,
     String sourceMeta,
     String evidence,
+    String title,
     String currentLevel,
     String targetLevel,
     String userObservation,

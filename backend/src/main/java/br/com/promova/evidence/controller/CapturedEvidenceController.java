@@ -6,6 +6,7 @@ import br.com.promova.analysis.service.EvidenceAnalysisService;
 import br.com.promova.auth.AuthService;
 import br.com.promova.auth.AuthTokenResolver;
 import br.com.promova.evidence.dto.EvidenceResponse;
+import br.com.promova.evidence.dto.EvidenceInboxResponse;
 import br.com.promova.common.PageRequestFactory;
 import br.com.promova.evidence.dto.GithubPullRequestCaptureRequest;
 import br.com.promova.evidence.service.EvidenceService;
@@ -72,6 +73,21 @@ public class CapturedEvidenceController {
   public Object get(
       @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization, @PathVariable Long id) {
     return evidenceService.getCanonicalForUser(requireUser(authorization), id);
+  }
+
+  @GetMapping("/inbox")
+  public EvidenceInboxResponse inbox(
+      @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
+      @RequestParam(required = false) String bucket,
+      @RequestParam(required = false) String q,
+      @RequestParam(required = false) String source,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant from,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant to,
+      @RequestParam(required = false) String sort,
+      @RequestParam(required = false) Integer page,
+      @RequestParam(required = false) Integer pageSize) {
+    return evidenceService.inbox(requireUser(authorization), bucket, q, source, from, to,
+        sort, PageRequestFactory.create(page, pageSize));
   }
 
   @PostMapping("/{id}/dismiss")

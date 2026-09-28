@@ -22,6 +22,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -35,6 +37,7 @@ public class EvidenceAnalysisService {
   private final CareerProfileRepository profileRepository;
   private final SavedAnalysisRepository savedAnalysisRepository;
   private final SavedAnalysisService savedAnalysisService;
+  private final AnalysisRunRecorder runRecorder;
 
   public EvidenceAnalysisService(
       FrameworkProvider frameworkProvider,
@@ -42,13 +45,15 @@ public class EvidenceAnalysisService {
       EvidenceRepository evidenceRepository,
       CareerProfileRepository profileRepository,
       SavedAnalysisRepository savedAnalysisRepository,
-      SavedAnalysisService savedAnalysisService) {
+      SavedAnalysisService savedAnalysisService,
+      AnalysisRunRecorder runRecorder) {
     this.frameworkProvider = frameworkProvider;
     this.analysisEngine = analysisEngine;
     this.evidenceRepository = evidenceRepository;
     this.profileRepository = profileRepository;
     this.savedAnalysisRepository = savedAnalysisRepository;
     this.savedAnalysisService = savedAnalysisService;
+    this.runRecorder = runRecorder;
   }
 
   /**
@@ -117,6 +122,7 @@ public class EvidenceAnalysisService {
           evidenceId,
           Duration.between(startedAt, Instant.now()).toMillis(),
           error.getClass().getSimpleName());
+      recordFailedRunAfterRollback(evidenceId, error.getClass().getSimpleName(), startedAt);
       throw error;
     }
 
@@ -131,6 +137,10 @@ public class EvidenceAnalysisService {
             Instant.now());
     evidence.markAnalyzed();
     evidenceRepository.save(evidence);
+    if (savedResponse != null) {
+      runRecorder.succeeded(evidenceId, savedResponse.analysisId(), startedAt, Instant.now(),
+          engineResult.suggestions());
+    }
     LOGGER.info(
         "analysis_succeeded evidenceId={} analysisId={} durationMs={}",
         evidenceId,
@@ -139,9 +149,33 @@ public class EvidenceAnalysisService {
     return savedResponse;
   }
 
+  private void recordFailedRunAfterRollback(Long evidenceId, String errorType, Instant startedAt) {
+    Instant completedAt = Instant.now();
+    if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+      runRecorder.failed(evidenceId, errorType, startedAt, completedAt);
+      return;
+    }
+    TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+      @Override
+      public void afterCompletion(int status) {
+        if (status != STATUS_ROLLED_BACK) return;
+        try {
+          runRecorder.failed(evidenceId, errorType, startedAt, completedAt);
+        } catch (RuntimeException recordingError) {
+          LOGGER.warn("analysis_run_recording_failed evidenceId={} errorType={}", evidenceId,
+              recordingError.getClass().getSimpleName());
+        }
+      }
+    });
+  }
+
   private void validateEngineResult(
       EvidenceAnalysisResponse result, CareerFramework careerFramework, CareerProfile profile) {
     if (result == null
+        || result.title() == null
+        || result.title().isBlank()
+        || result.title().length() > 100
+        || result.title().chars().anyMatch(Character::isISOControl)
         || result.estimatedLevel() == null
         || result.confidence() == null
         || result.reasoning() == null

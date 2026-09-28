@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import br.com.promova.auth.dto.AuthResponse;
 import br.com.promova.auth.dto.RegisterRequest;
 import br.com.promova.profile.ProfileService;
+import br.com.promova.manager.team.ManagerTeamService;
 import br.com.promova.user.User;
 import br.com.promova.user.UserRepository;
 import br.com.promova.user.UserRole;
@@ -27,10 +28,11 @@ class AuthServiceTest {
   @Mock private UserRepository userRepository;
   @Mock private AuthSessionRepository authSessionRepository;
   @Mock private ProfileService profileService;
+  @Mock private ManagerTeamService managerTeamService;
 
   @Test
   void rejectsInvalidOrExpiredSessionsWithUnauthorized() {
-    AuthService authService = new AuthService(userRepository, authSessionRepository, profileService);
+    AuthService authService = new AuthService(userRepository, authSessionRepository, profileService, managerTeamService);
     when(authSessionRepository.findByTokenAndExpiresAtAfter(anyString(), any(Instant.class)))
         .thenReturn(Optional.empty());
 
@@ -42,7 +44,7 @@ class AuthServiceTest {
 
   @Test
   void registrationCreatesAnEmployeeSession() {
-    AuthService authService = new AuthService(userRepository, authSessionRepository, profileService);
+    AuthService authService = new AuthService(userRepository, authSessionRepository, profileService, managerTeamService);
     when(userRepository.findByEmailIgnoreCase("employee@example.com")).thenReturn(Optional.empty());
     when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
     when(authSessionRepository.save(any(AuthSession.class)))

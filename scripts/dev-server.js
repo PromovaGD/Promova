@@ -29,6 +29,12 @@ function createServer() {
     const urlPath = request.url === "/" ? "/index.html" : request.url.split("?")[0];
     const filePath = path.join(root, urlPath);
 
+    if (urlPath === "/promova-config.js" && process.env.PROMOVA_API_BASE_URL) {
+      response.writeHead(200, { "Content-Type": "application/javascript; charset=utf-8" });
+      response.end(`window.PROMOVA_API_BASE_URL = ${JSON.stringify(process.env.PROMOVA_API_BASE_URL)};`);
+      return;
+    }
+
     if (!filePath.startsWith(root)) {
       response.writeHead(403);
       response.end("Forbidden");

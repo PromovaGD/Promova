@@ -48,6 +48,7 @@ class EvidenceAnalysisServiceTest {
   @Mock private CareerProfileRepository profileRepository;
   @Mock private SavedAnalysisRepository savedAnalysisRepository;
   @Mock private SavedAnalysisService savedAnalysisService;
+  @Mock private AnalysisRunRecorder runRecorder;
 
   private final CareerFramework framework = framework();
   private User owner;
@@ -69,7 +70,8 @@ class EvidenceAnalysisServiceTest {
             evidenceRepository,
             profileRepository,
             savedAnalysisRepository,
-            savedAnalysisService);
+            savedAnalysisService,
+            runRecorder);
 
     lenient().when(frameworkProvider.load()).thenReturn(framework);
   }
@@ -154,6 +156,25 @@ class EvidenceAnalysisServiceTest {
   }
 
   @Test
+  void rejectsAnEngineResultWithoutATitleBeforeChangingEvidenceState() {
+    when(evidenceRepository.findByIdAndUserIdForUpdate(41L, 7L))
+        .thenReturn(Optional.of(pendingEvidence));
+    when(savedAnalysisRepository.findByEvidenceIdAndUserId(41L, 7L)).thenReturn(Optional.empty());
+    when(profileRepository.findByUserId(7L)).thenReturn(Optional.of(profile));
+    when(analysisEngine.analyze(any(), same(framework)))
+        .thenReturn(new EvidenceAnalysisResponse(null, "L4", Confidence.HIGH, "Result", List.of(), List.of()));
+
+    assertThatThrownBy(() -> service.analyzeOwnedEvidence(owner, 41L))
+        .isInstanceOf(ResponseStatusException.class)
+        .extracting("statusCode")
+        .isEqualTo(HttpStatus.BAD_GATEWAY);
+
+    assertThat(pendingEvidence.getStatus()).isEqualTo(EvidenceStatus.PENDING);
+    verify(savedAnalysisService, never())
+        .saveEngineResult(any(), any(), any(), any(), any(), any(), any());
+  }
+
+  @Test
   void rejectsInvalidPersistedProfileBeforeCallingTheEngine() {
     CareerProfile invalid = new CareerProfile(owner, "L4", "L3");
     when(evidenceRepository.findByIdAndUserIdForUpdate(41L, 7L))
@@ -174,7 +195,7 @@ class EvidenceAnalysisServiceTest {
 
   private EvidenceAnalysisResponse engineResult() {
     return new EvidenceAnalysisResponse(
-        "L4", Confidence.HIGH, "Server-owned result", List.of("Ownership"), List.of("Add metrics"));
+        "Refatorou o checkout", "L4", Confidence.HIGH, "Server-owned result", List.of("Ownership"), List.of("Add metrics"));
   }
 
   private CareerFramework framework() {

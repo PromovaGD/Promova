@@ -10,4 +10,5 @@ public record GithubPullRequestBundle(
     int additions,
     int deletions,
     int changes,
+    Integer commitsCount,
     List<GithubFilePatch> files) {}

@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="pt-BR"><meta charset="utf-8"><title>Promova · Raw footage launch</title>
+<style>html,body{margin:0;background:#203d92}canvas{display:block;width:100vw;height:100vh;object-fit:contain}video,img{display:none}</style>
+<canvas id="film" width="1600" height="900"></canvas>
+<video id="raw" src="promova-raw-full.webm" muted preload="auto" playsinline></video>
+<img id="symbol" src="../../frontend/assets/promova-symbol.png" alt="">
+<script>
+const canvas=document.querySelector('#film'),ctx=canvas.getContext('2d'),raw=document.querySelector('#raw'),symbol=document.querySelector('#symbol');
+const SPEED=1.12,W=1600,H=900;
+let started=0,total=0,recorder,stream,renderId,chunks=[],finished,resolveFinished;
+const clamp=x=>Math.max(0,Math.min(1,x)),ease=x=>{const v=clamp(x);return v*v*(3-2*v)},lerp=(a,b,x)=>a+(b-a)*x;
+function wallpaper(){
+  let g=ctx.createLinearGradient(0,0,W,H);
+  g.addColorStop(0,'#8b9bda');g.addColorStop(.28,'#f7ae7b');g.addColorStop(.53,'#5f79c8');g.addColorStop(1,'#073b91');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  g=ctx.createLinearGradient(100,200,1000,900);g.addColorStop(0,'#f2b588');g.addColorStop(.35,'#7c8bda');g.addColorStop(1,'#173eaa');ctx.fillStyle=g;
+  ctx.beginPath();ctx.moveTo(0,370);ctx.bezierCurveTo(385,220,625,320,920,90);ctx.bezierCurveTo(1120,-30,1380,180,1600,250);ctx.lineTo(1600,900);ctx.lineTo(0,900);ctx.closePath();ctx.fill();
+  g=ctx.createLinearGradient(1000,150,1500,900);g.addColorStop(0,'#ffb771');g.addColorStop(.52,'#e58863');g.addColorStop(1,'#3e76bd');ctx.fillStyle=g;
+  ctx.beginPath();ctx.moveTo(1080,-30);ctx.bezierCurveTo(1260,80,1460,110,1600,155);ctx.lineTo(1600,720);ctx.bezierCurveTo(1410,580,1300,320,1080,-30);ctx.fill();
+  g=ctx.createLinearGradient(0,400,850,900);g.addColorStop(0,'#3353bb');g.addColorStop(.6,'#0d3e9f');g.addColorStop(1,'#112d80');ctx.fillStyle=g;
+  ctx.beginPath();ctx.moveTo(0,500);ctx.bezierCurveTo(340,360,520,690,800,900);ctx.lineTo(0,900);ctx.fill();
+  g=ctx.createRadialGradient(710,6,5,710,6,680);g.addColorStop(0,'#fff2c899');g.addColorStop(1,'#fff2c800');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+}
+function camera(t){
+  const cycle=t%8.5,kf=[[0,.82,0,0],[1.1,1.03,0,-10],[2.8,1.12,-18,8],[4.2,.95,10,0],[6.1,1.11,-10,-9],[8.5,.85,0,0]];
+  for(let i=1;i<kf.length;i++){const b=kf[i],a=kf[i-1];if(cycle<=b[0]){const k=ease((cycle-a[0])/(b[0]-a[0]));return{scale:lerp(a[1],b[1],k),x:lerp(a[2],b[2],k),y:lerp(a[3],b[3],k)}}}
+  return{scale:.85,x:0,y:0};
+}
+function label(value,x,y,size,color='#303645',weight=500){ctx.fillStyle=color;ctx.font=`${weight} ${size}px Arial,ui-sans-serif,system-ui`;ctx.fillText(value,x,y)}
+function browserWindow(t){
+  const c=camera(t);ctx.save();ctx.translate(W/2+c.x,H/2+c.y);ctx.scale(c.scale,c.scale);ctx.translate(-W/2,-H/2);
+  const bx=145,by=22,bw=1310,header=90,contentH=bw*9/16,bh=header+contentH;
+  ctx.shadowColor='#07134c77';ctx.shadowBlur=52;ctx.shadowOffsetY=24;ctx.fillStyle='#fff';ctx.beginPath();ctx.roundRect(bx,by,bw,bh,18);ctx.fill();
+  ctx.shadowColor='transparent';ctx.shadowBlur=0;ctx.shadowOffsetY=0;
+  ctx.save();ctx.beginPath();ctx.roundRect(bx,by,bw,bh,18);ctx.clip();
+  ctx.fillStyle='#eef0f5';ctx.fillRect(bx,by,bw,51);
+  [['#ff5f57',0],['#ffbd2e',1],['#28c840',2]].forEach(([color,i])=>{ctx.fillStyle=color;ctx.beginPath();ctx.arc(bx+23+i*20,by+22,6.6,0,7);ctx.fill()});
+  ctx.fillStyle='#f9fafc';ctx.beginPath();ctx.roundRect(bx+91,by+7,258,43,[10,10,0,0]);ctx.fill();
+  if(symbol.complete)ctx.drawImage(symbol,bx+108,by+18,17,17);
+  label('Promova · Espaço de carreira',bx+135,by+30,16,'#363b49',600);label('×',bx+321,by+30,19,'#7a7e88');label('+',bx+371,by+31,22,'#747a83');
+  ctx.fillStyle='#f9fafc';ctx.fillRect(bx,by+50,bw,40);
+  label('‹',bx+22,by+79,28,'#626974');label('›',bx+53,by+79,28,'#a1a6af');label('⟳',bx+88,by+76,22,'#727985');
+  ctx.fillStyle='#edf0f3';ctx.beginPath();ctx.roundRect(bx+124,by+56,bw-235,29,15);ctx.fill();
+  ctx.fillStyle='#598b61';ctx.beginPath();ctx.arc(bx+141,by+70,5,0,7);ctx.fill();label('promova · demonstração',bx+155,by+76,15,'#59606b');
+  label('☆',bx+bw-88,by+78,24,'#747985');ctx.fillStyle='#7a54d4';ctx.beginPath();ctx.arc(bx+bw-37,by+70,13,0,7);ctx.fill();label('P',bx+bw-42,by+76,16,'#fff',700);
+  ctx.fillStyle='#d8dbe1';ctx.fillRect(bx,by+89,bw,1);
+  if(raw.readyState>=2)ctx.drawImage(raw,bx,by+header,bw,contentH);
+  ctx.restore();ctx.restore();
+}
+function draw(){const t=Math.min(total,(performance.now()-started)/1000);wallpaper();browserWindow(t);if(t<total)renderId=requestAnimationFrame(draw);else recorder.stop()}
+window.ready=async()=>{await Promise.all([symbol.decode(),new Promise((resolve,reject)=>{if(raw.readyState>=1)return resolve();raw.addEventListener('loadedmetadata',resolve,{once:true});raw.addEventListener('error',()=>reject(raw.error),{once:true})})]);total=raw.duration/SPEED;return{total,rawDuration:raw.duration}};
+window.startFilm=async()=>{await window.ready();raw.currentTime=0;raw.playbackRate=SPEED;chunks=[];stream=canvas.captureStream(30);const mimeType='video/webm;codecs=vp9';if(!MediaRecorder.isTypeSupported(mimeType))throw Error('WebM recording unsupported');recorder=new MediaRecorder(stream,{mimeType,videoBitsPerSecond:8500000});recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};finished=new Promise(r=>{resolveFinished=r});recorder.onstop=resolveFinished;recorder.start();started=performance.now();await raw.play();renderId=requestAnimationFrame(draw);return{total}};
+window.finishFilm=async()=>{await finished;cancelAnimationFrame(renderId);stream.getTracks().forEach(track=>track.stop());const blob=new Blob(chunks,{type:recorder.mimeType}),bytes=new Uint8Array(await blob.arrayBuffer()),parts=[];for(let i=0;i<bytes.length;i+=32768)parts.push(String.fromCharCode(...bytes.subarray(i,i+32768)));return{bytes:blob.size,base64:btoa(parts.join(''))}};
+</script></html>

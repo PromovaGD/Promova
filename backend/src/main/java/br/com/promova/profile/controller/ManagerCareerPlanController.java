@@ -3,6 +3,7 @@ package br.com.promova.profile.controller;
 import br.com.promova.auth.AuthService;
 import br.com.promova.auth.AuthTokenResolver;
 import br.com.promova.profile.CareerPlanService;
+import br.com.promova.manager.team.ManagerTeamService;
 import br.com.promova.profile.dto.CareerObjectiveRequest;
 import br.com.promova.profile.dto.CareerObjectiveResponse;
 import br.com.promova.profile.dto.CareerPlanUpdateRequest;
@@ -28,21 +29,24 @@ public class ManagerCareerPlanController {
   private final AuthService authService;
   private final AuthTokenResolver authTokenResolver;
   private final CareerPlanService careerPlanService;
+  private final ManagerTeamService managerTeamService;
 
   public ManagerCareerPlanController(
       AuthService authService,
       AuthTokenResolver authTokenResolver,
-      CareerPlanService careerPlanService) {
+      CareerPlanService careerPlanService,
+      ManagerTeamService managerTeamService) {
     this.authService = authService;
     this.authTokenResolver = authTokenResolver;
     this.careerPlanService = careerPlanService;
+    this.managerTeamService = managerTeamService;
   }
 
   @GetMapping
   public ProfileResponse getPlan(
       @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
       @PathVariable Long employeeId) {
-    requireManager(authorization);
+    managerTeamService.requireVisible(requireManager(authorization), employeeId);
     return careerPlanService.getPlan(employeeId);
   }
 
@@ -51,7 +55,7 @@ public class ManagerCareerPlanController {
       @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
       @PathVariable Long employeeId,
       @Valid @RequestBody CareerPlanUpdateRequest request) {
-    requireManager(authorization);
+    managerTeamService.requireVisible(requireManager(authorization), employeeId);
     return careerPlanService.updatePlan(employeeId, request);
   }
 
@@ -60,7 +64,9 @@ public class ManagerCareerPlanController {
       @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
       @PathVariable Long employeeId,
       @Valid @RequestBody CareerObjectiveRequest request) {
-    return careerPlanService.createObjective(employeeId, request, requireManager(authorization));
+    User manager = requireManager(authorization);
+    managerTeamService.requireVisible(manager, employeeId);
+    return careerPlanService.createObjective(employeeId, request, manager);
   }
 
   @PutMapping("/objectives/{objectiveId}")
@@ -69,8 +75,9 @@ public class ManagerCareerPlanController {
       @PathVariable Long employeeId,
       @PathVariable Long objectiveId,
       @Valid @RequestBody CareerObjectiveRequest request) {
-    return careerPlanService.updateObjective(
-        employeeId, objectiveId, request, requireManager(authorization));
+    User manager = requireManager(authorization);
+    managerTeamService.requireVisible(manager, employeeId);
+    return careerPlanService.updateObjective(employeeId, objectiveId, request, manager);
   }
 
   private User requireManager(String authorization) {

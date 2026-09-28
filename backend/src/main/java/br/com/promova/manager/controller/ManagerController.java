@@ -11,6 +11,7 @@ import br.com.promova.auth.AuthTokenResolver;
 import br.com.promova.evidence.dto.EvidenceResponse;
 import br.com.promova.evidence.service.EvidenceService;
 import br.com.promova.manager.dto.ManagerEmployeeSummaryResponse;
+import br.com.promova.manager.team.ManagerTeamService;
 import br.com.promova.profile.CareerObjectiveRepository;
 import br.com.promova.profile.CareerProfile;
 import br.com.promova.profile.CareerProfileRepository;
@@ -44,6 +45,7 @@ public class ManagerController {
   private final CareerObjectiveRepository careerObjectiveRepository;
   private final EvidenceService evidenceService;
   private final AnalysisReviewService analysisReviewService;
+  private final ManagerTeamService managerTeamService;
 
   public ManagerController(
       AuthService authService,
@@ -53,7 +55,8 @@ public class ManagerController {
       CareerProfileRepository careerProfileRepository,
       CareerObjectiveRepository careerObjectiveRepository,
       EvidenceService evidenceService,
-      AnalysisReviewService analysisReviewService) {
+      AnalysisReviewService analysisReviewService,
+      ManagerTeamService managerTeamService) {
     this.authService = authService;
     this.authTokenResolver = authTokenResolver;
     this.userRepository = userRepository;
@@ -62,6 +65,7 @@ public class ManagerController {
     this.careerObjectiveRepository = careerObjectiveRepository;
     this.evidenceService = evidenceService;
     this.analysisReviewService = analysisReviewService;
+    this.managerTeamService = managerTeamService;
   }
 
   @GetMapping("/employees")
@@ -73,32 +77,23 @@ public class ManagerController {
       @RequestParam(required = false) String level,
       @RequestParam(required = false) Integer page,
       @RequestParam(required = false) Integer pageSize) {
-    requireManager(authorization);
+    User manager = requireManager(authorization);
     String normalizedQuery = normalize(query);
     String normalizedLevel = normalize(level);
     if (page != null || pageSize != null) {
       var result =
-          userRepository.searchByRole(
-              UserRole.EMPLOYEE,
+          userRepository.searchVisibleEmployees(
+              manager.getId(),
+              Instant.now(),
               normalizedQuery,
               jobRoleId,
               normalizedLevel,
               PageRequestFactory.create(page, pageSize));
       return PageResponse.from(result.map(this::employeeSummary));
     }
-    return userRepository.findByRoleOrderByNameAsc(UserRole.EMPLOYEE).stream()
+    return userRepository.listVisibleEmployees(
+            manager.getId(), Instant.now(), normalizedQuery, jobRoleId, normalizedLevel).stream()
         .map(this::employeeSummary)
-        .filter(
-            employee ->
-                normalizedQuery == null
-                    || employee.name().toLowerCase(Locale.ROOT).contains(normalizedQuery)
-                    || employee.email().toLowerCase(Locale.ROOT).contains(normalizedQuery))
-        .filter(employee -> jobRoleId == null || jobRoleId.equals(employee.jobRoleId()))
-        .filter(
-            employee ->
-                normalizedLevel == null
-                    || normalizedLevel.equals(normalize(employee.currentLevel()))
-                    || normalizedLevel.equals(normalize(employee.targetLevel())))
         .toList();
   }
 
@@ -107,8 +102,8 @@ public class ManagerController {
   public ManagerEmployeeSummaryResponse employee(
       @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
       @PathVariable Long userId) {
-    requireManager(authorization);
-    return employeeSummary(requireEmployee(userId));
+    User manager = requireManager(authorization);
+    return employeeSummary(requireEmployee(manager, userId));
   }
 
   @GetMapping("/employees/{userId}/evidences")
@@ -124,8 +119,8 @@ public class ManagerController {
       @RequestParam(required = false) String source,
       @RequestParam(required = false) Integer page,
       @RequestParam(required = false) Integer pageSize) {
-    requireManager(authorization);
-    User employee = requireEmployee(userId);
+    User manager = requireManager(authorization);
+    User employee = requireEmployee(manager, userId);
     if (page != null || pageSize != null || (source != null && !source.isBlank())) {
       return evidenceService.listForUserPaged(
           employee, status, source, from, to, PageRequestFactory.create(page, pageSize));
@@ -139,8 +134,8 @@ public class ManagerController {
       @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
       @PathVariable Long userId,
       @PathVariable Long evidenceId) {
-    requireManager(authorization);
-    return evidenceService.getCanonicalForUser(requireEmployee(userId), evidenceId);
+    User manager = requireManager(authorization);
+    return evidenceService.getCanonicalForUser(requireEmployee(manager, userId), evidenceId);
   }
 
   @GetMapping("/employees/{userId}/analyses")
@@ -156,8 +151,8 @@ public class ManagerController {
       @RequestParam(required = false) String review,
       @RequestParam(required = false) Integer page,
       @RequestParam(required = false) Integer pageSize) {
-    requireManager(authorization);
-    User employee = requireEmployee(userId);
+    User manager = requireManager(authorization);
+    User employee = requireEmployee(manager, userId);
     if (page != null || pageSize != null || (source != null && !source.isBlank())) {
       ReviewStatus reviewStatus = parseReviewStatus(review);
       return savedAnalysisService.listForUserPaged(
@@ -172,8 +167,8 @@ public class ManagerController {
       @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization,
       @PathVariable Long userId,
       @PathVariable Long analysisId) {
-    requireManager(authorization);
-    return savedAnalysisService.getForUser(requireEmployee(userId), analysisId);
+    User manager = requireManager(authorization);
+    return savedAnalysisService.getForUser(requireEmployee(manager, userId), analysisId);
   }
 
   @GetMapping("/reviews")
@@ -189,12 +184,12 @@ public class ManagerController {
           Instant to,
       @RequestParam(required = false) Integer page,
       @RequestParam(required = false) Integer pageSize) {
-    requireManager(authorization);
+    User manager = requireManager(authorization);
     if (employee != null) {
-      requireEmployee(employee);
+      requireEmployee(manager, employee);
     }
     return analysisReviewService.queue(
-        status, employee, source, from, to, PageRequestFactory.create(page, pageSize));
+        manager.getId(), status, employee, source, from, to, PageRequestFactory.create(page, pageSize));
   }
 
   private ManagerEmployeeSummaryResponse employeeSummary(User employee) {
@@ -207,7 +202,8 @@ public class ManagerController {
     return ManagerEmployeeSummaryResponse.from(employee, profile, activeObjectiveCount);
   }
 
-  private User requireEmployee(Long userId) {
+  private User requireEmployee(User manager, Long userId) {
+    managerTeamService.requireVisible(manager, userId);
     return userRepository
         .findById(userId)
         .filter(user -> user.getRole() == UserRole.EMPLOYEE)

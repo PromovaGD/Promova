@@ -1,5 +1,5 @@
 const EMPLOYEE_HOME = "/app/overview";
-const MANAGER_HOME = "/manage/people";
+const MANAGER_HOME = "/manage/dashboard";
 
 const definitions = [
   ["landing", /^\/$/, "public"],
@@ -15,6 +15,9 @@ const definitions = [
   ["integrations", /^\/app\/integrations$/, "employee"],
   ["github", /^\/app\/integrations\/github$/, "employee"],
   ["github-import", /^\/app\/integrations\/github\/import$/, "employee"],
+  ["manager-dashboard", /^\/manage\/dashboard$/, "manager"],
+  ["manager-summary", /^\/manage\/summaries$/, "manager"],
+  ["manager-teams", /^\/manage\/teams$/, "manager"],
   ["people", /^\/manage\/people$/, "manager"],
   ["person-plan", /^\/manage\/people\/(\d+)\/career-plan$/, "manager", ["employeeId"]],
   ["objective-new", /^\/manage\/people\/(\d+)\/career-plan\/objectives\/new$/, "manager", ["employeeId"]],
@@ -32,7 +35,7 @@ const definitions = [
 ];
 
 const allowedQuery = {
-  inbox: { status: ["pending", "dismissed"], page: "page", source: "text", from: "date", to: "date", selected: "id" },
+  inbox: { status: ["pending", "accepted", "dismissed", "all"], q: "text", sort: ["newest", "oldest"], page: "page", source: "text", from: "date", to: "date", selected: "id" },
   analyses: { page: "page", source: "text", from: "date", to: "date" },
   reports: { view: ["sources", "levels", "trend"], from: "date", to: "date" },
   framework: { level: "level", support: ["all", "missing", "supported"], from: "date", to: "date" },
@@ -40,10 +43,13 @@ const allowedQuery = {
   "career-plan": { view: ["objectives", "context"], status: ["active", "completed", "archived", "all"] },
   github: { view: ["connection", "sync"] },
   "github-import": { pr: "id", page: "page" },
+  "manager-dashboard": { period: ["30", "90", "custom"], from: "date", to: "date", team: "id", role: "id", member: "id", page: "page" },
+  "manager-summary": { period: ["7", "30", "90", "custom"], from: "date", to: "date", team: "id", role: "id", member: "id", preview: ["demo"] },
+  "manager-teams": { team: "id" },
   people: { q: "text", role: "text", level: "level", page: "page" },
-  "person-plan": { view: ["objectives", "context"] },
-  "person-evidence": { status: ["pending", "dismissed", "analyzed"], source: "text", from: "date", to: "date", page: "page" },
-  "person-analyses": { review: ["unreviewed", "needs-context", "accepted"], source: "text", from: "date", to: "date", page: "page" },
+  "person-plan": { view: ["objectives", "context"], dq: "text", drole: "text", dlevel: "level", dpage: "page" },
+  "person-evidence": { status: ["pending", "dismissed", "analyzed"], source: "text", from: "date", to: "date", page: "page", dq: "text", drole: "text", dlevel: "level", dpage: "page" },
+  "person-analyses": { review: ["unreviewed", "needs-context", "accepted"], source: "text", from: "date", to: "date", page: "page", dq: "text", drole: "text", dlevel: "level", dpage: "page" },
   reviews: { status: ["unreviewed", "needs-context", "accepted"], employee: "id", source: "text", from: "date", to: "date", page: "page" },
   roles: { status: ["active", "archived", "all"], page: "page" },
   "manager-framework": { level: "level" },

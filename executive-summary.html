@@ -1,0 +1,1289 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>GitHub Summary</title>
+<style>
+  :root {
+    /* Slack-inspired bright palette */
+    --bg: #ffffff;
+    --bg-soft: #f4f1f6;
+    --bg-card: #ffffff;
+    --border: #e2dce6;
+    --text: #1d1c1d;        /* Slack near-black */
+    --text-dim: #616061;    /* Slack gray */
+    --accent: #1264a3;      /* Slack link blue */
+    --accent-2: #4a154b;    /* Slack aubergine */
+    --sky: #36c5f0;
+    --green: #2eb67d;
+    --red: #e01e5a;
+    --yellow: #ecb22e;
+    --radius: 12px;
+    --shadow: 0 1px 2px rgba(29,28,29,.08), 0 6px 18px rgba(74,21,75,.07);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  html, body { width: 100%; }
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background:
+      radial-gradient(80% 40% at 90% -5%, rgba(54,197,240,.14) 0%, transparent 60%),
+      radial-gradient(60% 40% at 0% 0%, rgba(74,21,75,.07) 0%, transparent 55%),
+      var(--bg);
+    color: var(--text);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    /* Prevent iframe horizontal scroll */
+    overflow-x: hidden;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  header.hero {
+    width: 100%;
+    padding: 36px 28px 8px;
+  }
+  .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    font-size: 12px;
+    color: var(--accent-2);
+    font-weight: 700;
+  }
+  .eyebrow::before {
+    content: "";
+    width: 14px; height: 14px;
+    border-radius: 4px;
+    background:
+      conic-gradient(from 0deg, var(--green) 0 25%, var(--sky) 0 50%, var(--accent-2) 0 75%, var(--red) 0 100%);
+  }
+  h1 {
+    font-size: clamp(26px, 3cqw, 42px);
+    margin: 10px 0 6px;
+    color: var(--accent-2);
+    font-weight: 800;
+    letter-spacing: -.01em;
+  }
+  .period {
+    color: var(--text-dim);
+    font-size: 15px;
+    margin: 0 0 24px;
+  }
+  .lede {
+    font-size: 16px;
+    color: #3b3a3b;
+    max-width: min(900px, 100%);
+    margin: 0 0 28px;
+  }
+  .lede strong { color: var(--accent-2); }
+
+  /* Stats */
+  .stats {
+    width: 100%;
+    margin: 0 0 8px;
+    padding: 0 28px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+  }
+  .stat {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--accent-2);
+    border-radius: var(--radius);
+    padding: 16px 20px 18px;
+    box-shadow: var(--shadow);
+  }
+  .stat:nth-child(1) { border-top-color: var(--green); }
+  .stat:nth-child(2) { border-top-color: var(--sky); }
+  .stat:nth-child(3) { border-top-color: var(--accent-2); }
+  .stat:nth-child(4) { border-top-color: var(--red); }
+  .stat:nth-child(5) { border-top-color: var(--yellow); }
+  .stat .num {
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--text);
+  }
+  .stat .label {
+    color: var(--text-dim);
+    font-size: 13px;
+    margin-top: 6px;
+  }
+  .stats-note {
+    grid-column: 1 / -1;
+    margin: 0;
+    padding: 0 4px;
+    color: var(--text-dim);
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  /* Type breakdown chart */
+  .chart-wrap {
+    width: 100%;
+    margin: 18px 0 0;
+    padding: 0 28px;
+  }
+  .chart-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 22px 20px;
+    box-shadow: var(--shadow);
+  }
+  .chart-head {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+  }
+  .chart-title { font-size: 16px; font-weight: 800; color: var(--accent-2); margin: 0; }
+  .chart-sub { font-size: 12.5px; color: var(--text-dim); }
+  .bars { display: flex; flex-direction: column; gap: 9px; }
+  .bar-row {
+    display: grid;
+    grid-template-columns: 116px 1fr 64px;
+    align-items: center;
+    gap: 12px;
+  }
+  .bar-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+  }
+  .bar-track {
+    display: block;
+    position: relative;
+    height: 16px;
+    width: 100%;
+    background: var(--bg-soft);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .bar-fill {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: var(--bar-color, var(--accent));
+    width: 0;
+    min-width: 4px;
+  }
+  .bar-val {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .bar-val .pct { color: var(--text-dim); font-weight: 500; font-size: 11.5px; margin-left: 4px; }
+
+  .ai-trend-section { margin-top: 18px; }
+  .trend-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 12px;
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+  .trend-legend-item { display: inline-flex; align-items: center; gap: 6px; }
+  .trend-swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+  .ai-trend-filters { margin-bottom: 12px; }
+  .ai-trend-svg-wrap {
+    width: 100%;
+    height: 220px;
+    position: relative;
+  }
+  .ai-trend-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    overflow: visible;
+  }
+  .ai-trend-gridline {
+    stroke: var(--border, #e8e8e8);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+  }
+  .ai-trend-axis-label {
+    fill: var(--text-dim);
+    font-size: 10px;
+    font-family: inherit;
+    font-variant-numeric: tabular-nums;
+  }
+  .ai-trend-line {
+    fill: none;
+    stroke-width: 2.5;
+    vector-effect: non-scaling-stroke;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+  }
+  .ai-trend-line-ai { stroke: #4a154b; }
+  .ai-trend-line-copilot { stroke: #1264a3; }
+  .ai-trend-dot {
+    stroke: #fff;
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+    cursor: pointer;
+  }
+  .ai-trend-dot-ai { fill: #4a154b; }
+  .ai-trend-dot-copilot { fill: #1264a3; }
+  .ai-trend-tooltip {
+    position: absolute;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.12s ease;
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #e8e8e8);
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 12px;
+    line-height: 1.45;
+    color: var(--text);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    z-index: 5;
+    white-space: nowrap;
+  }
+  .ai-trend-tooltip.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+  .ai-trend-tooltip .tip-range {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .ai-trend-tooltip .tip-row { display: block; color: var(--text-dim); }
+  .trend-footnote {
+    margin: 14px 0 0;
+    font-size: 11.5px;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  .word-map-section { margin-top: 18px; margin-bottom: 28px; }
+  .word-map-categories { display: flex; flex-direction: column; gap: 22px; }
+  .word-map-category {
+    border-top: 3px solid var(--category-color, var(--accent-2));
+    padding-top: 14px;
+  }
+  .word-map-category-title {
+    margin: 0 0 12px;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--category-color, var(--accent-2));
+  }
+  .word-map-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .word-map-panel {
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px 14px;
+  }
+  .word-map-panel-title {
+    margin: 0 0 10px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--text-dim);
+    font-weight: 700;
+  }
+  .word-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 12px;
+    align-items: baseline;
+    line-height: 1.5;
+  }
+  .word-tag {
+    font-weight: 600;
+    line-height: 1.35;
+    opacity: 0.92;
+    cursor: default;
+  }
+  .word-map-empty {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  .controls {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: rgba(255,255,255,.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    margin-top: 28px;
+  }
+  .controls-inner {
+    width: 100%;
+    padding: 14px 28px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+  }
+  #search {
+    flex: 1 1 240px;
+    min-width: 200px;
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 14px;
+    border-radius: 999px;
+    font-size: 14px;
+    outline: none;
+  }
+  #search:focus { border-color: var(--accent); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .filter-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+  }
+  .filter-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: var(--text-dim);
+    font-weight: 600;
+    padding-top: 7px;
+    white-space: nowrap;
+    flex: 0 0 auto;
+  }
+  .chip {
+    border: 1px solid var(--border);
+    background: var(--bg-soft);
+    color: var(--text-dim);
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12.5px;
+    cursor: pointer;
+    user-select: none;
+    transition: all .15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .chip:hover { color: var(--text); border-color: var(--accent); }
+  .chip.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #ffffff;
+    font-weight: 600;
+  }
+  .chip.group-chip.active {
+    background: var(--accent-2);
+    border-color: var(--accent-2);
+    color: #ffffff;
+    font-weight: 600;
+  }
+  .chip .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+  /* Layout */
+  main {
+    width: 100%;
+    padding: 28px 28px 60px;
+  }
+  section.group { margin-bottom: 40px; scroll-margin-top: 16px; }
+  .group-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 20px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .group-title .badge-count {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-dim);
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    padding: 2px 9px;
+    border-radius: 999px;
+  }
+  .subgroup-title {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    color: var(--accent-2);
+    margin: 22px 0 12px;
+    font-weight: 600;
+  }
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(330px, 1fr));
+    gap: 14px;
+    margin-top: 16px;
+  }
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--type-color, var(--accent));
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: transform .12s ease, border-color .12s ease;
+  }
+  .card:hover { transform: translateY(-2px); border-color: var(--type-color, var(--accent)); }
+  .card-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .type-tag {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    padding: 3px 9px;
+    border-radius: 999px;
+    color: #fff;
+    background: var(--type-color, var(--accent));
+    white-space: nowrap;
+  }
+  .repo {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12.5px;
+    color: var(--accent);
+    word-break: break-all;
+  }
+  .desc { font-size: 14px; color: #3b3a3b; margin: 0; }
+  .desc strong { color: var(--accent-2); font-weight: 700; }
+  .contacts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; }
+  .contact {
+    font-size: 11.5px;
+    color: var(--text-dim);
+    background: var(--bg-soft);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .contact::before { content: "@"; opacity: .6; }
+
+  .repo-list {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-top: 6px;
+  }
+  .repo-list code {
+    color: var(--accent);
+    background: var(--bg-soft);
+    padding: 1px 6px;
+    border-radius: 6px;
+    margin: 2px 3px 2px 0;
+    display: inline-block;
+  }
+
+  .empty {
+    text-align: center;
+    color: var(--text-dim);
+    padding: 60px 20px;
+    display: none;
+  }
+  footer {
+    width: 100%;
+    padding: 20px 28px;
+    color: var(--text-dim);
+    font-size: 13px;
+    border-top: 1px solid var(--border);
+  }
+  .hidden { display: none !important; }
+
+  /* Floating Save-as-PDF button */
+  .pdf-btn-wrap {
+    padding: 0 28px 28px;
+    display: flex;
+  }
+  .pdf-btn {
+    background: var(--accent-2);
+    color: #ffffff;
+    border: none;
+    border-radius: 999px;
+    padding: 11px 22px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(74,21,75,.3);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .pdf-btn:hover { filter: brightness(1.1); }
+
+  /* ---- #5 Collapsible sections ---- */
+  /* The trigger wraps arrow + emoji + title, giving a wide click target */
+  .group-collapse-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+    cursor: pointer;
+    user-select: none;
+    padding: 4px 0;
+    border-radius: 6px;
+    transition: color .12s;
+  }
+  .group-collapse-trigger:hover { color: var(--accent-2); }
+  .group-collapse-arrow {
+    flex-shrink: 0;
+    font-size: 14px;
+    color: var(--text-dim);
+    line-height: 1;
+    transition: transform .22s cubic-bezier(.4,0,.2,1), color .12s;
+  }
+  .group-collapse-trigger:hover .group-collapse-arrow { color: var(--accent-2); }
+  .group.collapsed .group-collapse-arrow { transform: rotate(-90deg); }
+  /* Smooth collapse via grid trick  needs .group-body > .group-body-inner */
+  .group-body {
+    display: grid;
+    grid-template-rows: 1fr;
+    transition: grid-template-rows .3s cubic-bezier(.4,0,.2,1), opacity .25s;
+  }
+  .group.collapsed .group-body {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+  .group-body-inner { overflow: hidden; }
+
+
+  /* ---- #7 Active-filter summary pill ---- */
+  #filterSummary {
+    display: none;
+    position: sticky;
+    top: var(--controls-h, 0px);
+    z-index: 19;
+    padding: 10px 28px;
+    background: #fdf8ff;
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  #filterSummary.visible { display: flex; }
+  .fs-label { font-weight: 600; color: var(--text); margin-right: 2px; }
+  .fs-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--accent-2);
+    color: #fff;
+    padding: 2px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .fs-count {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+  }
+  .fs-count strong { color: var(--text); }
+  .fs-clear {
+    margin-left: auto;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 3px 13px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--text-dim);
+    transition: border-color .12s, color .12s;
+  }
+  .fs-clear:hover { border-color: var(--red); color: var(--red); }
+
+  /* ---------- PRINT / PDF ----------
+     The on-screen theme is already a bright/light Slack theme, so print keeps
+     the same branding. We only: force color rendering, hide UI chrome, and
+     control page breaks + the card grid. */
+  @media (max-width: 640px) {
+    .word-map-grid { grid-template-columns: 1fr; }
+  }
+
+  @media print {
+    @page { size: A4; margin: 12mm 11mm; }
+    html, body, * {
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+    html { scroll-behavior: auto; }
+    body {
+      background: #ffffff !important;
+      font-size: 11px;
+      line-height: 1.4;
+    }
+    /* Hide interactive chrome; show everything regardless of active filters */
+    .controls, .pdf-btn-wrap, #emptyState, #filterSummary,
+    .group-collapse-arrow { display: none !important; }
+    .group.hidden, .subgroup.hidden, .card.hidden { display: revert !important; }
+    .card.hidden { display: flex !important; }
+    /* Always expand collapsed sections when printing */
+    .group.collapsed .group-body { grid-template-rows: 1fr !important; opacity: 1 !important; }
+
+    header.hero { padding: 0 0 6px; }
+    h1 { font-size: 24px; }
+    .lede { font-size: 11px; }
+
+    .stats {
+      padding: 0;
+      gap: 8px;
+      grid-template-columns: repeat(5, 1fr);
+      margin-bottom: 16px;
+    }
+    .stat { box-shadow: none; padding: 8px 10px; break-inside: avoid; }
+    .stat .num { font-size: 20px; }
+    .stat .label { font-size: 10px; }
+
+    .chart-wrap { padding: 0; margin-top: 14px; }
+    .chart-card { box-shadow: none; padding: 12px 16px; break-inside: avoid; }
+    .bar-fill { transition: none !important; }
+
+    .word-map-grid { grid-template-columns: 1fr; }
+    .word-map-section { margin-bottom: 16px; }
+    .ai-trend-filters, .ai-trend-tooltip { display: none !important; }
+
+    main { padding: 0; }
+    section.group { margin-bottom: 16px; break-inside: avoid-page; }
+    .group-title { font-size: 16px; break-after: avoid; }
+    .subgroup { break-inside: avoid; }
+
+    /* Two compact columns on paper for density without clipping */
+    .cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .card {
+      box-shadow: none;
+      padding: 8px 10px;
+      margin-bottom: 0;
+      break-inside: avoid;
+      transform: none !important;
+    }
+    .card .desc { font-size: 10.5px; }
+
+    footer { padding: 12px 0 0; }
+  }
+</style>
+</head>
+<body>
+  <header class="hero">
+    <div class="eyebrow">Card Payments  Engineering Digest</div>
+    <h1>Did you miss something in GitHub?</h1>
+    <p class="period">2026-09-14  2026-09-20</p>
+    <p class="lede">The week centered on <strong>network-token lifecycle</strong> and Microsoft LATAM rollout, <strong>ZeroAuth PCI reduction</strong>, a maturing <strong>Processing Orchestrator</strong> with prod infra, <strong>Discover EMEA go-live</strong>, and <strong>3DS reliability</strong> fixessupported by Spring Boot 4 foundation work and security-focused CI hardening.</p>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><div class="num">68</div><div class="label">Commits</div></div>
+    <div class="stat"><div class="num">25</div><div class="label">Active repositories</div></div>
+    <div class="stat"><div class="num">32 (27%)</div><div class="label">AI-assisted PRs</div></div>
+    <div class="stat"><div class="num">77</div><div class="label">PRs opened</div></div>
+    <div class="stat"><div class="num">53</div><div class="label">PRs merged</div></div>
+    <div class="stat"><div class="num">7</div><div class="label">Days covered</div></div>
+    <div class="stat"><div class="num">323</div><div class="label">Copilot suggestions</div></div>
+    <div class="stat"><div class="num">42%</div><div class="label">Copilot acceptance</div></div>
+    <div class="stat"><div class="num">39%</div><div class="label">Copilot silent dismiss</div></div>
+    <p class="stats-note">PR lead time is the elapsed time from open to merge, measured on PRs merged in this period.</p>
+    <div class="stat"><div class="num">48h 56m</div><div class="label">Avg PR lead time</div></div>
+    <div class="stat"><div class="num">16h 23m</div><div class="label">Median PR lead time</div></div>
+    <div class="stat"><div class="num">6.2d</div><div class="label">P90 PR lead time</div></div>
+    <div class="stat"><div class="num">2.4h</div><div class="label">Median time to review</div></div>
+  </div>
+
+
+  <section class="chart-wrap">
+    <div class="chart-card">
+      <div class="chart-head">
+        <h2 class="chart-title">Copilot PR review</h2>
+        <span class="chart-sub">323 suggestion threads  61% engagement  174 outdated</span>
+      </div>
+      <div class="bars">
+
+      <div class="bar-row">
+        <span class="bar-label">Accepted</span>
+        <span class="bar-track"><span class="bar-fill" style="--bar-color:#2eb67d;width:42%"></span></span>
+        <span class="bar-val">135<span class="pct">42%</span></span>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-label">Silently dismissed</span>
+        <span class="bar-track"><span class="bar-fill" style="--bar-color:#616061;width:39%"></span></span>
+        <span class="bar-val">125<span class="pct">39%</span></span>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-label">Declined</span>
+        <span class="bar-track"><span class="bar-fill" style="--bar-color:#e01e5a;width:4%"></span></span>
+        <span class="bar-val">14<span class="pct">4%</span></span>
+      </div>
+
+      <div class="bar-row">
+        <span class="bar-label">Resolved (other)</span>
+        <span class="bar-track"><span class="bar-fill" style="--bar-color:#1264a3;width:15%"></span></span>
+        <span class="bar-val">49<span class="pct">15%</span></span>
+      </div>
+      </div>
+    </div>
+  </section>
+
+
+  <section class="chart-wrap ai-trend-section">
+    <div class="chart-card">
+      <div class="chart-head">
+        <h2 class="chart-title">AI usage over time</h2>
+        <span class="chart-sub" id="aiTrendSub"></span>
+      </div>
+      <div class="trend-legend">
+        <span class="trend-legend-item"><span class="trend-swatch" style="background:#4a154b"></span> AI-assisted PRs</span>
+        <span class="trend-legend-item"><span class="trend-swatch" style="background:#1264a3"></span> Copilot accepted</span>
+      </div>
+      <div class="ai-trend-filters chips">
+        <button type="button" class="chip" data-weeks="4">4 weeks</button>
+        <button type="button" class="chip active" data-weeks="8">8 weeks</button>
+        <button type="button" class="chip" data-weeks="12">12 weeks</button>
+        <button type="button" class="chip" data-weeks="0">All</button>
+      </div>
+      <div class="ai-trend-svg-wrap">
+        <svg id="aiTrendChart" class="ai-trend-svg" viewBox="0 0 640 220" preserveAspectRatio="xMidYMid meet" aria-label="AI usage trend chart"></svg>
+        <div id="aiTrendTooltip" class="ai-trend-tooltip" role="tooltip"></div>
+      </div>
+      <p class="trend-footnote">Historical trend consolidated from weekly github-summary runs.</p>
+    </div>
+  </section>
+
+  <section class="chart-wrap">
+    <div class="chart-card">
+      <div class="chart-head">
+        <h2 class="chart-title">Work by type</h2>
+        <span class="chart-sub" id="chartSub">Highlighted changes across all repositories this period</span>
+      </div>
+      <div class="bars" id="typeChart"></div>
+    </div>
+  </section>
+
+  <div class="controls">
+    <div class="controls-inner">
+      <input id="search" type="search" placeholder="Search repos, descriptions, people" autocomplete="off" />
+      <div class="filter-row">
+        <span class="filter-label">Section</span>
+        <div class="chips" id="groupChips"></div>
+      </div>
+      <div class="filter-row">
+        <span class="filter-label">Type</span>
+        <div class="chips" id="typeChips"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- #7 Active filter summary -->
+  <div id="filterSummary" role="status" aria-live="polite">
+    <span class="fs-label">Showing</span>
+    <span id="fsTags"></span>
+    <span class="fs-count" id="fsCount"></span>
+    <button class="fs-clear" id="fsClear"> Clear all</button>
+  </div>
+
+  <main id="content"></main>
+  <div class="empty" id="emptyState">No items match your filters.</div>
+
+
+  <section class="chart-wrap word-map-section">
+    <div class="chart-card">
+      <div class="chart-head">
+        <h2 class="chart-title">Copilot word map</h2>
+        <span class="chart-sub">Most frequent terms by review outcome  Copilot suggestions vs human replies</span>
+      </div>
+      <div class="word-map-categories">
+
+    <div class="word-map-category" style="--category-color:#2eb67d">
+      <h3 class="word-map-category-title">Accepted</h3>
+      <div class="word-map-grid">
+        <div class="word-map-panel">
+          <h4 class="word-map-panel-title">Copilot suggestions</h4>
+          <div class="word-cloud"><span class="word-tag" style="font-size:26px;color:#2eb67d" title="46 occurrence(s)">test</span><span class="word-tag" style="font-size:21px;color:#2eb67d" title="34 occurrence(s)">file</span><span class="word-tag" style="font-size:19px;color:#2eb67d" title="29 occurrence(s)">non</span><span class="word-tag" style="font-size:18px;color:#2eb67d" title="28 occurrence(s)">therefore</span><span class="word-tag" style="font-size:18px;color:#2eb67d" title="28 occurrence(s)">value</span><span class="word-tag" style="font-size:18px;color:#2eb67d" title="27 occurrence(s)">request</span><span class="word-tag" style="font-size:17px;color:#2eb67d" title="26 occurrence(s)">add</span><span class="word-tag" style="font-size:17px;color:#2eb67d" title="26 occurrence(s)">fail</span><span class="word-tag" style="font-size:17px;color:#2eb67d" title="26 occurrence(s)">route</span><span class="word-tag" style="font-size:16px;color:#2eb67d" title="24 occurrence(s)">new</span><span class="word-tag" style="font-size:16px;color:#2eb67d" title="22 occurrence(s)">tests</span><span class="word-tag" style="font-size:15px;color:#2eb67d" title="21 occurrence(s)">null</span><span class="word-tag" style="font-size:14px;color:#2eb67d" title="19 occurrence(s)">configuration</span><span class="word-tag" style="font-size:14px;color:#2eb67d" title="19 occurrence(s)">even</span><span class="word-tag" style="font-size:14px;color:#2eb67d" title="19 occurrence(s)">still</span><span class="word-tag" style="font-size:14px;color:#2eb67d" title="18 occurrence(s)">contract</span><span class="word-tag" style="font-size:14px;color:#2eb67d" title="18 occurrence(s)">failure</span><span class="word-tag" style="font-size:14px;color:#2eb67d" title="18 occurrence(s)">fields</span><span class="word-tag" style="font-size:14px;color:#2eb67d" title="18 occurrence(s)">response</span><span class="word-tag" style="font-size:13px;color:#2eb67d" title="16 occurrence(s)">read</span><span class="word-tag" style="font-size:13px;color:#2eb67d" title="16 occurrence(s)">wire</span><span class="word-tag" style="font-size:12px;color:#2eb67d" title="15 occurrence(s)">error</span><span class="word-tag" style="font-size:12px;color:#2eb67d" title="15 occurrence(s)">existing</span><span class="word-tag" style="font-size:12px;color:#2eb67d" title="14 occurrence(s)">behavior</span><span class="word-tag" style="font-size:12px;color:#2eb67d" title="14 occurrence(s)">card</span></div>
+        </div>
+        <div class="word-map-panel">
+          <h4 class="word-map-panel-title">Human replies</h4>
+          <div class="word-cloud"><span class="word-tag" style="font-size:26px;color:#2eb67d" title="37 occurrence(s)">fix</span><span class="word-tag" style="font-size:26px;color:#2eb67d" title="36 occurrence(s)">applied</span><span class="word-tag" style="font-size:18px;color:#2eb67d" title="19 occurrence(s)">test</span><span class="word-tag" style="font-size:17px;color:#2eb67d" title="18 occurrence(s)">fixed</span><span class="word-tag" style="font-size:17px;color:#2eb67d" title="17 occurrence(s)">added</span><span class="word-tag" style="font-size:16px;color:#2eb67d" title="14 occurrence(s)">verification</span><span class="word-tag" style="font-size:15px;color:#2eb67d" title="13 occurrence(s)">b529</span><span class="word-tag" style="font-size:14px;color:#2eb67d" title="11 occurrence(s)">cache</span><span class="word-tag" style="font-size:14px;color:#2eb67d" title="11 occurrence(s)">tests</span><span class="word-tag" style="font-size:14px;color:#2eb67d" title="10 occurrence(s)">one</span><span class="word-tag" style="font-size:14px;color:#2eb67d" title="10 occurrence(s)">replaced</span><span class="word-tag" style="font-size:14px;color:#2eb67d" title="10 occurrence(s)">updated</span><span class="word-tag" style="font-size:13px;color:#2eb67d" title="9 occurrence(s)">every</span><span class="word-tag" style="font-size:13px;color:#2eb67d" title="9 occurrence(s)">removed</span><span class="word-tag" style="font-size:13px;color:#2eb67d" title="8 occurrence(s)">addressed</span><span class="word-tag" style="font-size:13px;color:#2eb67d" title="8 occurrence(s)">instead</span><span class="word-tag" style="font-size:13px;color:#2eb67d" title="8 occurrence(s)">record</span><span class="word-tag" style="font-size:12px;color:#2eb67d" title="7 occurrence(s)">contract</span><span class="word-tag" style="font-size:12px;color:#2eb67d" title="7 occurrence(s)">file</span><span class="word-tag" style="font-size:12px;color:#2eb67d" title="7 occurrence(s)">rule</span><span class="word-tag" style="font-size:12px;color:#2eb67d" title="7 occurrence(s)">value</span><span class="word-tag" style="font-size:12px;color:#2eb67d" title="6 occurrence(s)">flag</span><span class="word-tag" style="font-size:12px;color:#2eb67d" title="6 occurrence(s)">new</span><span class="word-tag" style="font-size:12px;color:#2eb67d" title="6 occurrence(s)">per</span><span class="word-tag" style="font-size:12px;color:#2eb67d" title="6 occurrence(s)">rather</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="word-map-category" style="--category-color:#616061">
+      <h3 class="word-map-category-title">Silently dismissed</h3>
+      <div class="word-map-grid">
+        <div class="word-map-panel">
+          <h4 class="word-map-panel-title">Copilot suggestions</h4>
+          <div class="word-cloud"><span class="word-tag" style="font-size:26px;color:#616061" title="56 occurrence(s)">tlid</span><span class="word-tag" style="font-size:18px;color:#616061" title="33 occurrence(s)">request</span><span class="word-tag" style="font-size:17px;color:#616061" title="30 occurrence(s)">please</span><span class="word-tag" style="font-size:17px;color:#616061" title="30 occurrence(s)">test</span><span class="word-tag" style="font-size:15px;color:#616061" title="25 occurrence(s)">initial</span><span class="word-tag" style="font-size:15px;color:#616061" title="24 occurrence(s)">file</span><span class="word-tag" style="font-size:15px;color:#616061" title="23 occurrence(s)">instrument</span><span class="word-tag" style="font-size:14px;color:#616061" title="22 occurrence(s)">new</span><span class="word-tag" style="font-size:14px;color:#616061" title="21 occurrence(s)">line</span><span class="word-tag" style="font-size:14px;color:#616061" title="20 occurrence(s)">card</span><span class="word-tag" style="font-size:14px;color:#616061" title="20 occurrence(s)">token</span><span class="word-tag" style="font-size:13px;color:#616061" title="19 occurrence(s)">appears</span><span class="word-tag" style="font-size:13px;color:#616061" title="19 occurrence(s)">keep</span><span class="word-tag" style="font-size:13px;color:#616061" title="18 occurrence(s)">issue</span><span class="word-tag" style="font-size:13px;color:#616061" title="18 occurrence(s)">path</span><span class="word-tag" style="font-size:13px;color:#616061" title="17 occurrence(s)">channel</span><span class="word-tag" style="font-size:13px;color:#616061" title="17 occurrence(s)">still</span><span class="word-tag" style="font-size:13px;color:#616061" title="17 occurrence(s)">workflow</span><span class="word-tag" style="font-size:12px;color:#616061" title="16 occurrence(s)">add</span><span class="word-tag" style="font-size:12px;color:#616061" title="16 occurrence(s)">authorization</span><span class="word-tag" style="font-size:12px;color:#616061" title="16 occurrence(s)">present</span><span class="word-tag" style="font-size:12px;color:#616061" title="16 occurrence(s)">property</span><span class="word-tag" style="font-size:12px;color:#616061" title="16 occurrence(s)">without</span><span class="word-tag" style="font-size:12px;color:#616061" title="15 occurrence(s)">api</span><span class="word-tag" style="font-size:12px;color:#616061" title="15 occurrence(s)">change</span></div>
+        </div>
+        <div class="word-map-panel">
+          <h4 class="word-map-panel-title">Human replies</h4>
+          <p class="word-map-empty">No human replies in this category</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="word-map-category" style="--category-color:#e01e5a">
+      <h3 class="word-map-category-title">Declined</h3>
+      <div class="word-map-grid">
+        <div class="word-map-panel">
+          <h4 class="word-map-panel-title">Copilot suggestions</h4>
+          <div class="word-cloud"><span class="word-tag" style="font-size:26px;color:#e01e5a" title="8 occurrence(s)">title</span><span class="word-tag" style="font-size:23px;color:#e01e5a" title="7 occurrence(s)">change</span><span class="word-tag" style="font-size:23px;color:#e01e5a" title="7 occurrence(s)">version</span><span class="word-tag" style="font-size:23px;color:#e01e5a" title="7 occurrence(s)">workflow</span><span class="word-tag" style="font-size:20px;color:#e01e5a" title="6 occurrence(s)">connector</span><span class="word-tag" style="font-size:20px;color:#e01e5a" title="6 occurrence(s)">validation</span><span class="word-tag" style="font-size:18px;color:#e01e5a" title="5 occurrence(s)">catalog</span><span class="word-tag" style="font-size:18px;color:#e01e5a" title="5 occurrence(s)">chart</span><span class="word-tag" style="font-size:18px;color:#e01e5a" title="5 occurrence(s)">migration</span><span class="word-tag" style="font-size:18px;color:#e01e5a" title="5 occurrence(s)">rule</span><span class="word-tag" style="font-size:15px;color:#e01e5a" title="4 occurrence(s)">helm</span><span class="word-tag" style="font-size:15px;color:#e01e5a" title="4 occurrence(s)">test</span><span class="word-tag" style="font-size:12px;color:#e01e5a" title="3 occurrence(s)">adding</span><span class="word-tag" style="font-size:12px;color:#e01e5a" title="3 occurrence(s)">bump</span><span class="word-tag" style="font-size:12px;color:#e01e5a" title="3 occurrence(s)">description</span><span class="word-tag" style="font-size:12px;color:#e01e5a" title="3 occurrence(s)">job</span><span class="word-tag" style="font-size:12px;color:#e01e5a" title="3 occurrence(s)">name</span><span class="word-tag" style="font-size:12px;color:#e01e5a" title="3 occurrence(s)">non</span><span class="word-tag" style="font-size:12px;color:#e01e5a" title="3 occurrence(s)">operational</span><span class="word-tag" style="font-size:12px;color:#e01e5a" title="3 occurrence(s)">read</span><span class="word-tag" style="font-size:12px;color:#e01e5a" title="3 occurrence(s)">required</span><span class="word-tag" style="font-size:12px;color:#e01e5a" title="3 occurrence(s)">revert</span><span class="word-tag" style="font-size:12px;color:#e01e5a" title="3 occurrence(s)">separate</span><span class="word-tag" style="font-size:12px;color:#e01e5a" title="3 occurrence(s)">still</span><span class="word-tag" style="font-size:12px;color:#e01e5a" title="3 occurrence(s)">upgrade</span></div>
+        </div>
+        <div class="word-map-panel">
+          <h4 class="word-map-panel-title">Human replies</h4>
+          <div class="word-cloud"><span class="word-tag" style="font-size:26px;color:#e01e5a" title="11 occurrence(s)">intentional</span><span class="word-tag" style="font-size:15px;color:#e01e5a" title="3 occurrence(s)">fix</span><span class="word-tag" style="font-size:13px;color:#e01e5a" title="2 occurrence(s)">connector</span><span class="word-tag" style="font-size:13px;color:#e01e5a" title="2 occurrence(s)">design</span><span class="word-tag" style="font-size:13px;color:#e01e5a" title="2 occurrence(s)">map</span><span class="word-tag" style="font-size:13px;color:#e01e5a" title="2 occurrence(s)">one</span><span class="word-tag" style="font-size:13px;color:#e01e5a" title="2 occurrence(s)">order</span><span class="word-tag" style="font-size:13px;color:#e01e5a" title="2 occurrence(s)">path</span><span class="word-tag" style="font-size:13px;color:#e01e5a" title="2 occurrence(s)">reads</span><span class="word-tag" style="font-size:13px;color:#e01e5a" title="2 occurrence(s)">response</span><span class="word-tag" style="font-size:13px;color:#e01e5a" title="2 occurrence(s)">rule</span><span class="word-tag" style="font-size:13px;color:#e01e5a" title="2 occurrence(s)">won</span><span class="word-tag" style="font-size:13px;color:#e01e5a" title="2 occurrence(s)">write</span><span class="word-tag" style="font-size:12px;color:#e01e5a" title="1 occurrence(s)">acquirer</span><span class="word-tag" style="font-size:12px;color:#e01e5a" title="1 occurrence(s)">affiliation</span><span class="word-tag" style="font-size:12px;color:#e01e5a" title="1 occurrence(s)">answer</span><span class="word-tag" style="font-size:12px;color:#e01e5a" title="1 occurrence(s)">authoring</span><span class="word-tag" style="font-size:12px;color:#e01e5a" title="1 occurrence(s)">behavior</span><span class="word-tag" style="font-size:12px;color:#e01e5a" title="1 occurrence(s)">buys</span><span class="word-tag" style="font-size:12px;color:#e01e5a" title="1 occurrence(s)">cache</span><span class="word-tag" style="font-size:12px;color:#e01e5a" title="1 occurrence(s)">caches</span><span class="word-tag" style="font-size:12px;color:#e01e5a" title="1 occurrence(s)">call</span><span class="word-tag" style="font-size:12px;color:#e01e5a" title="1 occurrence(s)">caller</span><span class="word-tag" style="font-size:12px;color:#e01e5a" title="1 occurrence(s)">candidate</span><span class="word-tag" style="font-size:12px;color:#e01e5a" title="1 occurrence(s)">cannot</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="word-map-category" style="--category-color:#1264a3">
+      <h3 class="word-map-category-title">Resolved (other)</h3>
+      <div class="word-map-grid">
+        <div class="word-map-panel">
+          <h4 class="word-map-panel-title">Copilot suggestions</h4>
+          <div class="word-cloud"><span class="word-tag" style="font-size:26px;color:#1264a3" title="15 occurrence(s)">connector</span><span class="word-tag" style="font-size:21px;color:#1264a3" title="12 occurrence(s)">fail</span><span class="word-tag" style="font-size:21px;color:#1264a3" title="12 occurrence(s)">request</span><span class="word-tag" style="font-size:21px;color:#1264a3" title="12 occurrence(s)">route</span><span class="word-tag" style="font-size:19px;color:#1264a3" title="11 occurrence(s)">existing</span><span class="word-tag" style="font-size:19px;color:#1264a3" title="11 occurrence(s)">merchant</span><span class="word-tag" style="font-size:19px;color:#1264a3" title="11 occurrence(s)">still</span><span class="word-tag" style="font-size:16px;color:#1264a3" title="9 occurrence(s)">add</span><span class="word-tag" style="font-size:16px;color:#1264a3" title="9 occurrence(s)">changes</span><span class="word-tag" style="font-size:16px;color:#1264a3" title="9 occurrence(s)">discover</span><span class="word-tag" style="font-size:16px;color:#1264a3" title="9 occurrence(s)">pan</span><span class="word-tag" style="font-size:16px;color:#1264a3" title="9 occurrence(s)">response</span><span class="word-tag" style="font-size:16px;color:#1264a3" title="9 occurrence(s)">test</span><span class="word-tag" style="font-size:14px;color:#1264a3" title="8 occurrence(s)">catalog</span><span class="word-tag" style="font-size:14px;color:#1264a3" title="8 occurrence(s)">description</span><span class="word-tag" style="font-size:14px;color:#1264a3" title="8 occurrence(s)">file</span><span class="word-tag" style="font-size:14px;color:#1264a3" title="8 occurrence(s)">required</span><span class="word-tag" style="font-size:14px;color:#1264a3" title="8 occurrence(s)">zeroauth</span><span class="word-tag" style="font-size:12px;color:#1264a3" title="7 occurrence(s)">adding</span><span class="word-tag" style="font-size:12px;color:#1264a3" title="7 occurrence(s)">authentication</span><span class="word-tag" style="font-size:12px;color:#1264a3" title="7 occurrence(s)">body</span><span class="word-tag" style="font-size:12px;color:#1264a3" title="7 occurrence(s)">card</span><span class="word-tag" style="font-size:12px;color:#1264a3" title="7 occurrence(s)">configuration</span><span class="word-tag" style="font-size:12px;color:#1264a3" title="7 occurrence(s)">connection</span><span class="word-tag" style="font-size:12px;color:#1264a3" title="7 occurrence(s)">consider</span></div>
+        </div>
+        <div class="word-map-panel">
+          <h4 class="word-map-panel-title">Human replies</h4>
+          <div class="word-cloud"><span class="word-tag" style="font-size:26px;color:#1264a3" title="6 occurrence(s)">auth</span><span class="word-tag" style="font-size:23px;color:#1264a3" title="5 occurrence(s)">zero</span><span class="word-tag" style="font-size:19px;color:#1264a3" title="4 occurrence(s)">field</span><span class="word-tag" style="font-size:19px;color:#1264a3" title="4 occurrence(s)">removed</span><span class="word-tag" style="font-size:19px;color:#1264a3" title="4 occurrence(s)">right</span><span class="word-tag" style="font-size:19px;color:#1264a3" title="4 occurrence(s)">work</span><span class="word-tag" style="font-size:16px;color:#1264a3" title="3 occurrence(s)">added</span><span class="word-tag" style="font-size:16px;color:#1264a3" title="3 occurrence(s)">another</span><span class="word-tag" style="font-size:16px;color:#1264a3" title="3 occurrence(s)">cache</span><span class="word-tag" style="font-size:16px;color:#1264a3" title="3 occurrence(s)">change</span><span class="word-tag" style="font-size:16px;color:#1264a3" title="3 occurrence(s)">connector</span><span class="word-tag" style="font-size:16px;color:#1264a3" title="3 occurrence(s)">error</span><span class="word-tag" style="font-size:16px;color:#1264a3" title="3 occurrence(s)">flow</span><span class="word-tag" style="font-size:16px;color:#1264a3" title="3 occurrence(s)">keep</span><span class="word-tag" style="font-size:16px;color:#1264a3" title="3 occurrence(s)">need</span><span class="word-tag" style="font-size:16px;color:#1264a3" title="3 occurrence(s)">pci</span><span class="word-tag" style="font-size:16px;color:#1264a3" title="3 occurrence(s)">test</span><span class="word-tag" style="font-size:12px;color:#1264a3" title="2 occurrence(s)">amex</span><span class="word-tag" style="font-size:12px;color:#1264a3" title="2 occurrence(s)">behaviour</span><span class="word-tag" style="font-size:12px;color:#1264a3" title="2 occurrence(s)">case</span><span class="word-tag" style="font-size:12px;color:#1264a3" title="2 occurrence(s)">catalog</span><span class="word-tag" style="font-size:12px;color:#1264a3" title="2 occurrence(s)">changes</span><span class="word-tag" style="font-size:12px;color:#1264a3" title="2 occurrence(s)">checked</span><span class="word-tag" style="font-size:12px;color:#1264a3" title="2 occurrence(s)">cielo</span><span class="word-tag" style="font-size:12px;color:#1264a3" title="2 occurrence(s)">d79c96</span></div>
+        </div>
+      </div>
+    </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Generated from the GitHub digest. Type filters and search run entirely in your browser.
+  </footer>
+
+  <div class="pdf-btn-wrap">
+    <button class="pdf-btn" id="pdfBtn" title="Save this page as a PDF"> Save as PDF</button>
+  </div>
+
+<script>
+const TYPES = {
+  feature:    { label: "Feature",   emoji: "", color: "#1264a3" },
+  bugfix:     { label: "Bug fix",   emoji: "", color: "#e01e5a" },
+  test:       { label: "Tests",     emoji: "", color: "#0b7c8c" },
+  perf:       { label: "Infra/Perf",emoji: "", color: "#c98a00" },
+  security:   { label: "Security",  emoji: "", color: "#4a154b" },
+  package:    { label: "Package",   emoji: "", color: "#d2691e" },
+  cleanup:    { label: "Cleanup",   emoji: "", color: "#616061" },
+  open:       { label: "Open work", emoji: "", color: "#2eb67d" },
+};
+
+const DATA = [{"title":"Network Tokens & Microsoft LATAM","emoji":"","items":[{"type":"feature","repo":"cp-pl-card-tokenizer","desc":"\u003cstrong\u003ecp-pl-card-tokenizer\u003c/strong\u003e rolled out Microsoft NT sync for BRL/CLP/COP/PEN, then throttled rollout to 0 to cut \u003cstrong\u003eVGS\u003c/strong\u003e API load.","contacts":["diogomozer-ppro"]},{"type":"perf","repo":"cp-pl-card-tokenizer","desc":"\u003cstrong\u003ecp-pl-card-tokenizer\u003c/strong\u003e scaled prod to 45 pods (max 6 on Fridays) to prevent tokenization bottlenecks.","contacts":["luigiferrarippro"]},{"type":"feature","repo":"cp-pl-card-processor","desc":"\u003cstrong\u003ecp-pl-card-processor\u003c/strong\u003e added ZeroAuth \u003cstrong\u003eCARD_NETWORK_TOKEN\u003c/strong\u003e channels for BRL, CLP, COP, and PEN.","contacts":["diogomozer-ppro"]},{"type":"feature","repo":"cp-pl-card-tokenizer-event-model","desc":"\u003cstrong\u003ecp-pl-card-tokenizer-event-model\u003c/strong\u003e v1.2.0 adds \u003cstrong\u003eCREATION_NETWORK_TOKEN_PENDING\u003c/strong\u003e for deferred VGS async creation (e.g. service-busy).","contacts":["luigiferrarippro"]},{"type":"open","repo":"cp-pl-card-tokenizer","desc":"Open PR will surface \u003cstrong\u003eVGS\u003c/strong\u003e service-busy async-switch responses in the token provision flow (\u003cstrong\u003eCP-2858\u003c/strong\u003e).","contacts":["luigiferrarippro"]}]},{"title":"Processing Orchestrator","emoji":"","items":[{"type":"perf","repo":"cp-pl-processing-orchestrator","desc":"\u003cstrong\u003ecp-pl-processing-orchestrator\u003c/strong\u003e cut matching latency ~2.5s400ms via GSI queries and \u003cstrong\u003eCaffeine\u003c/strong\u003e refresh-ahead caching.","contacts":["Oiapokxui"]},{"type":"feature","repo":"cp-pl-processing-orchestrator","desc":"\u003cstrong\u003ecp-pl-processing-orchestrator\u003c/strong\u003e ships typed requests, flat candidate responses, stable refusal codes, and audit on every outcome.","contacts":["Oiapokxui"]},{"type":"open","repo":"cp-pl-card-processor","desc":"Open PRs wire \u003cstrong\u003ecp-pl-card-processor\u003c/strong\u003e to the orchestrator client; yaml routes stay authoritative with silent fallback on failure.","contacts":["Oiapokxui"]},{"type":"feature","repo":"tf-aws-card-payments-platform","desc":"\u003cstrong\u003etf-aws-card-payments-platform\u003c/strong\u003e replicated orchestrator DynamoDB tables and IAM to sandbox/prod for go-live readiness.","contacts":["Oiapokxui"]}]},{"title":"ZeroAuth PCI Reduction","emoji":"","items":[{"type":"security","repo":"cp-pl-zero-auth-service","desc":"\u003cstrong\u003ecp-pl-zero-auth-service\u003c/strong\u003e rejects inbound PAN/CVV with HTTP 400; routing uses vaulted \u003cstrong\u003einstrument.details.bin\u003c/strong\u003e only.","contacts":["fernando-monari"]},{"type":"feature","repo":"cp-pl-zero-auth-service","desc":"\u003cstrong\u003ecp-pl-zero-auth-service\u003c/strong\u003e migrated to \u003cstrong\u003eJava 25\u003c/strong\u003e and \u003cstrong\u003eSpring Boot 4\u003c/strong\u003e; extracted \u003cstrong\u003ePaymentGateway\u003c/strong\u003e for Discover routing.","contacts":["luis-moraes96"]},{"type":"security","repo":"cp-pl-card-processor","desc":"\u003cstrong\u003ecp-pl-card-processor\u003c/strong\u003e marks all \u003cstrong\u003eZeroAuth\u003c/strong\u003e routes \u003cstrong\u003eNON_PCI\u003c/strong\u003e, forwarding instrument objects only.","contacts":["fernando-monari"]},{"type":"security","repo":"cp-pl-simple-proxy-router","desc":"\u003cstrong\u003ecp-pl-simple-proxy-router\u003c/strong\u003e strips raw card fields and marks ZeroAuth routes \u003cstrong\u003eNON_PCI\u003c/strong\u003e before forwarding.","contacts":["fernando-monari"]}]},{"title":"Discover EMEA","emoji":"","items":[{"type":"feature","repo":"cp-int-connector-discover","desc":"\u003cstrong\u003ecp-int-connector-discover\u003c/strong\u003e production go-live: prod endpoints, DB partitioning cron, and card-acceptor config.","contacts":["luis-moraes96"]},{"type":"feature","repo":"cp-pl-forward-api","desc":"\u003cstrong\u003ecp-pl-forward-api\u003c/strong\u003e added inbound \u003cstrong\u003eDiscover DFTP\u003c/strong\u003e list/download routes with in-place ACQHO PAN masking (BIN+last4).","contacts":["luis-moraes96"]},{"type":"feature","repo":"cp-pl-card-processor","desc":"\u003cstrong\u003ecp-pl-card-processor\u003c/strong\u003e routed Discover test merchants to the Discover connector with \u003cstrong\u003eNetcetera 3DS\u003c/strong\u003e in prod and sandbox.","contacts":["luis-moraes96"]},{"type":"feature","repo":"cp-int-netcetera-3ds-authenticator","desc":"\u003cstrong\u003ecp-int-netcetera-3ds-authenticator\u003c/strong\u003e configured Discover test merchant in prod and sandbox for 3DS validation.","contacts":["luis-moraes96"]}]},{"title":"3DS Authentication","emoji":"","items":[{"type":"bugfix","repo":"cp-int-3ds-hap","desc":"\u003cstrong\u003ecp-int-3ds-hap\u003c/strong\u003e shows a failure view instead of hanging; notifies authenticator of client-observed failures via keepalive fetch.","contacts":["aislan-leite-ppro"]},{"type":"bugfix","repo":"tf-aws-card-payments-integrations","desc":"\u003cstrong\u003etf-aws-card-payments-integrations\u003c/strong\u003e added CORS preflight for \u003cstrong\u003e/v1/authentications/results\u003c/strong\u003e and fixed Terragrunt WAF/VPC deps.","contacts":["aislan-leite-ppro"]},{"type":"bugfix","repo":"cp-pl-card-processor","desc":"\u003cstrong\u003ecp-pl-card-processor\u003c/strong\u003e requires explicit \u003cstrong\u003eTHREE_DS\u003c/strong\u003e opt-in with returnUrl before triggering \u003cstrong\u003eNetcetera 3DS\u003c/strong\u003e.","contacts":["aislan-leite-ppro"]}]},{"title":"Card Enrollment","emoji":"","items":[{"type":"feature","repo":"cp-pl-card-enroller","desc":"\u003cstrong\u003ecp-pl-card-enroller\u003c/strong\u003e ships enrollment contract to \u003cstrong\u003elpp-enrollment-api\u003c/strong\u003e with JSON schema validation and structured error responses.","contacts":["ViviFLara"]},{"type":"feature","repo":"tf-aws-card-payments-platform","desc":"\u003cstrong\u003etf-aws-card-payments-platform\u003c/strong\u003e provisioned Aurora Postgres for \u003cstrong\u003ecp-pl-card-enroller\u003c/strong\u003e in QA (db.t4g.medium).","contacts":["ViviFLara"]}]},{"title":"Platform Reliability & Security","emoji":"","items":[{"type":"security","repo":"card-payments-pipelines","desc":"\u003cstrong\u003ecard-payments-pipelines\u003c/strong\u003e removed invalid permissions from provision-runner-ecs, clearing \u003cstrong\u003eWiz\u003c/strong\u003e Custom-Rule-6 findings.","contacts":["marcusppro"]},{"type":"security","repo":"card-payments-helm-charts","desc":"\u003cstrong\u003ecard-payments-helm-charts\u003c/strong\u003e enforced least-privilege \u003cstrong\u003eGitHub Actions\u003c/strong\u003e permissions with deny-all workflow baseline.","contacts":["marcusppro"]},{"type":"security","repo":"cp-int-acon4-openpay","desc":"\u003cstrong\u003ecp-int-acon4-openpay\u003c/strong\u003e moved workflow permissions to per-job scopes, closing broad \u003cstrong\u003eGitHub Actions\u003c/strong\u003e permission findings.","contacts":["marcusppro"]},{"type":"bugfix","repo":"cp-pl-card-processor-event-model","desc":"\u003cstrong\u003ecp-pl-card-processor-event-model\u003c/strong\u003e v1.16.0 made \u003cstrong\u003epanHash\u003c/strong\u003e optional, unblocking analytics bridge SQS DLQ redrive.","contacts":["Oiapokxui"]},{"type":"bugfix","repo":"cp-pl-card-analytics-bridge","desc":"\u003cstrong\u003ecp-pl-card-analytics-bridge\u003c/strong\u003e adopted event model v1.16.0 and tokenizer v1.2.0, fixing validation failures on redriven events.","contacts":["Oiapokxui","luigiferrarippro","GaiaOcean"]},{"type":"bugfix","repo":"cp-int-acon4-decidir","desc":"\u003cstrong\u003ecp-int-acon4-decidir\u003c/strong\u003e remapped expired/invalid card errors to \u003cstrong\u003e800.100.174\u003c/strong\u003e to trigger internal retry.","contacts":["diogomozer-ppro"]},{"type":"feature","repo":"cp-pl-aci-compatible-api","desc":"\u003cstrong\u003ecp-pl-aci-compatible-api\u003c/strong\u003e shifted Microsoft PROD boleto channel to \u003cstrong\u003eGPG\u003c/strong\u003e (\u003cstrong\u003eLE2-1931\u003c/strong\u003e).","contacts":["arielbausppro"]},{"type":"bugfix","repo":"cp-pl-wiremock","desc":"\u003cstrong\u003ecp-pl-wiremock\u003c/strong\u003e fixed Stone network-token auth when cryptogram is absent; pinned stable Netcetera proxy mapping IDs.","contacts":["aislan-leite-ppro","rasecoiac03"]},{"type":"feature","repo":"cp-pl-shared-libs","desc":"\u003cstrong\u003ecp-pl-shared-libs\u003c/strong\u003e published testing catalog v1.3 with \u003cstrong\u003ewiremock-spring-boot\u003c/strong\u003e and openpojo for Boot 4 migrations.","contacts":["luis-moraes96"]}]},{"title":"Housekeeping","emoji":"","items":[{"type":"cleanup","repo":"cp-pl-card-bin-info","desc":"Dependabot bumped \u003cstrong\u003eGitHub Actions\u003c/strong\u003e (checkout, cache, setup-java, AWS, JFrog).","contacts":[]},{"type":"cleanup","repo":"cp-pl-batch-cardbin-collector","desc":"Dependabot bumped \u003cstrong\u003eGitHub Actions\u003c/strong\u003e (checkout, cache, setup-java, AWS, JFrog).","contacts":[]},{"type":"cleanup","repo":"cp-pl-account-updater-service","desc":"\u003cstrong\u003ecp-pl-account-updater-service\u003c/strong\u003e bumped card payments event model to 1.15.0 and 1.16.0.","contacts":["joaorihan"]},{"type":"cleanup","repo":"cp-pl-card-tokenizer","desc":"\u003cstrong\u003ecp-pl-card-tokenizer\u003c/strong\u003e bumped card payments event model to 1.15.0/1.16.0 and tokenizer event model to 1.2.0.","contacts":["joaorihan","luigiferrarippro"]},{"type":"cleanup","repo":"cp-pl-card-processor","desc":"\u003cstrong\u003ecp-pl-card-processor\u003c/strong\u003e bumped event model to 1.15.0 and platform BOM to 3.49.","contacts":["GaiaOcean","aislan-leite-ppro"]},{"type":"cleanup","repo":"card-payments-pipelines","desc":"\u003cstrong\u003ecard-payments-pipelines\u003c/strong\u003e ratchet-pinned internal workflow and action references.","contacts":["marcusppro"]},{"type":"cleanup","repo":"cp-int-netcetera-3ds-authenticator","desc":"\u003cstrong\u003ecp-int-netcetera-3ds-authenticator\u003c/strong\u003e temporarily pointed CI at a feature-branch pipeline to test UI-only deploys.","contacts":["aislan-leite-ppro"]},{"type":"cleanup","repo":"tf-aws-card-payments-platform","desc":"\u003cstrong\u003etf-aws-card-payments-platform\u003c/strong\u003e bumped network-token-lifecycle Firehose S3 paths to schema v1.2.0.","contacts":["luigiferrarippro"]}],"note":"Dependency-only bumps and CI ratchets with no user-facing behavior change."}];
+const AI_TIMESERIES = [{"since":"2026-01-01","until":"2026-03-31","aiPct":9,"copilotAcceptedPct":16},{"since":"2026-04-01","until":"2026-06-29","aiPct":28,"copilotAcceptedPct":37},{"since":"2026-04-20","until":"2026-04-26","aiPct":16,"copilotAcceptedPct":29},{"since":"2026-04-27","until":"2026-05-03","aiPct":11,"copilotAcceptedPct":29},{"since":"2026-05-04","until":"2026-05-10","aiPct":35,"copilotAcceptedPct":36},{"since":"2026-05-05","until":"2026-05-11","aiPct":35,"copilotAcceptedPct":38},{"since":"2026-05-11","until":"2026-05-17","aiPct":29,"copilotAcceptedPct":31},{"since":"2026-05-12","until":"2026-05-18","aiPct":44,"copilotAcceptedPct":42},{"since":"2026-05-18","until":"2026-05-24","aiPct":32,"copilotAcceptedPct":29},{"since":"2026-05-19","until":"2026-05-25","aiPct":42,"copilotAcceptedPct":44},{"since":"2026-05-25","until":"2026-05-31","aiPct":35,"copilotAcceptedPct":39},{"since":"2026-06-01","until":"2026-06-07","aiPct":45,"copilotAcceptedPct":50},{"since":"2026-06-08","until":"2026-06-14","aiPct":17,"copilotAcceptedPct":37},{"since":"2026-06-15","until":"2026-06-21","aiPct":41,"copilotAcceptedPct":37},{"since":"2026-06-22","until":"2026-06-28","aiPct":44,"copilotAcceptedPct":43},{"since":"2026-06-29","until":"2026-07-05","aiPct":39,"copilotAcceptedPct":41},{"since":"2026-07-06","until":"2026-07-12","aiPct":40,"copilotAcceptedPct":43},{"since":"2026-07-13","until":"2026-07-19","aiPct":24,"copilotAcceptedPct":53},{"since":"2026-07-20","until":"2026-07-26","aiPct":30,"copilotAcceptedPct":48},{"since":"2026-07-27","until":"2026-08-02","aiPct":26,"copilotAcceptedPct":34},{"since":"2026-08-03","until":"2026-08-09","aiPct":16,"copilotAcceptedPct":28},{"since":"2026-08-10","until":"2026-08-16","aiPct":18,"copilotAcceptedPct":54},{"since":"2026-08-17","until":"2026-08-23","aiPct":17,"copilotAcceptedPct":37},{"since":"2026-09-14","until":"2026-09-20","aiPct":27,"copilotAcceptedPct":42}];
+
+const AI_CHART_LAYOUT = { w: 640, h: 220, pad: { l: 44, r: 16, t: 16, b: 36 } };
+
+function sliceByWeeks(points, n) {
+  if (!points?.length) return [];
+  if (!n || n <= 0) return points;
+  return points.slice(-n);
+}
+
+function aiTrendX(index, count, pad, chartW) {
+  if (count <= 1) return pad.l + chartW / 2;
+  return pad.l + (index / (count - 1)) * chartW;
+}
+
+function aiTrendY(pct, pad, chartH) {
+  return pad.t + chartH - (pct / 100) * chartH;
+}
+
+function renderAiTrendChart(points) {
+  const svg = document.getElementById("aiTrendChart");
+  const sub = document.getElementById("aiTrendSub");
+  if (!svg || !points.length) return;
+
+  const { w, h, pad } = AI_CHART_LAYOUT;
+  const chartW = w - pad.l - pad.r;
+  const chartH = h - pad.t - pad.b;
+  const hasCopilot = points.some((p) => p.copilotAcceptedPct != null);
+  const parts = [];
+
+  if (sub) {
+    sub.textContent = `${points.length} week(s)  ${points[0].since}  ${points[points.length - 1].until}`;
+  }
+
+  [0, 25, 50, 75, 100].forEach((pct) => {
+    const y = aiTrendY(pct, pad, chartH);
+    parts.push(`<line class="ai-trend-gridline" x1="${pad.l}" y1="${y}" x2="${w - pad.r}" y2="${y}" />`);
+    parts.push(`<text class="ai-trend-axis-label" x="${pad.l - 6}" y="${y + 4}" text-anchor="end">${pct}%</text>`);
+  });
+
+  points.forEach((p, i) => {
+    const x = aiTrendX(i, points.length, pad, chartW);
+    parts.push(`<text class="ai-trend-axis-label ai-trend-x-label" x="${x.toFixed(1)}" y="${h - 8}" text-anchor="middle">${p.until.slice(5)}</text>`);
+  });
+
+  function dotDataAttrs(p) {
+    const copilot =
+      p.copilotAcceptedPct != null ? ` data-copilot="${p.copilotAcceptedPct}"` : "";
+    return ` data-since="${p.since}" data-until="${p.until}" data-ai="${p.aiPct}"${copilot}`;
+  }
+
+  function appendLine(getVal, lineClass, dotClass) {
+    const coords = points.map((p, i) => ({ p, i, v: getVal(p) })).filter(({ v }) => v != null);
+    if (!coords.length) return;
+    if (coords.length >= 2) {
+      const d = coords
+        .map(({ i, v }, idx) => {
+          const x = aiTrendX(i, points.length, pad, chartW);
+          const y = aiTrendY(v, pad, chartH);
+          return `${idx === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`;
+        })
+        .join(" ");
+      parts.push(`<path class="ai-trend-line ${lineClass}" d="${d}" />`);
+    }
+    coords.forEach(({ p, i, v }) => {
+      const x = aiTrendX(i, points.length, pad, chartW);
+      const y = aiTrendY(v, pad, chartH);
+      parts.push(
+        `<circle class="ai-trend-dot ${dotClass}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5"${dotDataAttrs(p)} />`
+      );
+    });
+  }
+
+  appendLine((p) => p.aiPct, "ai-trend-line-ai", "ai-trend-dot-ai");
+  if (hasCopilot) {
+    appendLine((p) => p.copilotAcceptedPct, "ai-trend-line-copilot", "ai-trend-dot-copilot");
+  }
+
+  svg.innerHTML = parts.join("");
+}
+
+function bindAiTrendFilters() {
+  const filters = document.querySelector(".ai-trend-filters");
+  if (!filters) return;
+  filters.querySelectorAll(".chip").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      filters.querySelectorAll(".chip").forEach((c) => c.classList.remove("active"));
+      chip.classList.add("active");
+      const weeks = parseInt(chip.dataset.weeks, 10);
+      renderAiTrendChart(sliceByWeeks(AI_TIMESERIES, weeks));
+    });
+  });
+}
+
+function bindAiTrendTooltip() {
+  const wrap = document.querySelector(".ai-trend-svg-wrap");
+  const tip = document.getElementById("aiTrendTooltip");
+  const svg = document.getElementById("aiTrendChart");
+  if (!wrap || !tip || !svg) return;
+
+  function showTip(dot, clientX, clientY) {
+    const since = dot.getAttribute("data-since");
+    const until = dot.getAttribute("data-until");
+    const ai = dot.getAttribute("data-ai");
+    const copilot = dot.getAttribute("data-copilot");
+    let html = `<span class="tip-range">${since}  ${until}</span>`;
+    html += `<span class="tip-row">AI-assisted PRs: ${ai}%</span>`;
+    if (copilot != null && copilot !== "") {
+      html += `<span class="tip-row">Copilot accepted: ${copilot}%</span>`;
+    }
+    tip.innerHTML = html;
+    const rect = wrap.getBoundingClientRect();
+    tip.style.left = `${clientX - rect.left + 12}px`;
+    tip.style.top = `${clientY - rect.top - 8}px`;
+    tip.classList.add("visible");
+  }
+
+  svg.addEventListener("mousemove", (e) => {
+    const dot = e.target.closest(".ai-trend-dot");
+    if (!dot) {
+      tip.classList.remove("visible");
+      return;
+    }
+    showTip(dot, e.clientX, e.clientY);
+  });
+  svg.addEventListener("mouseleave", () => tip.classList.remove("visible"));
+}
+
+// ---- Render ----
+const content = document.getElementById("content");
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function sanitizeDesc(html) {
+  const escaped = escapeHtml(html);
+  return escaped
+    .replace(/&lt;strong&gt;/gi, "<strong>")
+    .replace(/&lt;\/strong&gt;/gi, "</strong>");
+}
+
+function cardHTML(item) {
+  const t = TYPES[item.type] ?? TYPES.cleanup;
+  const contacts = (item.contacts || []).map(c => `<span class="contact">${escapeHtml(c)}</span>`).join("");
+  const repolist = item.repolist
+    ? `<div class="repo-list">${item.repolist.map(r => `<code>${escapeHtml(r)}</code>`).join("")}</div>`
+    : "";
+  return `<article class="card" data-type="${escapeHtml(item.type)}" style="--type-color:${t.color}">
+    <div class="card-top">
+      <span class="type-tag">${t.emoji} ${t.label}</span>
+      <span class="repo">${escapeHtml(item.repo)}</span>
+    </div>
+    <p class="desc">${sanitizeDesc(item.desc)}</p>
+    ${repolist}
+    <div class="contacts">${contacts}</div>
+  </article>`;
+}
+
+function render() {
+  const totals = DATA.map(g =>
+    g.subgroups ? g.subgroups.reduce((n, sg) => n + sg.items.length, 0) : g.items.length
+  );
+
+  content.innerHTML = DATA.map((group, gi) => {
+    const total = totals[gi];
+    let inner = "";
+    if (group.subgroups) {
+      inner = group.subgroups.map(sg => `<div class="subgroup">
+          <div class="subgroup-title">${escapeHtml(sg.title)}</div>
+          <div class="cards">${sg.items.map(cardHTML).join("")}</div>
+        </div>`).join("");
+    } else {
+      const note = group.note ? `<p class="desc" style="color:var(--text-dim);margin-top:8px">${escapeHtml(group.note)}</p>` : "";
+      inner = `${note}<div class="cards">${group.items.map(cardHTML).join("")}</div>`;
+    }
+    const isCollapsed = collapsedGroups.has(gi);
+    return `<section class="group${isCollapsed ? " collapsed" : ""}" data-group="${gi}" id="group-${gi}">
+      <h2 class="group-title">
+        <span class="group-collapse-trigger" data-gi="${gi}"
+          role="button" tabindex="0"
+          title="${isCollapsed ? "Expand" : "Collapse"} section"
+          aria-expanded="${!isCollapsed}">
+          <span class="group-collapse-arrow"></span>
+          ${escapeHtml(group.emoji)} ${escapeHtml(group.title)}
+        </span>
+        <span class="badge-count">${total}</span>
+      </h2>
+      <div class="group-body"><div class="group-body-inner">${inner}</div></div>
+    </section>`;
+  }).join("");
+
+  // Event delegation  click or Enter/Space on the trigger span
+  content.addEventListener("click", e => {
+    const trigger = e.target.closest(".group-collapse-trigger");
+    if (trigger) toggleCollapse(Number(trigger.dataset.gi));
+  });
+  content.addEventListener("keydown", e => {
+    if (e.key === "Enter" || e.key === " ") {
+      const trigger = e.target.closest(".group-collapse-trigger");
+      if (trigger) { e.preventDefault(); toggleCollapse(Number(trigger.dataset.gi)); }
+    }
+  });
+}
+
+// ---- #5 Collapse  localStorage ----
+const COLLAPSE_KEY = "gh-summary-collapse-v1";
+let collapsedGroups;
+try { collapsedGroups = new Set(JSON.parse(localStorage.getItem(COLLAPSE_KEY) || "[]")); }
+catch { collapsedGroups = new Set(); }
+
+function saveCollapse() {
+  try { localStorage.setItem(COLLAPSE_KEY, JSON.stringify([...collapsedGroups])); } catch {}
+}
+
+function toggleCollapse(gi) {
+  const section = document.getElementById(`group-${gi}`);
+  if (!section) return;
+  const isNowCollapsed = !section.classList.contains("collapsed");
+  section.classList.toggle("collapsed", isNowCollapsed);
+  const trigger = section.querySelector(".group-collapse-trigger");
+  if (trigger) {
+    trigger.title = (isNowCollapsed ? "Expand" : "Collapse") + " section";
+    trigger.setAttribute("aria-expanded", !isNowCollapsed);
+  }
+  if (isNowCollapsed) collapsedGroups.add(gi); else collapsedGroups.delete(gi);
+  saveCollapse();
+}
+
+// ---- Section chips ----
+const activeGroups = new Set();
+const groupBox = document.getElementById("groupChips");
+DATA.forEach((group, gi) => {
+  const chip = document.createElement("span");
+  chip.className = "chip group-chip";
+  chip.dataset.group = gi;
+  chip.textContent = `${group.emoji} ${group.title}`;
+  chip.addEventListener("click", () => {
+    chip.classList.toggle("active");
+    if (activeGroups.has(gi)) activeGroups.delete(gi); else activeGroups.add(gi);
+    applyFilters();
+  });
+  groupBox.appendChild(chip);
+});
+
+// ---- Type chips ----
+const activeTypes = new Set();
+const chipBox = document.getElementById("typeChips");
+Object.entries(TYPES).forEach(([key, t]) => {
+  const chip = document.createElement("span");
+  chip.className = "chip";
+  chip.dataset.type = key;
+  chip.innerHTML = `<span class="dot" style="background:${t.color}"></span>${t.emoji} ${t.label}`;
+  chip.addEventListener("click", () => {
+    chip.classList.toggle("active");
+    if (activeTypes.has(key)) activeTypes.delete(key); else activeTypes.add(key);
+    applyFilters();
+  });
+  chipBox.appendChild(chip);
+});
+
+const search = document.getElementById("search");
+const emptyState = document.getElementById("emptyState");
+search.addEventListener("input", applyFilters);
+
+// ---- #7 Filter summary ----
+function updateFilterSummary(visibleCount) {
+  const bar = document.getElementById("filterSummary");
+  const tagsEl = document.getElementById("fsTags");
+  const countEl = document.getElementById("fsCount");
+  const q = search.value.trim();
+  const hasFilters = activeGroups.size > 0 || activeTypes.size > 0 || q !== "";
+  bar.classList.toggle("visible", hasFilters);
+  if (!hasFilters) return;
+  const tags = [];
+  activeGroups.forEach(gi => {
+    tags.push(`<span class="fs-tag">${escapeHtml(DATA[gi].emoji)} ${escapeHtml(DATA[gi].title)}</span>`);
+  });
+  activeTypes.forEach(k => {
+    tags.push(`<span class="fs-tag" style="background:${TYPES[k].color}">${TYPES[k].emoji} ${TYPES[k].label}</span>`);
+  });
+  if (q) tags.push(`<span class="fs-tag" style="background:#616061"> "${escapeHtml(q)}"</span>`);
+  tagsEl.innerHTML = tags.join("");
+  countEl.innerHTML = `<strong>${visibleCount}</strong> result${visibleCount !== 1 ? "s" : ""}`;
+}
+
+document.getElementById("fsClear").addEventListener("click", () => {
+  activeGroups.clear();
+  activeTypes.clear();
+  search.value = "";
+  document.querySelectorAll(".chip.active").forEach(c => c.classList.remove("active"));
+  applyFilters();
+});
+
+function applyFilters() {
+  const q = search.value.trim().toLowerCase();
+  let anyVisible = false;
+  let visibleCards = 0;
+  document.querySelectorAll(".group").forEach(group => {
+    const gi = Number(group.dataset.group);
+    const groupAllowed = activeGroups.size === 0 || activeGroups.has(gi);
+    let groupVisible = false;
+    group.querySelectorAll(".subgroup").forEach(sg => {
+      let sgVisible = false;
+      sg.querySelectorAll(".card").forEach(card => {
+        if (filterCard(card, q, groupAllowed)) { sgVisible = true; visibleCards++; }
+      });
+      sg.classList.toggle("hidden", !sgVisible);
+      if (sgVisible) groupVisible = true;
+    });
+    group.querySelectorAll(":scope > .group-body > .group-body-inner > .cards > .card").forEach(card => {
+      if (filterCard(card, q, groupAllowed)) { groupVisible = true; visibleCards++; }
+    });
+    group.classList.toggle("hidden", !groupVisible);
+    if (groupVisible) anyVisible = true;
+  });
+  emptyState.style.display = anyVisible ? "none" : "block";
+  updateFilterSummary(visibleCards);
+}
+
+function filterCard(card, q, groupAllowed) {
+  const typeOk = activeTypes.size === 0 || activeTypes.has(card.dataset.type);
+  const textOk = q === "" || card.textContent.toLowerCase().includes(q);
+  const show = groupAllowed && typeOk && textOk;
+  card.classList.toggle("hidden", !show);
+  return show;
+}
+
+// ---- Type breakdown chart ----
+function renderTypeChart() {
+  const counts = {};
+  Object.keys(TYPES).forEach(k => counts[k] = 0);
+  let total = 0;
+  DATA.forEach(group => {
+    const lists = group.subgroups ? group.subgroups.map(sg => sg.items) : [group.items];
+    lists.forEach(items => items.forEach(it => { counts[it.type] = (counts[it.type] || 0) + 1; total++; }));
+  });
+  const rows = Object.entries(counts)
+    .filter(([, n]) => n > 0)
+    .sort((a, b) => b[1] - a[1])
+    .map(([key, n]) => {
+      const t = TYPES[key];
+      const pct = Math.round(n / total * 100);
+      return `<div class="bar-row">
+        <span class="bar-label">${t.emoji} ${t.label}</span>
+        <span class="bar-track"><span class="bar-fill" style="--bar-color:${t.color};width:${pct}%"></span></span>
+        <span class="bar-val">${n}<span class="pct">${pct}%</span></span>
+      </div>`;
+    }).join("");
+  const chart = document.getElementById("typeChart");
+  if (!chart) return;
+  chart.innerHTML = rows;
+  const sub = document.getElementById("chartSub");
+  if (sub) sub.textContent = `${total} highlighted changes across all repositories this period`;
+}
+
+render();
+renderTypeChart();
+
+if (AI_TIMESERIES.length) {
+  bindAiTrendFilters();
+  bindAiTrendTooltip();
+  renderAiTrendChart(sliceByWeeks(AI_TIMESERIES, 8));
+}
+
+// Keep filter-summary top aligned with the bottom of the sticky controls bar
+function syncControlsHeight() {
+  const h = document.querySelector(".controls")?.offsetHeight ?? 0;
+  document.documentElement.style.setProperty("--controls-h", h + "px");
+}
+syncControlsHeight();
+window.addEventListener("resize", syncControlsHeight);
+
+document.getElementById("pdfBtn").addEventListener("click", () => window.print());
+</script>
+</body>
+</html>

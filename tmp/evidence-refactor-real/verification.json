@@ -1,0 +1,256 @@
+{
+  "generatedAt": "2026-09-25T14:56:58.978Z",
+  "browser": "Google Chrome (Playwright)",
+  "productionBuild": true,
+  "roles": [
+    "EMPLOYEE",
+    "MANAGER"
+  ],
+  "screenshots": 26,
+  "routeTimings": [
+    {
+      "route": "/",
+      "durationMs": 600,
+      "domContentLoadedMs": 28,
+      "apiMaxMs": 0,
+      "apiRequests": 0,
+      "viewport": "1440x1000"
+    },
+    {
+      "route": "/login",
+      "durationMs": 570,
+      "domContentLoadedMs": 38,
+      "apiMaxMs": 0,
+      "apiRequests": 0,
+      "viewport": "1440x1000"
+    },
+    {
+      "route": "/register",
+      "durationMs": 554,
+      "domContentLoadedMs": 29,
+      "apiMaxMs": 0,
+      "apiRequests": 0,
+      "viewport": "1440x1000"
+    },
+    {
+      "route": "/app/overview",
+      "durationMs": 567,
+      "domContentLoadedMs": 25,
+      "apiMaxMs": 15,
+      "apiRequests": 4,
+      "viewport": "1440x1000"
+    },
+    {
+      "route": "/workspace/people/2/analyses/1?view=summary",
+      "durationMs": 571,
+      "domContentLoadedMs": 27,
+      "apiMaxMs": 8,
+      "apiRequests": 3,
+      "viewport": "1440x1000"
+    },
+    {
+      "route": "/workspace/people/2/analyses/1?view=history",
+      "durationMs": 544,
+      "domContentLoadedMs": 19,
+      "apiMaxMs": 5,
+      "apiRequests": 3,
+      "viewport": "1440x1000"
+    },
+    {
+      "route": "/app/framework",
+      "durationMs": 814,
+      "domContentLoadedMs": 272,
+      "apiMaxMs": 9,
+      "apiRequests": 3,
+      "viewport": "1440x1000"
+    },
+    {
+      "route": "/app/framework/criteria/criterion-v1-d87f9dafb5cb60904b809aa7?level=L3",
+      "durationMs": 691,
+      "domContentLoadedMs": 168,
+      "apiMaxMs": 0,
+      "apiRequests": 0,
+      "viewport": "1440x1000"
+    },
+    {
+      "route": "/app/integrations/github",
+      "durationMs": 695,
+      "domContentLoadedMs": 157,
+      "apiMaxMs": 8,
+      "apiRequests": 2,
+      "viewport": "1440x1000"
+    },
+    {
+      "route": "/app/integrations/github/import",
+      "durationMs": 686,
+      "domContentLoadedMs": 158,
+      "apiMaxMs": 5,
+      "apiRequests": 1,
+      "viewport": "1440x1000"
+    },
+    {
+      "route": "/app/career-plan?view=context",
+      "durationMs": 705,
+      "domContentLoadedMs": 156,
+      "apiMaxMs": 14,
+      "apiRequests": 2,
+      "viewport": "1440x1000"
+    },
+    {
+      "route": "/app/inbox?status=pending",
+      "durationMs": 714,
+      "domContentLoadedMs": 172,
+      "apiMaxMs": 14,
+      "apiRequests": 2,
+      "viewport": "1440x1000"
+    },
+    {
+      "route": "/workspace/people/2/evidence/1",
+      "durationMs": 692,
+      "domContentLoadedMs": 164,
+      "apiMaxMs": 5,
+      "apiRequests": 2,
+      "viewport": "1440x1000"
+    },
+    {
+      "route": "/app/analyses",
+      "durationMs": 705,
+      "domContentLoadedMs": 166,
+      "apiMaxMs": 9,
+      "apiRequests": 2,
+      "viewport": "1440x1000"
+    },
+    {
+      "route": "/app/inbox?status=pending",
+      "durationMs": 565,
+      "domContentLoadedMs": 29,
+      "apiMaxMs": 10,
+      "apiRequests": 2,
+      "viewport": "390x844"
+    },
+    {
+      "route": "/app/inbox?status=pending",
+      "durationMs": 553,
+      "domContentLoadedMs": 22,
+      "apiMaxMs": 8,
+      "apiRequests": 2,
+      "viewport": "320x740"
+    },
+    {
+      "route": "/workspace/people/2/evidence/1",
+      "durationMs": 561,
+      "domContentLoadedMs": 31,
+      "apiMaxMs": 10,
+      "apiRequests": 2,
+      "viewport": "390x844"
+    },
+    {
+      "route": "/manage/people/2/career-plan",
+      "durationMs": 716,
+      "domContentLoadedMs": 176,
+      "apiMaxMs": 15,
+      "apiRequests": 4,
+      "viewport": "1440x1000"
+    },
+    {
+      "route": "/manage/people/2/evidence",
+      "durationMs": 705,
+      "domContentLoadedMs": 157,
+      "apiMaxMs": 11,
+      "apiRequests": 3,
+      "viewport": "1440x1000"
+    },
+    {
+      "route": "/workspace/people/2/evidence/1",
+      "durationMs": 567,
+      "domContentLoadedMs": 30,
+      "apiMaxMs": 9,
+      "apiRequests": 2,
+      "viewport": "1440x1000"
+    },
+    {
+      "route": "/manage/people/2/career-plan/objectives/new",
+      "durationMs": 688,
+      "domContentLoadedMs": 160,
+      "apiMaxMs": 6,
+      "apiRequests": 4,
+      "viewport": "1440x1000"
+    },
+    {
+      "route": "/manage/people/2/career-plan/objectives/999999",
+      "durationMs": 701,
+      "domContentLoadedMs": 167,
+      "apiMaxMs": 8,
+      "apiRequests": 4,
+      "viewport": "1440x1000"
+    },
+    {
+      "route": "/manage/people/2/analyses",
+      "durationMs": 700,
+      "domContentLoadedMs": 159,
+      "apiMaxMs": 8,
+      "apiRequests": 3,
+      "viewport": "1440x1000"
+    },
+    {
+      "route": "/workspace/people/2/analyses/1?view=review",
+      "durationMs": 692,
+      "domContentLoadedMs": 162,
+      "apiMaxMs": 7,
+      "apiRequests": 3,
+      "viewport": "1440x1000"
+    },
+    {
+      "route": "/manage/career/roles",
+      "durationMs": 692,
+      "domContentLoadedMs": 160,
+      "apiMaxMs": 5,
+      "apiRequests": 3,
+      "viewport": "1440x1000"
+    },
+    {
+      "route": "/workspace/people/2/analyses/1?view=review",
+      "durationMs": 550,
+      "domContentLoadedMs": 24,
+      "apiMaxMs": 5,
+      "apiRequests": 3,
+      "viewport": "390x844"
+    }
+  ],
+  "interactionTimings": [
+    {
+      "name": "overview-to-inbox",
+      "durationMs": 132
+    }
+  ],
+  "viewports": [
+    "1440x1000",
+    "1280x720",
+    "768x1024",
+    "390x844",
+    "320x740",
+    "844x390",
+    "320 CSS px (1280px at 400% equivalent)"
+  ],
+  "checks": [
+    "deep-link fallback",
+    "missing asset 404",
+    "reload",
+    "back/forward",
+    "forbidden role",
+    "missing resource",
+    "missing objective",
+    "draft navigation guard",
+    "persisted plan/objective/terminology/role/GitHub mutations",
+    "review mutation lock",
+    "concurrent first review",
+    "manager filters",
+    "GitHub search pagination/import",
+    "concurrent session expiry",
+    "uncaught browser errors",
+    "unexpected HTTP errors",
+    "drawer focus trap/return",
+    "200% text",
+    "zero horizontal overflow"
+  ]
+}

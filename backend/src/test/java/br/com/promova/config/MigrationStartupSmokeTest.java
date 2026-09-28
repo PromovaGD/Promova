@@ -26,8 +26,8 @@ class MigrationStartupSmokeTest {
     MigrationInfo current = flyway.info().current();
 
     assertThat(current).isNotNull();
-    assertThat(current.getVersion().getVersion()).isEqualTo("8");
-    assertThat(current.getDescription()).isEqualTo("modernization contracts");
+    assertThat(current.getVersion().getVersion()).isEqualTo("12");
+    assertThat(current.getDescription()).isEqualTo("evidence source facts and inbox");
     assertThat(environment.getProperty("spring.jpa.hibernate.ddl-auto")).isEqualTo("validate");
     assertThat(environment.getProperty("spring.datasource.url"))
         .startsWith("jdbc:h2:mem:")
@@ -56,7 +56,14 @@ class MigrationStartupSmokeTest {
             "career_profile_characteristics",
             "career_objectives",
             "saved_analyses",
-            "saved_analysis_reviews");
+            "saved_analysis_reviews",
+            "teams",
+            "team_memberships",
+            "career_objective_events",
+            "github_pull_requests",
+            "github_pull_reviews",
+            "analysis_runs",
+            "analysis_suggestions");
 
     Set<String> evidenceColumns =
         jdbcTemplate
@@ -67,7 +74,7 @@ class MigrationStartupSmokeTest {
             .stream()
             .map(value -> value.toLowerCase(Locale.ROOT))
             .collect(Collectors.toSet());
-    assertThat(evidenceColumns).contains("content", "occurred_at").doesNotContain("evidence");
+    assertThat(evidenceColumns).contains("content", "occurred_at", "source_author", "source_merged_at", "source_labels").doesNotContain("evidence");
 
     Set<String> analysisColumns =
         jdbcTemplate
@@ -78,7 +85,7 @@ class MigrationStartupSmokeTest {
             .stream()
             .map(value -> value.toLowerCase(Locale.ROOT))
             .collect(Collectors.toSet());
-    assertThat(analysisColumns).contains("user_observation");
+    assertThat(analysisColumns).contains("user_observation", "generated_title");
 
     Set<String> reviewColumns =
         jdbcTemplate

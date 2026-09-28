@@ -47,6 +47,15 @@ public class Evidence {
   @Column(name = "source_url", length = 2048)
   private String sourceUrl;
 
+  @Column(name = "source_author", length = 200)
+  private String sourceAuthor;
+
+  @Column(name = "source_merged_at")
+  private Instant sourceMergedAt;
+
+  @Column(name = "source_labels", length = 1000)
+  private String sourceLabels;
+
   @Column(name = "captured_at", nullable = false)
   private Instant capturedAt;
 
@@ -120,6 +129,16 @@ public class Evidence {
 
   public String getSourceUrl() {
     return sourceUrl;
+  }
+
+  public String getSourceAuthor() { return sourceAuthor; }
+  public Instant getSourceMergedAt() { return sourceMergedAt; }
+  public String getSourceLabels() { return sourceLabels; }
+
+  public void setSourceFacts(String author, Instant mergedAt, String labels) {
+    sourceAuthor = normalizeOptional(author);
+    sourceMergedAt = mergedAt;
+    sourceLabels = normalizeOptional(labels);
   }
 
   public Instant getCapturedAt() {

@@ -49,6 +49,9 @@ public class SavedAnalysis {
   @Column(nullable = false, length = 10000)
   private String evidence;
 
+  @Column(name = "generated_title", length = 100)
+  private String generatedTitle;
+
   @Column(nullable = false)
   private String currentLevel;
 
@@ -163,6 +166,7 @@ public class SavedAnalysis {
         currentLevel,
         targetLevel,
         null,
+        null,
         impactLevel,
         confidence,
         justification,
@@ -177,6 +181,7 @@ public class SavedAnalysis {
       String currentLevel,
       String targetLevel,
       String userObservation,
+      String generatedTitle,
       String impactLevel,
       String confidence,
       String justification,
@@ -201,6 +206,7 @@ public class SavedAnalysis {
         readiness,
         createdAt);
     this.evidenceEntity = evidence;
+    this.generatedTitle = generatedTitle;
   }
 
   public Long getId() {
@@ -229,6 +235,10 @@ public class SavedAnalysis {
 
   public String getEvidence() {
     return evidence;
+  }
+
+  public String getGeneratedTitle() {
+    return generatedTitle;
   }
 
   public String getCurrentLevel() {

@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Promova — navegação da evidência</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#17152e;color:#fff;font-family:Arial,Helvetica,sans-serif}main{width:min(100%,1536px);margin:auto;padding:24px}header{display:flex;justify-content:space-between;gap:20px;align-items:center;margin-bottom:18px}h1{margin:0;font-size:clamp(25px,3vw,40px);letter-spacing:-.04em}p{color:#cdc6e8;margin:7px 0 0}a.download{background:#673cec;color:#fff;text-decoration:none;padding:13px 18px;border-radius:10px;font-weight:700;white-space:nowrap}video{width:100%;aspect-ratio:16/9;display:block;background:#eae8e4;border-radius:13px;box-shadow:0 25px 75px #0007}.chapters{display:flex;gap:8px;flex-wrap:wrap;margin-top:17px}.chapters button{border:1px solid #625583;border-radius:8px;background:#2c2447;color:#eee9ff;padding:10px 13px;font-weight:650;cursor:pointer}.chapters button:hover{background:#493578}.note{font-size:14px;margin-top:17px}@media(max-width:640px){main{padding:12px}header{align-items:flex-start;flex-direction:column}}
+</style>
+<main><header><div><h1>Promova — da evidência à análise</h1><p>Um percurso pelo produto, a partir das telas enviadas.</p></div><a class="download" href="promova-navigation-release.mp4" download>Baixar MP4</a></header>
+<video controls playsinline preload="metadata" poster="poster.png"><source src="promova-navigation-release.mp4" type="video/mp4">Seu navegador não conseguiu reproduzir o vídeo.</video>
+<div class="chapters"><button data-time="0">Marca</button><button data-time="2.5">Visão geral</button><button data-time="5.8">Caixa de entrada</button><button data-time="9.4">Evidência</button><button data-time="14.3">Analisando</button><button data-time="17.9">Análise salva</button><button data-time="23">Assinatura</button></div>
+<p class="note">25,6 s · 1600 × 900 · 30 fps · trilha original. A observação digitada é ilustrativa.</p></main>
+<script>const video=document.querySelector('video');for(const b of document.querySelectorAll('[data-time]'))b.onclick=()=>{video.currentTime=Number(b.dataset.time);video.play()};</script></html>

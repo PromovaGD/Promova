@@ -49,6 +49,7 @@ public class AnalysisReviewService {
 
   @Transactional(readOnly = true)
   public ReviewQueueResponse queue(
+      Long managerId,
       String statusValue,
       Long employeeId,
       String source,
@@ -60,8 +61,11 @@ public class AnalysisReviewService {
     }
     ReviewStatus status = parseQueueStatus(statusValue);
     String normalizedSource = source == null || source.isBlank() ? null : source.trim();
+    Instant asOf = Instant.now();
     var page =
         reviewRepository.findReviewQueue(
+            managerId,
+            asOf,
             status == null ? null : status.name(),
             employeeId,
             normalizedSource,
@@ -90,7 +94,7 @@ public class AnalysisReviewService {
       counts.put(value, 0L);
     }
     reviewRepository
-        .countReviewQueueByStatus(employeeId, normalizedSource, from, to)
+        .countReviewQueueByStatus(managerId, asOf, employeeId, normalizedSource, from, to)
         .forEach(
             count -> counts.put(ReviewStatus.valueOf(count.getCurrentStatus()), count.getTotal()));
     return new ReviewQueueResponse(

@@ -72,6 +72,7 @@ public class GithubPullRequestService {
         additions,
         deletions,
         additions + deletions,
+        pullRequest.path("commits").isIntegralNumber() ? pullRequest.path("commits").asInt() : null,
         files);
   }
 

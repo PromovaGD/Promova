@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import br.com.promova.analysis.dto.SavedAnalysisRequest;
 import br.com.promova.analysis.dto.SavedAnalysisResponse;
 import br.com.promova.analysis.service.SavedAnalysisService;
+import br.com.promova.manager.team.ManagerTeamService;
+import br.com.promova.manager.team.TeamRepository;
 import br.com.promova.user.User;
 import br.com.promova.user.UserRepository;
 import br.com.promova.user.UserRole;
@@ -32,6 +34,8 @@ class AnalysisReviewHttpSmokeIntegrationTest {
   @Autowired private ObjectMapper objectMapper;
   @Autowired private UserRepository userRepository;
   @Autowired private SavedAnalysisService savedAnalysisService;
+  @Autowired private ManagerTeamService teamService;
+  @Autowired private TeamRepository teamRepository;
   @LocalServerPort private int applicationPort;
 
   @Test
@@ -49,6 +53,11 @@ class AnalysisReviewHttpSmokeIntegrationTest {
     User manager = userRepository.findByEmailIgnoreCase(managerEmail).orElseThrow();
     manager.setRole(UserRole.MANAGER);
     userRepository.save(manager);
+    User seedManager = userRepository.findByEmailIgnoreCase("manager@promova.com").orElseThrow();
+    var seedTeam = teamRepository.findByManagerIdOrderByNameAsc(seedManager.getId()).get(0);
+    teamService.remove(seedManager, seedTeam.getId(), employee.getId());
+    var team = teamService.create(manager, "Equipe da revisão");
+    teamService.assign(manager, team.id(), employee.getId());
 
     SavedAnalysisResponse employeeAnalysis = saveAnalysis(employee, "reviewed-analysis");
     SavedAnalysisResponse otherAnalysis = saveAnalysis(otherEmployee, "other-analysis");

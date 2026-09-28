@@ -31,11 +31,30 @@ public class MockAnalysisEngine implements AnalysisEngine {
     List<String> competencies = detectCompetencies(normalizedEvidence);
 
     return new EvidenceAnalysisResponse(
+        mockTitle(request.evidence()),
         estimatedLevel,
         Confidence.MEDIUM,
         buildReasoning(estimatedLevel, request),
         competencies,
         SUGGESTIONS);
+  }
+
+  private String mockTitle(String evidence) {
+    String sourceTitle =
+        evidence.lines()
+            .map(String::trim)
+            .filter(line -> line.matches("(?i)^t[ií]tulo\\s*:.+"))
+            .map(line -> line.replaceFirst("(?i)^t[ií]tulo\\s*:\\s*", ""))
+            .findFirst()
+            .orElse(null);
+    String firstLine =
+        evidence.lines()
+            .map(String::trim)
+            .filter(line -> !line.isBlank())
+            .findFirst()
+            .orElse("Evidência sem descrição");
+    String title = sourceTitle == null ? firstLine : sourceTitle;
+    return title.length() > 100 ? title.substring(0, 100).trim() : title;
   }
 
   private String estimateLevel(

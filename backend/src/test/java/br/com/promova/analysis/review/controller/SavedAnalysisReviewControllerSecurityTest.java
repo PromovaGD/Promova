@@ -14,6 +14,7 @@ import br.com.promova.analysis.review.ReviewStatus;
 import br.com.promova.analysis.review.dto.AnalysisReviewResponse;
 import br.com.promova.analysis.review.dto.SavedAnalysisReviewResponse;
 import br.com.promova.analysis.review.service.AnalysisReviewService;
+import br.com.promova.manager.team.ManagerTeamService;
 import br.com.promova.auth.AuthService;
 import br.com.promova.auth.AuthTokenResolver;
 import br.com.promova.config.ApiExceptionHandler;
@@ -44,6 +45,7 @@ class SavedAnalysisReviewControllerSecurityTest {
   @MockitoBean private AuthService authService;
   @MockitoBean private AuthTokenResolver authTokenResolver;
   @MockitoBean private UserRepository userRepository;
+  @MockitoBean private ManagerTeamService managerTeamService;
 
   @Test
   void rejectsAnonymousReviewReads() throws Exception {

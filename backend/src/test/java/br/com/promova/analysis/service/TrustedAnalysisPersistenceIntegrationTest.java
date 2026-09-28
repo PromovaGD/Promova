@@ -34,6 +34,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 @SpringBootTest
@@ -45,8 +46,11 @@ class TrustedAnalysisPersistenceIntegrationTest {
   @Autowired private UserRepository userRepository;
   @Autowired private CareerProfileRepository profileRepository;
   @Autowired private EvidenceRepository evidenceRepository;
+  @Autowired private br.com.promova.evidence.service.EvidenceService evidenceService;
+  @Autowired private SavedAnalysisService savedAnalysisService;
   @Autowired private SavedAnalysisRepository savedAnalysisRepository;
   @Autowired private JobRoleRepository jobRoleRepository;
+  @Autowired private JdbcTemplate jdbc;
 
   @MockitoBean private AnalysisEngine analysisEngine;
 
@@ -73,7 +77,7 @@ class TrustedAnalysisPersistenceIntegrationTest {
     Evidence evidence = saveEvidence("Refactored checkout and increased coverage");
     EvidenceAnalysisResponse engineResult =
         new EvidenceAnalysisResponse(
-            "L4", Confidence.HIGH, "Measured system improvement", List.of("Ownership"), List.of("Add metrics"));
+            "Refatorou o checkout e ampliou a cobertura", "L4", Confidence.HIGH, "Measured system improvement", List.of("Ownership"), List.of("Add metrics"));
     when(analysisEngine.analyze(any(EvidenceAnalysisRequest.class), any())).thenReturn(engineResult);
 
     var first =
@@ -82,6 +86,7 @@ class TrustedAnalysisPersistenceIntegrationTest {
     var second = analysisService.analyzeOwnedEvidence(owner, evidence.getId());
 
     assertThat(first.id()).isEqualTo(second.id());
+    assertThat(first.title()).isEqualTo("Refatorou o checkout e ampliou a cobertura");
     assertThat(first.impactLevel()).isEqualTo("L4");
     assertThat(first.confidence()).isEqualTo("high");
     assertThat(first.justification()).isEqualTo("Measured system improvement");
@@ -98,6 +103,9 @@ class TrustedAnalysisPersistenceIntegrationTest {
     assertThat(saved.getSource()).isEqualTo("GitHub");
     assertThat(saved.getSourceMeta()).isEqualTo("PR #7 - promova/app");
     assertThat(saved.getEvidence()).isEqualTo("Refactored checkout and increased coverage");
+    assertThat(saved.getGeneratedTitle()).isEqualTo(first.title());
+    assertThat(savedAnalysisService.getForUser(owner, saved.getId()).title()).isEqualTo(first.title());
+    assertThat(evidenceService.getCanonicalForUser(owner, evidence.getId()).analysisTitle()).isEqualTo(first.title());
     assertThat(saved.getCurrentLevel()).isEqualTo("L3");
     assertThat(saved.getTargetLevel()).isEqualTo("L4");
     assertThat(saved.getUserObservation()).isEqualTo("Contexto adicional verificável");
@@ -105,6 +113,10 @@ class TrustedAnalysisPersistenceIntegrationTest {
 
     Evidence reloaded = evidenceRepository.findById(evidence.getId()).orElseThrow();
     assertThat(reloaded.getStatus()).isEqualTo(EvidenceStatus.ANALYZED);
+    assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM analysis_runs WHERE evidence_id = ? AND outcome = 'SUCCEEDED'",
+        Integer.class, evidence.getId())).isEqualTo(1);
+    assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM analysis_suggestions WHERE analysis_id = ?",
+        Integer.class, saved.getId())).isEqualTo(1);
     verify(analysisEngine, times(1)).analyze(any(EvidenceAnalysisRequest.class), any());
   }
 
@@ -114,7 +126,7 @@ class TrustedAnalysisPersistenceIntegrationTest {
     when(analysisEngine.analyze(any(EvidenceAnalysisRequest.class), any()))
         .thenReturn(
             new EvidenceAnalysisResponse(
-                "L3", Confidence.MEDIUM, "Team contribution", List.of(), List.of()));
+                "Apoiou a correção de falhas de produção", "L3", Confidence.MEDIUM, "Team contribution", List.of(), List.of()));
 
     analysisService.analyzeOwnedEvidence(owner, evidence.getId());
 
@@ -140,6 +152,8 @@ class TrustedAnalysisPersistenceIntegrationTest {
         .isEmpty();
     assertThat(evidenceRepository.findById(evidence.getId()).orElseThrow().getStatus())
         .isEqualTo(EvidenceStatus.PENDING);
+    assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM analysis_runs WHERE evidence_id = ? AND outcome = 'FAILED'",
+        Integer.class, evidence.getId())).isEqualTo(1);
   }
 
   @Test

@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Promova — filme de lançamento</title>
+<style>
+  *{box-sizing:border-box}body{margin:0;background:#080b24;color:#f8f7ff;font-family:Inter,Arial,sans-serif;min-height:100vh}main{max-width:1550px;padding:28px;margin:auto}header{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:18px}h1{font-size:clamp(25px,3vw,45px);letter-spacing:-.04em;margin:0}p{color:#bcb8d1;margin:7px 0 0}.button{border:1px solid #9777ff;background:#6038df;color:#fff;text-decoration:none;border-radius:11px;padding:13px 18px;font-weight:700;white-space:nowrap}video{width:100%;aspect-ratio:16/9;background:#121235;border-radius:16px;box-shadow:0 35px 100px #0008}.chapters{display:flex;flex-wrap:wrap;gap:9px;margin-top:19px}.chapters button{cursor:pointer;border:1px solid #504477;background:#201b44;color:#eae5ff;padding:10px 13px;border-radius:9px;font-weight:600}.chapters button:hover{background:#38247b}.meta{margin-top:22px;font-size:14px;color:#a7a2be}@media(max-width:700px){header{align-items:flex-start;flex-direction:column}main{padding:15px}video{border-radius:8px}}
+</style>
+<main><header><div><h1>Promova — filme de lançamento</h1><p>O trabalho acontece. A evolução aparece.</p></div><a class="button" href="promova-release-motion.mp4" download>Baixar MP4</a></header>
+<video controls playsinline preload="metadata" poster="poster.png"><source src="promova-release-motion.mp4" type="video/mp4">Seu navegador não conseguiu reproduzir o vídeo.</video>
+<div class="chapters"><button data-time="0">Abertura</button><button data-time="4.5">Marca</button><button data-time="8">Evidências</button><button data-time="13.1">Análises</button><button data-time="18.3">Revisão</button><button data-time="23.2">Plano</button><button data-time="28.2">Gestão</button><button data-time="31.7">Encerramento</button></div>
+<p class="meta">36 s · 1600 × 900 · áudio estéreo original · capturas do protótipo com dados fictícios</p></main>
+<script>const video=document.querySelector('video');document.querySelectorAll('button[data-time]').forEach(button=>button.onclick=()=>{video.currentTime=Number(button.dataset.time);video.play()})</script>
+</html>

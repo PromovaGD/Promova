@@ -1,0 +1,13 @@
+PROMOVA — PROTÓTIPO NAVEGÁVEL PARA UX
+
+1. Descompacte todo o conteúdo do arquivo ZIP.
+2. Abra o arquivo index.html em Chrome, Edge, Safari ou Firefox.
+3. Use o seletor "Tela" no topo ou os links internos para navegar.
+
+O protótipo contém 35 cenários de desktop e mobile. Ele funciona localmente,
+sem instalação, servidor, login ou acesso a APIs. Todos os dados são ilustrativos.
+
+Arquivos de apoio:
+- gallery.html: galeria visual com os principais cenários.
+- PLAN.md: plano e mapa de rotas propostos.
+- AUDIT.md: auditoria das telas que orientou os conceitos.

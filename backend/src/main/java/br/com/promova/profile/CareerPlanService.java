@@ -25,6 +25,7 @@ public class CareerPlanService {
   private final UserRepository userRepository;
   private final CareerProfileRepository profileRepository;
   private final CareerObjectiveRepository objectiveRepository;
+  private final CareerObjectiveEventRepository objectiveEventRepository;
   private final JobRoleRepository jobRoleRepository;
   private final FrameworkProvider frameworkProvider;
   private final ProfileService profileService;
@@ -33,12 +34,14 @@ public class CareerPlanService {
       UserRepository userRepository,
       CareerProfileRepository profileRepository,
       CareerObjectiveRepository objectiveRepository,
+      CareerObjectiveEventRepository objectiveEventRepository,
       JobRoleRepository jobRoleRepository,
       FrameworkProvider frameworkProvider,
       ProfileService profileService) {
     this.userRepository = userRepository;
     this.profileRepository = profileRepository;
     this.objectiveRepository = objectiveRepository;
+    this.objectiveEventRepository = objectiveEventRepository;
     this.jobRoleRepository = jobRoleRepository;
     this.frameworkProvider = frameworkProvider;
     this.profileService = profileService;
@@ -92,7 +95,9 @@ public class CareerPlanService {
     if (request.status() != ObjectiveStatus.ACTIVE) {
       objective.update(request.text(), request.status(), request.targetDate(), manager);
     }
-    return CareerObjectiveResponse.from(objectiveRepository.save(objective));
+    CareerObjective saved = objectiveRepository.save(objective);
+    objectiveEventRepository.save(new CareerObjectiveEvent(saved, manager));
+    return CareerObjectiveResponse.from(saved);
   }
 
   @Transactional
@@ -112,7 +117,9 @@ public class CareerPlanService {
           HttpStatus.CONFLICT, "O objetivo mudou. Atualize os dados antes de salvar novamente.");
     }
     objective.update(request.text(), request.status(), request.targetDate(), manager);
-    return CareerObjectiveResponse.from(objectiveRepository.save(objective));
+    CareerObjective saved = objectiveRepository.save(objective);
+    objectiveEventRepository.save(new CareerObjectiveEvent(saved, manager));
+    return CareerObjectiveResponse.from(saved);
   }
 
   private User requireEmployee(Long employeeId) {

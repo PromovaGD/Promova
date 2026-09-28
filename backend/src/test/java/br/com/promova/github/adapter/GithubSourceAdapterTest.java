@@ -106,7 +106,7 @@ class GithubSourceAdapterTest {
                     + "\"html_url\":\"https://github.com/acme/project/pull/83\","
                     + "\"user\":{\"login\":\"octocat\"},\"updated_at\":\"2026-08-08T11:00:00Z\","
                     + "\"created_at\":\"2026-08-07T10:00:00Z\",\"body\":\"Added tests\","
-                    + "\"additions\":12,\"deletions\":3,\"changed_files\":1}"));
+                    + "\"additions\":12,\"deletions\":3,\"changed_files\":1,\"commits\":4}"));
     server.createContext(
         "/repos/acme/project/pulls/83/files",
         exchange -> respond(exchange, 200, "[]"));
@@ -121,6 +121,7 @@ class GithubSourceAdapterTest {
 
     assertThat(evidence.externalId()).isEqualTo("github:acme/project#83");
     assertThat(evidence.sourceMeta()).isEqualTo("PR #83 - acme/project");
+    assertThat(evidence.providerMetadata()).containsEntry("commitCount", "4");
     assertThat(evidence.evidenceText())
         .contains("Volume coletado via API (+12 -3 linhas, 1 arquivo(s)).", "Added tests");
     assertThat(evidence.sourceUrl()).isEqualTo("https://github.com/acme/project/pull/83");

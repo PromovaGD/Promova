@@ -48,6 +48,9 @@ public interface SavedAnalysisReviewRepository extends JpaRepository<SavedAnalys
           FROM saved_analyses a
           JOIN users u ON u.id = a.user_id
           WHERE u.role = 'EMPLOYEE'
+            AND EXISTS (SELECT 1 FROM team_memberships tm JOIN teams t ON t.id = tm.team_id
+                        WHERE tm.employee_user_id = u.id AND t.manager_user_id = :managerId
+                          AND tm.started_at <= :asOf AND (tm.ended_at IS NULL OR tm.ended_at > :asOf))
             AND (:employeeId IS NULL OR a.user_id = :employeeId)
             AND (:source IS NULL OR LOWER(a.source) = LOWER(:source))
             AND (:fromInstant IS NULL OR a.created_at >= :fromInstant)
@@ -63,6 +66,9 @@ public interface SavedAnalysisReviewRepository extends JpaRepository<SavedAnalys
           FROM saved_analyses a
           JOIN users u ON u.id = a.user_id
           WHERE u.role = 'EMPLOYEE'
+            AND EXISTS (SELECT 1 FROM team_memberships tm JOIN teams t ON t.id = tm.team_id
+                        WHERE tm.employee_user_id = u.id AND t.manager_user_id = :managerId
+                          AND tm.started_at <= :asOf AND (tm.ended_at IS NULL OR tm.ended_at > :asOf))
             AND (:employeeId IS NULL OR a.user_id = :employeeId)
             AND (:source IS NULL OR LOWER(a.source) = LOWER(:source))
             AND (:fromInstant IS NULL OR a.created_at >= :fromInstant)
@@ -73,6 +79,8 @@ public interface SavedAnalysisReviewRepository extends JpaRepository<SavedAnalys
           """,
       nativeQuery = true)
   Page<ReviewQueueProjection> findReviewQueue(
+      @Param("managerId") Long managerId,
+      @Param("asOf") Instant asOf,
       @Param("status") String status,
       @Param("employeeId") Long employeeId,
       @Param("source") String source,
@@ -91,6 +99,9 @@ public interface SavedAnalysisReviewRepository extends JpaRepository<SavedAnalys
             FROM saved_analyses a
             JOIN users u ON u.id = a.user_id
             WHERE u.role = 'EMPLOYEE'
+              AND EXISTS (SELECT 1 FROM team_memberships tm JOIN teams t ON t.id = tm.team_id
+                          WHERE tm.employee_user_id = u.id AND t.manager_user_id = :managerId
+                            AND tm.started_at <= :asOf AND (tm.ended_at IS NULL OR tm.ended_at > :asOf))
               AND (:employeeId IS NULL OR a.user_id = :employeeId)
               AND (:source IS NULL OR LOWER(a.source) = LOWER(:source))
               AND (:fromInstant IS NULL OR a.created_at >= :fromInstant)
@@ -100,6 +111,8 @@ public interface SavedAnalysisReviewRepository extends JpaRepository<SavedAnalys
           """,
       nativeQuery = true)
   List<ReviewQueueCountProjection> countReviewQueueByStatus(
+      @Param("managerId") Long managerId,
+      @Param("asOf") Instant asOf,
       @Param("employeeId") Long employeeId,
       @Param("source") String source,
       @Param("fromInstant") Instant from,

@@ -3,6 +3,7 @@ package br.com.promova.analysis.review.controller;
 import br.com.promova.analysis.review.dto.AnalysisReviewResponse;
 import br.com.promova.analysis.review.dto.SavedAnalysisReviewRequest;
 import br.com.promova.analysis.review.service.AnalysisReviewService;
+import br.com.promova.manager.team.ManagerTeamService;
 import br.com.promova.auth.AuthService;
 import br.com.promova.auth.AuthTokenResolver;
 import br.com.promova.user.User;
@@ -26,16 +27,19 @@ public class SavedAnalysisReviewController {
   private final AuthService authService;
   private final AuthTokenResolver authTokenResolver;
   private final UserRepository userRepository;
+  private final ManagerTeamService managerTeamService;
 
   public SavedAnalysisReviewController(
       AnalysisReviewService analysisReviewService,
       AuthService authService,
       AuthTokenResolver authTokenResolver,
-      UserRepository userRepository) {
+      UserRepository userRepository,
+      ManagerTeamService managerTeamService) {
     this.analysisReviewService = analysisReviewService;
     this.authService = authService;
     this.authTokenResolver = authTokenResolver;
     this.userRepository = userRepository;
+    this.managerTeamService = managerTeamService;
   }
 
   @GetMapping("/analyses/{analysisId}/reviews")
@@ -78,6 +82,7 @@ public class SavedAnalysisReviewController {
   }
 
   private User requireManagerVisibleEmployee(User manager, Long employeeId) {
+    managerTeamService.requireVisible(manager, employeeId);
     return userRepository
         .findById(employeeId)
         .filter(user -> user.getRole() == UserRole.EMPLOYEE)

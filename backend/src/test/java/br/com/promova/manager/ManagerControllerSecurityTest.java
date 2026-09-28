@@ -13,6 +13,7 @@ import br.com.promova.config.ApiExceptionHandler;
 import br.com.promova.config.WebConfig;
 import br.com.promova.evidence.service.EvidenceService;
 import br.com.promova.manager.controller.ManagerController;
+import br.com.promova.manager.team.ManagerTeamService;
 import br.com.promova.profile.CareerObjectiveRepository;
 import br.com.promova.profile.CareerProfileRepository;
 import br.com.promova.user.User;
@@ -40,6 +41,7 @@ class ManagerControllerSecurityTest {
   @MockitoBean private CareerObjectiveRepository careerObjectiveRepository;
   @MockitoBean private EvidenceService evidenceService;
   @MockitoBean private AnalysisReviewService analysisReviewService;
+  @MockitoBean private ManagerTeamService managerTeamService;
 
   @Test
   void rejectsAnonymousManagerRequests() throws Exception {
@@ -70,7 +72,7 @@ class ManagerControllerSecurityTest {
     User employee = user("Employee", "employee@example.com", UserRole.EMPLOYEE, 2L);
     when(authTokenResolver.resolve("Bearer manager-token")).thenReturn("manager-token");
     when(authService.requireUser("manager-token")).thenReturn(manager);
-    when(userRepository.findByRoleOrderByNameAsc(UserRole.EMPLOYEE))
+    when(userRepository.listVisibleEmployees(org.mockito.ArgumentMatchers.eq(1L), org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.isNull(), org.mockito.ArgumentMatchers.isNull(), org.mockito.ArgumentMatchers.isNull()))
         .thenReturn(java.util.List.of(employee));
     when(careerProfileRepository.findByUserId(2L)).thenReturn(java.util.Optional.empty());
 

@@ -1,6 +1,7 @@
 package br.com.promova.config;
 
 import br.com.promova.profile.ProfileService;
+import br.com.promova.manager.team.ManagerTeamService;
 import br.com.promova.user.User;
 import br.com.promova.user.UserRepository;
 import br.com.promova.user.UserRole;
@@ -8,6 +9,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -15,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Profile({"dev", "test"})
 public class DataSeeder {
   @Bean
+  @Order(1)
   CommandLineRunner seedUsers(
       UserRepository userRepository,
       PasswordEncoder passwordEncoder,
@@ -58,6 +61,17 @@ public class DataSeeder {
       userRepository.findAll().stream()
           .filter(user -> user.getRole() == UserRole.EMPLOYEE)
           .forEach(profileService::ensureProfile);
+    };
+  }
+
+  @Bean
+  @Order(2)
+  CommandLineRunner seedDemoTeams(
+      UserRepository userRepository, ManagerTeamService teamService) {
+    return args -> {
+      var employees = userRepository.findByRoleOrderByNameAsc(UserRole.EMPLOYEE);
+      userRepository.findByRoleOrderByNameAsc(UserRole.MANAGER)
+          .forEach(manager -> teamService.bootstrapDemoTeam(manager, employees));
     };
   }
 
